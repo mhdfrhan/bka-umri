@@ -1,0 +1,268 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+interface Slide {
+    id: number;
+    image: string;
+    title: string;
+    description?: string;
+    ctaText?: string;
+    ctaHref?: string;
+}
+
+interface HeroSliderProps {
+    slides: Slide[];
+}
+
+export default function HeroSlider({ slides }: HeroSliderProps) {
+    const [current, setCurrent] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
+    const [progressKey, setProgressKey] = useState(0);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const goTo = useCallback(
+        (index: number) => {
+            setCurrent((index + slides.length) % slides.length);
+            setProgressKey((k) => k + 1);
+        },
+        [slides.length],
+    );
+
+    const next = useCallback(() => goTo(current + 1), [goTo, current]);
+    const prev = useCallback(() => goTo(current - 1), [goTo, current]);
+
+    useEffect(() => {
+        if (slides.length <= 1 || isHovered) {
+            return;
+        }
+
+        intervalRef.current = setInterval(next, 5000);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [next, slides.length, isHovered]);
+
+    if (slides.length === 0) {
+        return null;
+    }
+
+    return (
+        <section
+            id="hero-slider"
+            aria-label="Banner utama"
+            className="relative w-full overflow-hidden bg-[#0D3B11]"
+            style={{ height: 'clamp(360px, 56vw, 620px)' }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {/* Slides */}
+            {slides.map((slide, idx) => (
+                <div
+                    key={slide.id}
+                    aria-hidden={idx !== current}
+                    className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                    style={{
+                        opacity: idx === current ? 1 : 0,
+                        pointerEvents: idx === current ? 'auto' : 'none',
+                    }}
+                >
+                    {/* Background image */}
+                    <img
+                        src={slide.image}
+                        alt=""
+                        aria-hidden="true"
+                        className={`absolute inset-0 h-full w-full object-cover object-center transition-transform ${
+                            idx === current
+                                ? 'scale-100 delay-0 duration-[6000ms] ease-out'
+                                : 'scale-110 delay-1000 duration-0'
+                        }`}
+                    />
+
+                    {/* Multi-stop gradient overlay for premium depth */}
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-0"
+                        style={{
+                            background:
+                                'linear-gradient(135deg, rgba(10,40,14,0.9) 0%, rgba(10,40,14,0.65) 40%, rgba(10,40,14,0.35) 70%, rgba(10,40,14,0.5) 100%)',
+                        }}
+                    />
+
+                    {/* Radial ambient glow */}
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-0"
+                        style={{
+                            background:
+                                'radial-gradient(ellipse at 20% 50%, rgba(200,160,0,0.08) 0%, transparent 60%)',
+                        }}
+                    />
+
+                    {/* Content */}
+                    <div className="bka-container relative z-[2] flex h-full items-center">
+                        <div className="max-w-[620px]">
+                            {/* Gold accent line */}
+                            <div
+                                className="mb-5 h-[3px] w-12 rounded-full transition-all duration-700 ease-out"
+                                style={{
+                                    background:
+                                        'linear-gradient(90deg, #C8A000, #E8C840)',
+                                    opacity: idx === current ? 1 : 0,
+                                    transform:
+                                        idx === current
+                                            ? 'translateX(0) scaleX(1)'
+                                            : 'translateX(-20px) scaleX(0.5)',
+                                    transitionDelay: '200ms',
+                                }}
+                            />
+
+                            {/* Title */}
+                            <h1
+                                className="mb-4 leading-[1.15] font-bold text-white"
+                                style={{
+                                    fontSize: 'clamp(26px, 4.5vw, 48px)',
+                                    opacity: idx === current ? 1 : 0,
+                                    transform:
+                                        idx === current
+                                            ? 'translateY(0)'
+                                            : 'translateY(20px)',
+                                    transition:
+                                        'opacity 700ms ease-out 300ms, transform 700ms ease-out 300ms',
+                                }}
+                            >
+                                {slide.title}
+                            </h1>
+
+                            {/* Description */}
+                            {slide.description && (
+                                <p
+                                    className="max-w-[540px] leading-relaxed text-white/85"
+                                    style={{
+                                        fontSize: 'clamp(14px, 2vw, 18px)',
+                                        marginBottom: slide.ctaText
+                                            ? '32px'
+                                            : 0,
+                                        opacity: idx === current ? 1 : 0,
+                                        transform:
+                                            idx === current
+                                                ? 'translateY(0)'
+                                                : 'translateY(20px)',
+                                        transition:
+                                            'opacity 700ms ease-out 400ms, transform 700ms ease-out 400ms',
+                                    }}
+                                >
+                                    {slide.description}
+                                </p>
+                            )}
+
+                            {/* CTA */}
+                            {slide.ctaText && (
+                                <div
+                                    className="flex flex-wrap gap-3"
+                                    style={{
+                                        opacity: idx === current ? 1 : 0,
+                                        transform:
+                                            idx === current
+                                                ? 'translateY(0)'
+                                                : 'translateY(20px)',
+                                        transition:
+                                            'opacity 700ms ease-out 500ms, transform 700ms ease-out 500ms',
+                                    }}
+                                >
+                                    <a
+                                        href={slide.ctaHref ?? '#'}
+                                        className="bka-btn-primary shadow-[0_4px_20px_rgba(27,94,32,0.4)]"
+                                        style={{
+                                            fontSize: '15px',
+                                            padding: '12px 28px',
+                                        }}
+                                    >
+                                        {slide.ctaText}
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            ))}
+
+            {/* Decorative floating shapes */}
+            <div
+                aria-hidden="true"
+                className="bka-float-slow pointer-events-none absolute top-[15%] right-[8%] z-[1] h-[200px] w-[200px] rounded-full border border-white/[0.06] lg:h-[300px] lg:w-[300px]"
+            />
+            <div
+                aria-hidden="true"
+                className="bka-float-medium pointer-events-none absolute right-[12%] bottom-[20%] z-[1] h-[120px] w-[120px] rounded-full border border-[#C8A000]/[0.1] lg:h-[180px] lg:w-[180px]"
+                style={{ animationDelay: '-2s' }}
+            />
+
+            {/* Navigation Buttons */}
+            {slides.length > 1 && (
+                <>
+                    <button
+                        id="hero-prev"
+                        aria-label="Slide sebelumnya"
+                        onClick={prev}
+                        className="bka-glass absolute top-1/2 left-4 z-10 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-white transition-all duration-200 hover:bg-white/25 md:left-6"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+
+                    <button
+                        id="hero-next"
+                        aria-label="Slide berikutnya"
+                        onClick={next}
+                        className="bka-glass absolute top-1/2 right-4 z-10 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-white transition-all duration-200 hover:bg-white/25 md:right-6"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+                </>
+            )}
+
+            {/* Slide indicators with progress */}
+            {slides.length > 1 && (
+                <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
+                    {slides.map((_, idx) => (
+                        <button
+                            key={idx}
+                            aria-label={`Pergi ke slide ${idx + 1}`}
+                            onClick={() => goTo(idx)}
+                            className="relative h-[6px] cursor-pointer overflow-hidden rounded-full border-none p-0 transition-all duration-300 ease-out"
+                            style={{
+                                width: idx === current ? '36px' : '8px',
+                                backgroundColor:
+                                    idx === current
+                                        ? 'rgba(200,160,0,0.3)'
+                                        : 'rgba(255,255,255,0.4)',
+                            }}
+                        >
+                            {idx === current && !isHovered && (
+                                <span
+                                    key={progressKey}
+                                    className="bka-slide-progress absolute inset-0 h-full w-full rounded-full"
+                                />
+                            )}
+                            {idx === current && isHovered && (
+                                <span className="absolute inset-0 h-full w-full rounded-full bg-[#C8A000]" />
+                            )}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Bottom gradient fade */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute right-0 bottom-0 left-0 z-[5] h-20"
+                style={{
+                    background:
+                        'linear-gradient(to bottom, transparent, rgba(247,249,247,0.12))',
+                }}
+            />
+        </section>
+    );
+}

@@ -1,0 +1,597 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@import 'tw-animate-css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+/* @custom-variant dark (&:is(.dark *)); */
+
+@theme {
+    --font-sans:
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    /* ─── BKA UMRI Design System ─── */
+    --bka-primary: #1b5e20;
+    --bka-primary-hover: #145218;
+    --bka-primary-light: #2e7d46;
+    --bka-primary-subtle: #e8f5e9;
+    --bka-accent: #c8a000;
+    --bka-accent-light: #fff8dc;
+    --bka-text-primary: #1a1a1a;
+    --bka-text-secondary: #5c6b73;
+    --bka-text-muted: #9eaab2;
+    --bka-surface: #ffffff;
+    --bka-background: #f7f9f7;
+    --bka-border: #dde5dd;
+    --bka-border-strong: #b5c5b5;
+    --bka-success: #2e7d32;
+    --bka-warning: #f57f17;
+    --bka-error: #c62828;
+}
+
+:root {
+    --background: #f7f9f7;
+    --foreground: #1a1a1a;
+    --card: #ffffff;
+    --card-foreground: #1a1a1a;
+    --popover: #ffffff;
+    --popover-foreground: #1a1a1a;
+    --primary: #1b5e20;
+    --primary-foreground: #ffffff;
+    --secondary: #ffffff;
+    --secondary-foreground: #1b5e20;
+    --muted: #e8f5e9;
+    --muted-foreground: #5c6b73;
+    --accent: #c8a000;
+    --accent-foreground: #ffffff;
+    --destructive: #c62828;
+    --destructive-foreground: #ffffff;
+    --border: #dde5dd;
+    --input: #dde5dd;
+    --ring: #2e7d46;
+    --chart-1: #1b5e20;
+    --chart-2: #2e7d46;
+    --chart-3: #c8a000;
+    --chart-4: #f57f17;
+    --chart-5: #c62828;
+    --radius: 0.75rem; /* 12px for cards */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #1a1a1a;
+    --sidebar-primary: #1b5e20;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e8f5e9;
+    --sidebar-accent-foreground: #1b5e20;
+    --sidebar-border: #dde5dd;
+    --sidebar-ring: #2e7d46;
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.145 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.145 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.985 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --border: oklch(0.269 0 0);
+    --input: oklch(0.269 0 0);
+    --ring: oklch(0.439 0 0);
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.985 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(0.269 0 0);
+    --sidebar-ring: oklch(0.439 0 0);
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground font-sans;
+    }
+}
+
+/* ─── BKA Public Pages ─── */
+@layer components {
+    /* Font untuk halaman publik */
+    .bka-page {
+        @apply font-sans;
+        background-color: var(--bka-background);
+        color: var(--bka-text-primary);
+    }
+
+    /* Container standar */
+    .bka-container {
+        width: 100%;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    @media (min-width: 768px) {
+        .bka-container {
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .bka-container {
+            padding-left: 32px;
+            padding-right: 32px;
+        }
+    }
+
+    /* Tombol Primary */
+    .bka-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background-color: var(--bka-primary);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition:
+            background-color 150ms ease-out,
+            transform 150ms ease-out,
+            box-shadow 150ms ease-out;
+        min-height: 44px;
+        text-decoration: none;
+    }
+
+    .bka-btn-primary:hover {
+        background-color: var(--bka-primary-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
+    }
+
+    .bka-btn-primary:active {
+        transform: translateY(0);
+        background-color: var(--bka-primary-hover);
+    }
+
+    /* Tombol Secondary */
+    .bka-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background-color: transparent;
+        color: var(--bka-primary);
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 1.5px solid var(--bka-primary);
+        cursor: pointer;
+        transition:
+            background-color 150ms ease-out,
+            transform 150ms ease-out;
+        min-height: 44px;
+        text-decoration: none;
+    }
+
+    .bka-btn-secondary:hover {
+        background-color: var(--bka-primary-subtle);
+    }
+
+    /* Tombol outline putih (untuk hero slider) */
+    .bka-btn-outline-white {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background-color: transparent;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 1.5px solid rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        transition:
+            background-color 150ms ease-out,
+            border-color 150ms ease-out;
+        min-height: 44px;
+        text-decoration: none;
+    }
+
+    .bka-btn-outline-white:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-color: #ffffff;
+    }
+
+    /* Badge / Label */
+    .bka-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .bka-badge-primary {
+        background-color: var(--bka-primary-subtle);
+        color: var(--bka-primary);
+    }
+
+    .bka-badge-accent {
+        background-color: var(--bka-accent-light);
+        color: #9a6f00;
+    }
+
+    .bka-badge-danger {
+        background-color: #ffebee;
+        color: var(--bka-error);
+    }
+
+    /* Kartu */
+    .bka-card {
+        background-color: var(--bka-surface);
+        border: 1px solid var(--bka-border);
+        border-radius: 12px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        transition:
+            box-shadow 200ms ease-out,
+            transform 200ms ease-out;
+        overflow: hidden;
+    }
+
+    .bka-card:hover {
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Hero Slider Transitions */
+    .bka-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 600ms ease-in-out;
+    }
+
+    .bka-slide.active {
+        opacity: 1;
+    }
+
+    /* Skeleton pulse */
+    @keyframes bka-pulse {
+        0%,
+        100% {
+            opacity: 0.4;
+        }
+        50% {
+            opacity: 0.8;
+        }
+    }
+
+    .bka-skeleton {
+        background-color: #e5e7eb;
+        border-radius: 4px;
+        animation: bka-pulse 1.5s ease-in-out infinite;
+    }
+
+    /* Section spacing */
+    .bka-section {
+        padding-top: 48px;
+        padding-bottom: 48px;
+    }
+
+    @media (min-width: 768px) {
+        .bka-section {
+            padding-top: 64px;
+            padding-bottom: 64px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .bka-section {
+            padding-top: 80px;
+            padding-bottom: 80px;
+        }
+    }
+
+    /* Diagonal clip untuk statistik section */
+    .bka-clip-top {
+        clip-path: polygon(0 32px, 100% 0, 100% 100%, 0 100%);
+        padding-top: calc(32px + 80px);
+    }
+
+    @media (min-width: 768px) {
+        .bka-clip-top {
+            clip-path: polygon(0 56px, 100% 0, 100% 100%, 0 100%);
+            padding-top: calc(56px + 80px);
+        }
+    }
+}
+
+/* ─── Scroll Reveal Animations ─── */
+@keyframes bka-fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(32px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bka-fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-32px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes bka-fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(32px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes bka-fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes bka-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes bka-shimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes bka-progress {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0%);
+    }
+}
+
+/* Scroll reveal base state: hidden until IntersectionObserver triggers */
+.bka-reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: none;
+}
+
+.bka-reveal-left {
+    opacity: 0;
+    transform: translateX(-32px);
+    transition: none;
+}
+
+.bka-reveal-right {
+    opacity: 0;
+    transform: translateX(32px);
+    transition: none;
+}
+
+.bka-reveal-scale {
+    opacity: 0;
+    transform: scale(0.92);
+    transition: none;
+}
+
+/* When visible, animate in */
+.bka-reveal.bka-visible {
+    animation: bka-fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.bka-reveal-left.bka-visible {
+    animation: bka-fadeInLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.bka-reveal-right.bka-visible {
+    animation: bka-fadeInRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.bka-reveal-scale.bka-visible {
+    animation: bka-fadeInScale 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered delays for child elements */
+.bka-stagger-1 { animation-delay: 0ms !important; }
+.bka-stagger-2 { animation-delay: 100ms !important; }
+.bka-stagger-3 { animation-delay: 200ms !important; }
+.bka-stagger-4 { animation-delay: 300ms !important; }
+.bka-stagger-5 { animation-delay: 400ms !important; }
+.bka-stagger-6 { animation-delay: 500ms !important; }
+
+/* Glassmorphism utility */
+.bka-glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.bka-glass-light {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Floating animation for decorative elements */
+.bka-float-slow {
+    animation: bka-float 6s ease-in-out infinite;
+}
+
+.bka-float-medium {
+    animation: bka-float 4s ease-in-out infinite;
+}
+
+/* Gradient text utility */
+.bka-gradient-text {
+    background: linear-gradient(135deg, #1B5E20 0%, #2E7D46 50%, #C8A000 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Gold accent line */
+.bka-gold-line {
+    display: block;
+    width: 48px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #C8A000 0%, #E8C840 100%);
+}
+
+.bka-gold-line-center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Progress bar for hero slider */
+.bka-slide-progress {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    background: #C8A000;
+    border-radius: 999px;
+    animation: bka-progress 5s linear forwards;
+}
+
+/* Enhanced card hover */
+.bka-card-modern {
+    background-color: var(--bka-surface);
+    border: 1px solid var(--bka-border);
+    border-radius: 16px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 1px 2px rgba(0, 0, 0, 0.06);
+    transition:
+        box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 300ms ease;
+    overflow: hidden;
+}
+
+.bka-card-modern:hover {
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04);
+    transform: translateY(-4px);
+    border-color: var(--bka-border-strong);
+}
+
+/* Dot pattern overlay */
+.bka-dots-pattern {
+    background-image: radial-gradient(
+        rgba(27, 94, 32, 0.06) 1px,
+        transparent 1px
+    );
+    background-size: 20px 20px;
+}
