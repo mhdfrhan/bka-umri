@@ -9,7 +9,9 @@ import {
 } from "lucide-react";
 
 export function getFileIcon(filename: string | undefined | null) {
-    if (!filename) return FileIcon;
+    if (!filename) {
+return FileIcon;
+}
     
     const extension = filename.split('.').pop()?.toLowerCase();
     

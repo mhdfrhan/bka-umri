@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Head } from '@inertiajs/react';
 import {
     MapPin,
@@ -12,10 +11,11 @@ import {
     Twitter,
     Loader2,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { PageHero } from '@/components/layout/page-hero';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { PageHero } from '@/components/layout/page-hero';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 
 interface MediaSosialItem {
@@ -57,9 +57,28 @@ export default function KontakIndex({ kontak }: KontakProps) {
     const heroRef = useScrollReveal<HTMLDivElement>();
     const leftRef = useScrollReveal<HTMLDivElement>();
     const rightRef = useScrollReveal<HTMLDivElement>();
+    const [localKontak, setLocalKontak] = useState<KontakDetail | null>(null);
+
+    // Initial Hydration from local storage
+    useEffect(() => {
+        const savedSettings = localStorage.getItem('bka_settings');
+        if (savedSettings) {
+            try {
+                const parsed = JSON.parse(savedSettings);
+                setLocalKontak({
+                    alamat: parsed.alamat,
+                    telepon: parsed.telepon,
+                    email: parsed.email,
+                    jam_operasional: parsed.jam_operasional,
+                    google_maps_embed: parsed.google_maps_embed,
+                    mediaSosial: parsed.mediaSosial
+                });
+            } catch {}
+        }
+    }, []);
 
     // Safe fallback handling for dynamic vs mock data
-    const resolvedKontak = kontak || dummyKontak;
+    const resolvedKontak = localKontak || kontak || dummyKontak;
 
     // Form inputs state
     const [formData, setFormData] = useState({
@@ -151,6 +170,28 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
         // 3. Simulate backend submission delay (1.5 seconds)
         setTimeout(() => {
+            // Push message to local storage array for dynamic Inbox dashboard
+            try {
+                let currentMessages = [];
+                const savedInbox = localStorage.getItem('bka_pesan');
+                if (savedInbox) {
+                    try { currentMessages = JSON.parse(savedInbox); } catch {}
+                }
+                const newMsg = {
+                    id: 'msg-' + Date.now(),
+                    nama: formData.nama.trim(),
+                    email: formData.email.trim(),
+                    subjek: formData.subjek.trim(),
+                    pesan: formData.pesan.trim(),
+                    tanggal: new Date().toISOString(),
+                    dibaca: false
+                };
+                const updatedInbox = [newMsg, ...currentMessages];
+                localStorage.setItem('bka_pesan', JSON.stringify(updatedInbox));
+            } catch (err) {
+                console.error('Failed to save message to local storage inbox', err);
+            }
+
             setSubmitting(false);
             setMessageCount((prev) => prev + 1);
 

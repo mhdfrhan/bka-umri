@@ -108,7 +108,10 @@ const dummyAset: BidangShowProps['bidang'] = {
 
 // Temporary: resolve dummy data from slug
 function getDummyBidang(slug: string): BidangShowProps['bidang'] {
-    if (slug === 'administrasi-dan-pengadaan-aset') return dummyAset;
+    if (slug === 'administrasi-dan-pengadaan-aset') {
+return dummyAset;
+}
+
     return dummyKeuangan;
 }
 
@@ -247,6 +250,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                                                         (sm) => {
                                                             const Icon =
                                                                 socialIcons[sm.platform];
+
                                                             return (
                                                                 <a
                                                                     key={sm.platform}

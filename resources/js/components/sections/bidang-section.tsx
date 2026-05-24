@@ -1,5 +1,5 @@
-import { ArrowRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/section-header';
 import { useScrollRevealChildren } from '@/hooks/use-scroll-reveal';
 

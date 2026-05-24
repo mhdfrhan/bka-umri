@@ -1,19 +1,18 @@
+import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import PublicLayout from '@/layouts/public-layout';
-import { PageHero } from '@/components/layout/page-hero';
+import { Landmark, ShieldCheck } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { PageHero } from '@/components/layout/page-hero';
 import ProfilTabs from '@/components/public/profil/profil-tabs';
-import { BookOpen, Landmark, ShieldCheck } from 'lucide-react';
+import PublicLayout from '@/layouts/public-layout';
 
 interface TentangProps {
     konten?: string;
 }
 
 export default function Tentang({ konten }: TentangProps) {
-    // ----------------------------------------------------
-    // Fallback Mock Data for Visual Completeness
-    // ----------------------------------------------------
-    const finalKonten = konten || `
+    // Fallback Mock Data
+    const defaultKonten = konten || `
         <p class="lead">Biro Keuangan dan Aset (BKA) Universitas Muhammadiyah Riau merupakan unsur pelaksana administratif yang menyelenggarakan pelayanan teknis dan administratif di bidang pengelolaan keuangan serta pembinaan dan pengelolaan sarana, prasarana, dan aset universitas.</p>
         
         <h2>Sejarah Singkat</h2>
@@ -33,6 +32,17 @@ export default function Tentang({ konten }: TentangProps) {
             BKA UMRI berkomitmen untuk terus menghadirkan inovasi digitalisasi layanan demi mewujudkan ekosistem keuangan kampus yang andal, amanah, dan berorientasi pada kepuasan civitas akademika.
         </blockquote>
     `;
+
+    const [liveKonten, setLiveKonten] = useState(defaultKonten);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('bka_tentang_kami');
+            if (saved) {
+                setLiveKonten(saved);
+            }
+        }
+    }, [defaultKonten]);
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
@@ -72,7 +82,7 @@ export default function Tentang({ konten }: TentangProps) {
                                            prose-ul:list-disc prose-ul:pl-5
                                            prose-blockquote:border-l-4 prose-blockquote:border-[#1B5E20] prose-blockquote:bg-[#E8F5E9] prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:italic
                                            prose-strong:text-gray-900"
-                                dangerouslySetInnerHTML={{ __html: finalKonten }}
+                                dangerouslySetInnerHTML={{ __html: liveKonten }}
                             />
                         </div>
 

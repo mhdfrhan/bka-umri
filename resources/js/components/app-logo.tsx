@@ -1,16 +1,27 @@
-import AppLogoIcon from '@/components/app-logo-icon';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export default function AppLogo() {
+    const { state } = useSidebar();
+
+    if (state === 'collapsed') {
+        return (
+            <div className="flex size-8 items-center justify-center transition-all duration-300">
+                <img 
+                    src="/assets/logo-bka.png" 
+                    alt="BKA Logo" 
+                    className="size-6 object-contain hover:scale-110 transition-transform duration-200" 
+                />
+            </div>
+        );
+    }
+
     return (
-        <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-            </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold">
-                    Laravel Starter Kit
-                </span>
-            </div>
-        </>
+        <div className="flex items-center gap-3 py-1 pl-1 transition-all duration-300">
+            <img 
+                src="/assets/logo-bka.png" 
+                alt="Logo BKA UMRI" 
+                className="h-9 w-auto object-contain hover:scale-[1.02] transition-transform duration-200" 
+            />
+        </div>
     );
 }

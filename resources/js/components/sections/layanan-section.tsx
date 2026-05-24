@@ -73,6 +73,7 @@ export default function LayananSection({
                         <div className="flex flex-col gap-5">
                             {layananList.map((item, idx) => {
                                 const Icon = item.icon;
+
                                 return (
                                     <div
                                         key={item.title}

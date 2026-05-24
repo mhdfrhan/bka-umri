@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { Search, Newspaper } from 'lucide-react';
 import NewsCard from '@/components/ui/news-card';
 import { Pagination } from '@/components/ui/pagination';
 import { useScrollReveal, useScrollRevealChildren } from '@/hooks/use-scroll-reveal';
 
 interface NewsItem {
+    id?: number;
     slug: string;
     thumbnail: string;
     category?: string;
@@ -13,9 +14,10 @@ interface NewsItem {
     excerpt: string;
     date: string;
     author?: string;
+    status?: string;
 }
 
-// ─── Dummy Data ───
+// ─── Dummy Data fallback ───
 const dummyNews: NewsItem[] = [
     {
         slug: 'bka-luncurkan-sistem-keuangan-baru-2026',
@@ -70,26 +72,74 @@ const dummyNews: NewsItem[] = [
         excerpt: 'Guna meningkatkan efisiensi kerja, BKA menyelenggarakan pelatihan intensif penggunaan software ERP keuangan terbaru.',
         date: '20 April 2026',
         author: 'Divisi SDM'
-    },
+    }
 ];
 
 const dummyCategories = ['Semua', 'Kegiatan', 'Layanan', 'Mitra', 'Prestasi', 'Aturan'];
 
-const dummyPagination = [
-    { url: null, label: 'Prev', active: false },
-    { url: '/berita?page=1', label: '1', active: true },
-    { url: '/berita?page=2', label: '2', active: false },
-    { url: '/berita?page=3', label: '3', active: false },
-    { url: '/berita?page=2', label: 'Next', active: false },
-];
-
 export default function BeritaIndex() {
+    const [news, setNews] = useState<NewsItem[]>(dummyNews);
+    const [categories, setCategories] = useState<string[]>(dummyCategories);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('Semua');
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const filterRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
+
+    // Parse dynamic page from url params
+    const pageParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('page') : '1';
+    const currentPage = parseInt(pageParam || '1', 10);
+    const itemsPerPage = 9;
+
+    // Load data from localStorage on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedNews = localStorage.getItem('bka_berita');
+            if (savedNews) {
+                try {
+                    const parsed = JSON.parse(savedNews);
+                    // Filter: only show published articles (status === 'terpublikasi')
+                    const published = parsed.filter((n: any) => n.status === 'terpublikasi');
+                    setNews(published);
+                } catch {
+                    setNews(dummyNews);
+                }
+            }
+
+            const savedCats = localStorage.getItem('bka_categories');
+            if (savedCats) {
+                try {
+                    setCategories(['Semua', ...JSON.parse(savedCats)]);
+                } catch {
+                    setCategories(dummyCategories);
+                }
+            }
+        }
+    }, []);
+
+    // Filter Logic
+    const filteredNews = news.filter((item) => {
+        const matchesSearch = 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = activeCategory === 'Semua' || item.category === activeCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    // Pagination Calculation
+    const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
+    const paginatedNews = filteredNews.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const paginationLinks = [
+        { url: currentPage > 1 ? `?page=${currentPage - 1}` : null, label: 'Prev', active: false },
+        ...Array.from({ length: totalPages }).map((_, idx) => ({
+            url: `?page=${idx + 1}`,
+            label: String(idx + 1),
+            active: currentPage === idx + 1
+        })),
+        { url: currentPage < totalPages ? `?page=${currentPage + 1}` : null, label: 'Next', active: false }
+    ];
 
     return (
         <>
@@ -130,11 +180,17 @@ export default function BeritaIndex() {
                     <div ref={filterRef} className="bka-reveal flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                         {/* Categories */}
                         <div className="flex flex-wrap gap-2">
-                            {dummyCategories.map((cat) => (
+                            {categories.map((cat) => (
                                 <button
                                     key={cat}
-                                    onClick={() => setActiveCategory(cat)}
-                                    className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
+                                    onClick={() => {
+                                        setActiveCategory(cat);
+                                        // Reset current page on filter change
+                                        if (typeof window !== 'undefined') {
+                                            router.visit(`?page=1`, { preserveScroll: true });
+                                        }
+                                    }}
+                                    className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer ${
                                         activeCategory === cat
                                             ? 'bg-[#1B5E20] text-white shadow-md'
                                             : 'bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#E8F5E9] hover:text-[#1B5E20]'
@@ -167,17 +223,27 @@ export default function BeritaIndex() {
             <section className="bka-section bg-[#F7F9F7]">
                 <div className="bka-container">
                     <div ref={gridRef} className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {dummyNews.map((item, idx) => (
+                        {paginatedNews.map((item, idx) => (
                             <div key={item.slug} className={`bka-reveal bka-stagger-${(idx % 6) + 1}`}>
                                 <NewsCard {...item} />
                             </div>
                         ))}
                     </div>
 
+                    {filteredNews.length === 0 && (
+                        <div className="text-center py-16">
+                            <Newspaper className="mx-auto mb-3 size-12 text-neutral-300" />
+                            <h3 className="text-lg font-bold text-neutral-800">Belum Ada Berita</h3>
+                            <p className="text-sm text-neutral-400 mt-1">Tidak ada berita terpublikasi yang cocok dengan pencarian Anda.</p>
+                        </div>
+                    )}
+
                     {/* Pagination */}
-                    <div className="mt-14">
-                        <Pagination links={dummyPagination} />
-                    </div>
+                    {totalPages > 1 && (
+                        <div className="mt-14">
+                            <Pagination links={paginationLinks} />
+                        </div>
+                    )}
                 </div>
             </section>
         </>

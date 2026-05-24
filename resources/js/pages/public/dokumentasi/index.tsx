@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import {
     Calendar,
@@ -7,14 +6,15 @@ import {
     Search,
     ArrowRight,
 } from 'lucide-react';
-import { PageHero } from '@/components/layout/page-hero';
+import { useState, useEffect } from 'react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { PageHero } from '@/components/layout/page-hero';
 import { Pagination } from '@/components/ui/pagination';
-import { formatDate } from '@/lib/format-date';
 import {
     useScrollReveal,
     useScrollRevealChildren,
 } from '@/hooks/use-scroll-reveal';
+import { formatDate } from '@/lib/format-date';
 
 interface AlbumItem {
     judul: string;
@@ -25,21 +25,6 @@ interface AlbumItem {
     deskripsi?: string;
 }
 
-interface PaginatedAlbums {
-    data: AlbumItem[];
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-    meta?: any;
-}
-
-interface DokumentasiProps {
-    albums?: PaginatedAlbums;
-}
-
-// ─── Highly Detailed Dummy Data for Local Evaluator & Fallback ───
 const dummyAlbums: AlbumItem[] = [
     {
         judul: 'Peluncuran Portal Keuangan Terintegrasi BKA UMRI',
@@ -106,24 +91,56 @@ const dummyAlbums: AlbumItem[] = [
 const dummyPagination = [
     { url: null, label: 'Prev', active: false },
     { url: '/dokumentasi?page=1', label: '1', active: true },
-    { url: '/dokumentasi?page=2', label: '2', active: false },
-    { url: '/dokumentasi?page=2', label: 'Next', active: false },
+    { url: null, label: 'Next', active: false },
 ];
 
-export default function DokumentasiIndex({ albums }: DokumentasiProps) {
+export default function DokumentasiIndex() {
     const [searchQuery, setSearchQuery] = useState('');
+    const [albumList, setAlbumList] = useState<any[]>([]);
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const filterRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
-    // Safe fallback handling for dynamic vs mock data
-    const isUsingRealData = !!(albums && albums.data && albums.data.length > 0);
-    const rawAlbumsList = isUsingRealData ? albums.data : dummyAlbums;
-    const paginationLinks = isUsingRealData ? albums.links : dummyPagination;
+    useEffect(() => {
+        const saved = localStorage.getItem('bka_albums');
+        if (saved) {
+            try {
+                setAlbumList(JSON.parse(saved));
+            } catch {
+                setAlbumList([]);
+            }
+        } else {
+            // Seed defaults mapped to admin schema
+            const seeded = dummyAlbums.map((a, index) => ({
+                id: index + 1,
+                title: a.judul,
+                slug: a.slug,
+                description: a.deskripsi,
+                date: a.tanggal_kegiatan,
+                coverUrl: a.cover_url,
+                photos: Array.from({ length: a.jumlah_foto }).map((_, i) => ({
+                    id: String(i + 1),
+                    url: a.cover_url,
+                    order: i + 1
+                }))
+            }));
+            localStorage.setItem('bka_albums', JSON.stringify(seeded));
+            setAlbumList(seeded);
+        }
+    }, []);
 
-    // Local search filter for perfect fallback/demo interactivity
-    const filteredAlbums = rawAlbumsList.filter(
+    // Map keys to match public UI
+    const mappedAlbums: AlbumItem[] = albumList.map((a: any) => ({
+        judul: a.title || a.judul,
+        slug: a.slug,
+        cover_url: a.coverUrl || a.cover_url,
+        tanggal_kegiatan: a.date || a.tanggal_kegiatan,
+        jumlah_foto: a.photos ? a.photos.length : (a.jumlah_foto || 0),
+        deskripsi: a.description || a.deskripsi
+    }));
+
+    const filteredAlbums = mappedAlbums.filter(
         (album) =>
             album.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (album.deskripsi || '')
@@ -213,7 +230,6 @@ export default function DokumentasiIndex({ albums }: DokumentasiProps) {
                                                 src={album.cover_url}
                                                 alt={album.judul}
                                                 onError={(e) => {
-                                                    // Fallback image if Unsplash/database URL fails
                                                     e.currentTarget.src =
                                                         'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&q=80';
                                                 }}
@@ -282,9 +298,9 @@ export default function DokumentasiIndex({ albums }: DokumentasiProps) {
                                 ))}
                             </div>
 
-                            {/* Pagination (Only render if there are enough pages or real data pagination) */}
+                            {/* Pagination */}
                             <div className="mt-12 flex justify-center">
-                                <Pagination links={paginationLinks} />
+                                <Pagination links={dummyPagination} />
                             </div>
                         </>
                     ) : (

@@ -1,12 +1,12 @@
+import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
-import PublicLayout from '@/layouts/public-layout';
-import { PageHero } from '@/components/layout/page-hero';
+import { Users, ZoomIn } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { PageHero } from '@/components/layout/page-hero';
 import ProfilTabs from '@/components/public/profil/profil-tabs';
-import { Mail, Phone, Users, ZoomIn } from 'lucide-react';
-
+import PublicLayout from '@/layouts/public-layout';
 import Lightbox from 'yet-another-react-lightbox';
+
 import 'yet-another-react-lightbox/styles.css';
 
 interface AnggotaProps {
@@ -33,19 +33,17 @@ interface StrukturProps {
 export default function Struktur({ gambarBagan, kepalaBiro, anggotaList }: StrukturProps) {
     const [isOpen, setIsOpen] = useState(false);
 
-    // ----------------------------------------------------
-    // Fallback Mock Data for UI Visual Completeness
-    // ----------------------------------------------------
-    const finalGambarBagan = gambarBagan || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=1200&q=80'; // high-fidelity placeholder
+    // Fallback Mock Data
+    const defaultGambarBagan = gambarBagan || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=1200&q=80';
 
-    const finalKepalaBiro = kepalaBiro || {
+    const defaultKepalaBiro = kepalaBiro || {
         nama: 'Rahmawita, S.E',
         jabatan: 'Kepala Biro Keuangan & Aset UMRI',
         periode: 'Periode 2024 - 2028',
         foto: 'https://smart.umri.ac.id/application/modules/personalia/assets/uploads/foto/f405f-rahmawita-se.jpg'
     };
 
-    const finalAnggotaList = anggotaList || [
+    const defaultAnggotaList = anggotaList || [
         {
             id: 1,
             nama: 'Dina Amalia, S.E., Ak.',
@@ -89,6 +87,43 @@ export default function Struktur({ gambarBagan, kepalaBiro, anggotaList }: Struk
             urutan: 6
         }
     ];
+
+    const [liveGambarBagan, setLiveGambarBagan] = useState(defaultGambarBagan);
+    const [liveKepalaBiro, setLiveKepalaBiro] = useState<KepalaBiroProps | null>(defaultKepalaBiro);
+    const [liveAnggotaList, setLiveAnggotaList] = useState<AnggotaProps[]>(defaultAnggotaList);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('bka_struktur_organisasi');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.gambarBagan) setLiveGambarBagan(parsed.gambarBagan);
+                    if (parsed.anggotaList) setLiveAnggotaList(parsed.anggotaList);
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            // Sync Kepala Biro from home page CMS if exists
+            const savedBeranda = localStorage.getItem('bka_beranda');
+            if (savedBeranda) {
+                try {
+                    const parsedBeranda = JSON.parse(savedBeranda);
+                    if (parsedBeranda.kepalaBiro) {
+                        setLiveKepalaBiro({
+                            nama: parsedBeranda.kepalaBiro.nama || defaultKepalaBiro.nama,
+                            jabatan: parsedBeranda.kepalaBiro.jabatan || defaultKepalaBiro.jabatan,
+                            periode: parsedBeranda.kepalaBiro.periode || defaultKepalaBiro.periode,
+                            foto: parsedBeranda.kepalaBiro.foto || defaultKepalaBiro.foto
+                        });
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+    }, [defaultGambarBagan, defaultAnggotaList]);
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
@@ -137,7 +172,7 @@ export default function Struktur({ gambarBagan, kepalaBiro, anggotaList }: Struk
                             onClick={() => setIsOpen(true)}
                         >
                             <img 
-                                src={finalGambarBagan} 
+                                src={liveGambarBagan} 
                                 alt="Diagram Bagan Struktur Organisasi BKA UMRI" 
                                 className="w-full max-h-[500px] object-contain rounded-xl transition-all duration-300 group-hover:scale-[1.01]" 
                             />
@@ -155,7 +190,7 @@ export default function Struktur({ gambarBagan, kepalaBiro, anggotaList }: Struk
                         <Lightbox
                             open={isOpen}
                             close={() => setIsOpen(false)}
-                            slides={[{ src: finalGambarBagan }]}
+                            slides={[{ src: liveGambarBagan }]}
                         />
                     </div>
 
@@ -168,7 +203,7 @@ export default function Struktur({ gambarBagan, kepalaBiro, anggotaList }: Struk
                         </div>
 
                         {/* Top Spotlight: Kepala Biro BKA */}
-                        {finalKepalaBiro && (
+                        {liveKepalaBiro && (
                             <div className="max-w-md mx-auto mb-16 relative group">
                                 <div className="absolute inset-0 bg-gradient-to-br from-[#1B5E20]/5 to-[#C8A000]/5 rounded-3xl border-2 border-[#C8A000] -z-0 opacity-100 shadow-md" />
                                 
@@ -180,21 +215,21 @@ export default function Struktur({ gambarBagan, kepalaBiro, anggotaList }: Struk
                                     
                                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#E8F5E9] shadow-inner mb-6 relative">
                                         <img 
-                                            src={finalKepalaBiro.foto} 
-                                            alt={finalKepalaBiro.nama} 
+                                            src={liveKepalaBiro.foto} 
+                                            alt={liveKepalaBiro.nama} 
                                             className="w-full h-full object-cover"
                                         />
                                     </div>
 
                                     <h3 className="text-xl font-bold text-gray-900 tracking-tight">
-                                        {finalKepalaBiro.nama}
+                                        {liveKepalaBiro.nama}
                                     </h3>
                                     <p className="text-sm font-semibold text-[#1B5E20] mt-1">
-                                        {finalKepalaBiro.jabatan}
+                                        {liveKepalaBiro.jabatan}
                                     </p>
-                                    {finalKepalaBiro.periode && (
+                                    {liveKepalaBiro.periode && (
                                         <span className="inline-block mt-3 text-xs bg-[#E8F5E9] text-[#1B5E20] px-3 py-1 rounded-full font-medium">
-                                            {finalKepalaBiro.periode}
+                                            {liveKepalaBiro.periode}
                                         </span>
                                     )}
                                 </div>
@@ -203,7 +238,7 @@ export default function Struktur({ gambarBagan, kepalaBiro, anggotaList }: Struk
 
                         {/* Grid: Staff & Anggota */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {finalAnggotaList
+                            {liveAnggotaList
                                 .sort((a, b) => a.urutan - b.urutan)
                                 .map((anggota) => (
                                     <div 

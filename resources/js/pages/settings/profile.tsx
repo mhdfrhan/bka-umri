@@ -1,7 +1,5 @@
 import { Form, Head, usePage } from '@inertiajs/react';
-/* @chisel-email-verification */
 import { Link } from '@inertiajs/react';
-/* @end-chisel-email-verification */
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
@@ -10,17 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
-import type { Auth } from '@/types';
-/* @chisel-email-verification */
 import { send } from '@/routes/verification';
-/* @end-chisel-email-verification */
+import type { Auth } from '@/types';
 
 type PageProps = {
     auth: Auth;
 };
 
 export default function Profile(
-    /* @chisel-email-verification */
     {
         mustVerifyEmail,
         status,
@@ -28,7 +23,6 @@ export default function Profile(
         mustVerifyEmail: boolean;
         status?: string;
     },
-    /* @end-chisel-email-verification */
 ) {
     const { auth } = usePage<PageProps>().props;
 
@@ -60,7 +54,7 @@ export default function Profile(
                                 <Input
                                     id="name"
                                     className="mt-1 block w-full"
-                                    defaultValue={auth.user.name}
+                                    defaultValue={auth.user?.name ?? ''}
                                     name="name"
                                     required
                                     autoComplete="name"
@@ -80,7 +74,7 @@ export default function Profile(
                                     id="email"
                                     type="email"
                                     className="mt-1 block w-full"
-                                    defaultValue={auth.user.email}
+                                    defaultValue={auth.user?.email ?? ''}
                                     name="email"
                                     required
                                     autoComplete="username"
@@ -93,9 +87,8 @@ export default function Profile(
                                 />
                             </div>
 
-                            {/* @chisel-email-verification */}
                             {mustVerifyEmail &&
-                                auth.user.email_verified_at === null && (
+                                auth.user?.email_verified_at === null && (
                                     <div>
                                         <p className="-mt-4 text-sm text-muted-foreground">
                                             Your email address is unverified.{' '}
@@ -118,7 +111,6 @@ export default function Profile(
                                         )}
                                     </div>
                                 )}
-                            {/* @end-chisel-email-verification */}
 
                             <div className="flex items-center gap-4">
                                 <Button

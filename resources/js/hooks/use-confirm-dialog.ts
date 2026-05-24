@@ -31,6 +31,7 @@ export function useConfirmDialog() {
         if (state.onConfirm) {
             state.onConfirm();
         }
+
         closeConfirm();
     }, [state, closeConfirm]);
 

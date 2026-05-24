@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -9,16 +8,17 @@ import {
     Info,
     FolderOpen,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { formatDate } from '@/lib/format-date';
-import { formatFileSize } from '@/lib/format-file-size';
-import { getFileIcon } from '@/lib/get-file-icon';
 import {
     useScrollReveal,
     useScrollRevealChildren,
 } from '@/hooks/use-scroll-reveal';
+import { formatDate } from '@/lib/format-date';
+import { formatFileSize } from '@/lib/format-file-size';
+import { getFileIcon } from '@/lib/get-file-icon';
 
 interface BerkasItem {
     nama_tampilan: string;
@@ -222,6 +222,8 @@ const getFileColorClasses = (filename: string | undefined | null) => {
 export default function KategoriLampiranShow({ kategori, berkas }: Props) {
     const { url } = usePage();
     const [searchQuery, setSearchQuery] = useState('');
+    const [localKategori, setLocalKategori] = useState<KategoriDetail | null>(null);
+    const [localBerkas, setLocalBerkas] = useState<BerkasItem[] | null>(null);
 
     const headerRef = useScrollReveal<HTMLDivElement>();
     const descRef = useScrollReveal<HTMLDivElement>();
@@ -233,6 +235,32 @@ export default function KategoriLampiranShow({ kategori, berkas }: Props) {
     const currentSlug =
         pathSegments[pathSegments.length - 1] || 'peraturan-dan-kebijakan';
 
+    useEffect(() => {
+        const savedCategories = localStorage.getItem('bka_kategori_lampiran');
+        const savedFiles = localStorage.getItem('bka_berkas_lampiran');
+        if (savedCategories) {
+            try {
+                const parsedCats = JSON.parse(savedCategories);
+                const matchedCat = parsedCats.find((c: any) => c.slug === currentSlug);
+                if (matchedCat) {
+                    setLocalKategori({
+                        nama: matchedCat.nama,
+                        slug: matchedCat.slug,
+                        deskripsi: matchedCat.deskripsi || '',
+                    });
+
+                    if (savedFiles) {
+                        try {
+                            const parsedFiles = JSON.parse(savedFiles);
+                            const matchedFiles = parsedFiles.filter((f: any) => f.kategori_id === matchedCat.id);
+                            setLocalBerkas(matchedFiles);
+                        } catch {}
+                    }
+                }
+            } catch {}
+        }
+    }, [currentSlug]);
+
     const defaultKategori: KategoriDetail = {
         nama: 'Peraturan & Kebijakan',
         slug: 'peraturan-dan-kebijakan',
@@ -240,7 +268,7 @@ export default function KategoriLampiranShow({ kategori, berkas }: Props) {
             'Kumpulan Surat Keputusan Rektor, Peraturan Pemerintah, dan Ketetapan Persyarikatan Muhammadiyah tentang tata kelola keuangan kampus.',
     };
 
-    const resolvedKategori: KategoriDetail = kategori || {
+    const resolvedKategori: KategoriDetail = localKategori || kategori || {
         nama:
             currentSlug === 'formulir-kemahasiswaan'
                 ? 'Formulir Kemahasiswaan'
@@ -261,6 +289,7 @@ export default function KategoriLampiranShow({ kategori, berkas }: Props) {
     };
 
     const resolvedBerkas: BerkasItem[] =
+        localBerkas ||
         berkas ||
         mockCategoryFiles[currentSlug] ||
         mockCategoryFiles['peraturan-dan-kebijakan'];
@@ -449,6 +478,7 @@ export default function KategoriLampiranShow({ kategori, berkas }: Props) {
                                             <div className="shrink-0 border-t border-[#F1F3F1] pt-3 sm:self-center sm:border-0 sm:pt-0">
                                                 <a
                                                     href={file.download_url}
+                                                    download={file.nama_tampilan}
                                                     onClick={() =>
                                                         handleDownload(
                                                             file.nama_tampilan,

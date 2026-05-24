@@ -1,57 +1,52 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Calendar, FileText, Download, Facebook, Linkedin, Twitter } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
-
-// ─── Dummy Data ───
-const dummyAnnouncement = {
-    slug: 'jadwal-registrasi-keuangan-semester-ganjil-2026',
-    title: 'Jadwal & Prosedur Registrasi Keuangan Semester Ganjil TA 2026/2027',
-    date: '22 Mei 2026',
-    isPenting: true,
-    content: `
-        <p>Assalamu'alaikum Warahmatullahi Wabarakatuh,</p>
-        <p>Sehubungan dengan akan dimulainya perkuliahan Semester Ganjil Tahun Akademik 2026/2027, bersama ini kami sampaikan jadwal dan prosedur registrasi pembayaran biaya pendidikan bagi seluruh mahasiswa aktif Universitas Muhammadiyah Riau (UMRI).</p>
-        
-        <h3>Jadwal Pembayaran</h3>
-        <p>Masa pembayaran SPP dan uang pembangunan ditetapkan sebagai berikut:</p>
-        <ul>
-            <li><strong>Mulai:</strong> 1 Juni 2026, pukul 08.00 WIB</li>
-            <li><strong>Berakhir:</strong> 30 Juli 2026, pukul 23.59 WIB</li>
-        </ul>
-        <p>Mahasiswa yang tidak melakukan pembayaran hingga batas waktu yang ditentukan <strong>tidak diperkenankan untuk mengisi Kartu Rencana Studi (KRS)</strong> dan secara otomatis akan dianggap cuti akademik oleh sistem.</p>
-        
-        <h3>Prosedur Pembayaran (Virtual Account)</h3>
-        <p>Pembayaran wajib dilakukan melalui sistem Virtual Account (VA) untuk memastikan status pembayaran Anda terkonfirmasi secara real-time. Langkah-langkahnya adalah sebagai berikut:</p>
-        <ol>
-            <li>Login ke Portal Mahasiswa SIKAD UMRI.</li>
-            <li>Pilih menu <strong>Keuangan &gt; Tagihan Saya</strong>.</li>
-            <li>Pilih bank tujuan (Bank Syariah Indonesia, Bank Riau Kepri Syariah, atau Bank Muamalat).</li>
-            <li>Klik tombol <strong>Generate Virtual Account</strong>.</li>
-            <li>Lakukan pembayaran melalui ATM, M-Banking, atau Teller sesuai dengan petunjuk yang tertera.</li>
-        </ol>
-        
-        <p>Dimohon kepada seluruh mahasiswa agar menyimpan bukti transaksi yang sah jika sewaktu-waktu diperlukan untuk proses verifikasi manual (apabila terjadi gangguan koneksi jaringan bank).</p>
-        
-        <p>Demikian pengumuman ini kami sampaikan agar dapat menjadi perhatian bagi seluruh mahasiswa UMRI. Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.</p>
-        <p>Wassalamu'alaikum Warahmatullahi Wabarakatuh.</p>
-    `,
-    attachments: [
-        {
-            name: 'Surat_Edaran_Registrasi_Ganjil_2026.pdf',
-            size: '245 KB',
-            url: '#'
-        },
-        {
-            name: 'Panduan_Pembayaran_VA.pdf',
-            size: '1.2 MB',
-            url: '#'
-        }
-    ]
-};
 
 export default function PengumumanShow() {
     const articleRef = useScrollReveal<HTMLDivElement>();
-    const item = dummyAnnouncement;
+    const [item, setItem] = useState<any | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const segments = window.location.pathname.split('/');
+            const slug = segments[segments.length - 1]; // last segment
+
+            const saved = localStorage.getItem('bka_pengumuman');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    const found = parsed.find((p: any) => p.slug === slug);
+                    if (found) {
+                        setItem(found);
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+            setIsLoading(false);
+        }
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="flex min-h-[400px] items-center justify-center bg-white pt-24">
+                <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-[#1B5E20]"></div>
+            </div>
+        );
+    }
+
+    if (!item) {
+        return (
+            <div className="flex min-h-[400px] flex-col items-center justify-center bg-white pt-24 text-neutral-500">
+                <p className="text-lg font-bold">Pengumuman tidak ditemukan!</p>
+                <Link href="/pengumuman" className="mt-4 text-[#1B5E20] hover:underline font-semibold">
+                    Kembali ke Daftar
+                </Link>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -107,10 +102,11 @@ export default function PengumumanShow() {
                             <div className="mt-12 rounded-2xl border border-[#DDE5DD] bg-[#F7F9F7] p-6 md:p-8">
                                 <h3 className="mb-4 text-lg font-bold text-[#1A1A1A]">Lampiran Dokumen</h3>
                                 <div className="flex flex-col gap-3">
-                                    {item.attachments.map((file, idx) => (
+                                    {item.attachments.map((file: any, idx: number) => (
                                         <a
                                             key={idx}
                                             href={file.url}
+                                            download={file.name}
                                             className="group flex items-center justify-between rounded-xl border border-transparent bg-white p-4 shadow-sm transition-all duration-200 hover:border-[#1B5E20] hover:shadow-md"
                                         >
                                             <div className="flex items-center gap-4">

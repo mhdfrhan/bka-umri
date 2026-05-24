@@ -16,6 +16,7 @@ interface UseCountUpOptions {
  */
 function parseDisplayValue(raw: string): { prefix: string; value: number; suffix: string; formatted: (n: number) => string } {
     const match = raw.match(/^([^\d]*?)([\d.,]+)(.*)$/);
+
     if (!match) {
         return {
             prefix: '',
@@ -40,6 +41,7 @@ function parseDisplayValue(raw: string): { prefix: string; value: number; suffix
         if (usesDotSeparator) {
             return n.toLocaleString('id-ID');
         }
+
         return n.toString();
     };
 
@@ -61,8 +63,10 @@ export function useCountUp(
 
     const animate = useCallback(() => {
         const parsed = parseDisplayValue(targetValue);
+
         if (parsed.value === 0) {
             setDisplayValue(targetValue);
+
             return;
         }
 
@@ -89,7 +93,10 @@ export function useCountUp(
 
     useEffect(() => {
         const element = ref.current;
-        if (!element) return;
+
+        if (!element) {
+return;
+}
 
         const observer = new IntersectionObserver(
             (entries) => {
@@ -97,6 +104,7 @@ export function useCountUp(
                     if (entry.isIntersecting && (!once || !hasAnimated.current)) {
                         hasAnimated.current = true;
                         animate();
+
                         if (once) {
                             observer.unobserve(entry.target);
                         }

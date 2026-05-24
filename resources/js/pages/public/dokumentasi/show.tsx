@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
     Calendar,
@@ -9,16 +8,17 @@ import {
     Share2,
     ZoomIn,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { formatDate } from '@/lib/format-date';
 import {
     useScrollReveal,
     useScrollRevealChildren,
 } from '@/hooks/use-scroll-reveal';
+import { formatDate } from '@/lib/format-date';
 
 import 'yet-another-react-lightbox/styles.css';
 
@@ -35,174 +35,44 @@ interface AlbumDetail {
     fotos: (string | PhotoItem)[];
 }
 
-interface Props {
-    album?: AlbumDetail;
-}
-
-// ─── Detailed Mock Photos for Local Evaluator ───
-const mockAlbumPhotos: Record<string, (string | PhotoItem)[]> = {
-    'peluncuran-portal-keuangan-bka': [
-        {
-            url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
-            caption: 'Presentasi alur sistem pembayaran Virtual Account baru',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80',
-            caption: 'Sambutan Kepala Biro Keuangan & Aset UMRI',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1542744095-291d1f67b221?w=1200&q=80',
-            caption: 'Demo aplikasi portal keuangan untuk perwakilan mahasiswa',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80',
-            caption: 'Sesi tanya jawab dengan para dekan fakultas',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1200&q=80',
-            caption:
-                'Tim IT dan Keuangan BKA berfoto bersama setelah peluncuran',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&q=80',
-            caption: 'Penjelasan tata cara klaim dispensasi UKT online',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80',
-            caption: 'Tampilan dasbor administrasi tagihan mahasiswa',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1552581230-c0152862c21a?w=1200&q=80',
-            caption: 'Pemberian materi digitalisasi sistem pelaporan',
-        },
-    ],
-    'workshop-optimalisasi-aset': [
-        {
-            url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80',
-            caption: 'Pembukaan workshop aset wilayah muhammadiyah',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80',
-            caption: 'Diskusi kelompok standarisasi pencatatan inventaris',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1200&q=80',
-            caption: 'Sesi pemaparan materi dari perwakilan PP Muhammadiyah',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80',
-            caption: 'Tinjauan lapangan sarana fisik kampus 3 UMRI',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1542744188-8e6e38a5986b?w=1200&q=80',
-            caption: 'Penyerahan cinderamata kepada narasumber utama',
-        },
-        {
-            url: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&q=80',
-            caption:
-                'Rapat koordinasi pimpinan universitas mengenai tata ruang',
-        },
-    ],
-};
-
-const defaultMockPhotos: (string | PhotoItem)[] = [
-    {
-        url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
-        caption: 'Suasana ruang kerja dan fasilitas BKA UMRI',
-    },
-    {
-        url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1200&q=80',
-        caption: 'Pelayanan prima staf keuangan bagi mahasiswa',
-    },
-    {
-        url: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&q=80',
-        caption: 'Rapat koordinasi mingguan internal BKA',
-    },
-    {
-        url: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=1200&q=80',
-        caption: 'Penataan sarana komputerisasi administrasi',
-    },
-    {
-        url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80',
-        caption: 'Kunjungan kerja benchmarking dari kampus mitra',
-    },
-    {
-        url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80',
-        caption: 'Tampak depan gedung Rektorat Kampus Utama UMRI',
-    },
-];
-
-export default function DokumentasiShow({ album }: Props) {
-    const { url } = usePage();
+export default function DokumentasiShow() {
     const [lightboxIndex, setLightboxIndex] = useState(-1);
+    const [album, setAlbum] = useState<AlbumDetail | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const headerRef = useScrollReveal<HTMLDivElement>();
     const descRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
-    // ─── Safety and Fallback Handling ───
-    // If no album prop is passed (e.g. mockup SPA link), resolve based on slug or fall back
-    const pathSegments = url.split('/');
-    const currentSlug =
-        pathSegments[pathSegments.length - 1] ||
-        'peluncuran-portal-keuangan-bka';
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const segments = window.location.pathname.split('/');
+            const slug = segments[segments.length - 1]; // last segment
 
-    const defaultAlbum: AlbumDetail = {
-        judul: 'Peluncuran Portal Keuangan Terintegrasi BKA UMRI',
-        slug: 'peluncuran-portal-keuangan-bka',
-        tanggal_kegiatan: '2026-05-20',
-        deskripsi:
-            'Segenap civitas akademika UMRI menghadiri acara peluncuran portal keuangan baru terintegrasi virtual account bank syariah. Portal ini dikembangkan untuk mempercepat administrasi keuangan mahasiswa secara real-time.',
-        fotos:
-            mockAlbumPhotos['peluncuran-portal-keuangan-bka'] ||
-            defaultMockPhotos,
-    };
-
-    const resolvedAlbum: AlbumDetail = album || {
-        judul:
-            currentSlug === 'workshop-optimalisasi-aset'
-                ? 'Workshop Optimalisasi & Pencatatan Aset Wilayah Muhammadiyah'
-                : currentSlug === 'penandatanganan-mou-mitra-bank'
-                  ? 'Penandatanganan MoU Kerja Sama dengan Bank Syariah Indonesia'
-                  : currentSlug === 'pelatihan-erp-akuntansi-staf'
-                    ? 'Pelatihan Internal Software ERP Akuntansi Staf BKA'
-                    : currentSlug === 'bakti-sosial-ramadhan-bka'
-                      ? 'Bakti Sosial Ramadhan 1447H Biro Keuangan & Aset'
-                      : currentSlug === 'rapat-kerja-tahunan-bka-2026'
-                        ? 'Rapat Kerja Tahunan Evaluasi Anggaran & Aset UMRI 2026'
-                        : defaultAlbum.judul,
-        slug: currentSlug,
-        tanggal_kegiatan:
-            currentSlug === 'workshop-optimalisasi-aset'
-                ? '2026-05-15'
-                : '2026-05-20',
-        deskripsi:
-            currentSlug === 'workshop-optimalisasi-aset'
-                ? 'Sinergi pencatatan sarana prasarana fisik guna meraih akreditasi kampus unggul tingkat nasional.'
-                : defaultAlbum.deskripsi,
-        fotos: mockAlbumPhotos[currentSlug] || defaultMockPhotos,
-    };
-
-    // ─── Format photos for Lightbox structure ───
-    const slides = (resolvedAlbum.fotos || [])
-        .map((photo, idx) => {
-            if (typeof photo === 'string') {
-                return {
-                    src: photo,
-                    alt: `${resolvedAlbum.judul} - Foto ${idx + 1}`,
-                    title: `${resolvedAlbum.judul} - Foto ${idx + 1}`,
-                };
+            const saved = localStorage.getItem('bka_albums');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    const found = parsed.find((a: any) => a.slug === slug);
+                    if (found) {
+                        // Map the admin keys to the public component keys
+                        setAlbum({
+                            judul: found.title || found.judul,
+                            slug: found.slug,
+                            deskripsi: found.description || found.deskripsi,
+                            tanggal_kegiatan: found.date || found.tanggal_kegiatan,
+                            fotos: found.photos 
+                                ? found.photos.map((p: any) => ({ url: p.url, caption: p.caption || '' }))
+                                : (found.fotos || [])
+                        });
+                    }
+                } catch {
+                    // ignore
+                }
             }
-
-            return {
-                src: photo.url || '',
-                alt:
-                    photo.caption || `${resolvedAlbum.judul} - Foto ${idx + 1}`,
-                title:
-                    photo.caption || `${resolvedAlbum.judul} - Foto ${idx + 1}`,
-            };
-        })
-        .filter((slide) => !!slide.src);
+            setIsLoading(false);
+        }
+    }, []);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -210,8 +80,9 @@ export default function DokumentasiShow({ album }: Props) {
     };
 
     const handleShareWhatsApp = () => {
+        if (!album) return;
         const text = encodeURIComponent(
-            `Lihat album dokumentasi "${resolvedAlbum.judul}" di Website BKA UMRI: ${window.location.href}`,
+            `Lihat album dokumentasi "${album.judul}" di Website BKA UMRI: ${window.location.href}`,
         );
         window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     };
@@ -224,24 +95,64 @@ export default function DokumentasiShow({ album }: Props) {
         );
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex min-h-[400px] items-center justify-center bg-white pt-24">
+                <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-[#1B5E20]"></div>
+            </div>
+        );
+    }
+
+    if (!album) {
+        return (
+            <div className="flex min-h-[400px] flex-col items-center justify-center bg-white pt-24 text-neutral-500">
+                <p className="text-lg font-bold">Album kegiatan tidak ditemukan!</p>
+                <Link href="/dokumentasi" className="mt-4 text-[#1B5E20] hover:underline font-semibold font-bold">
+                    Kembali ke Galeri
+                </Link>
+            </div>
+        );
+    }
+
+    // ─── Format photos for Lightbox structure ───
+    const slides = (album.fotos || [])
+        .map((photo, idx) => {
+            if (typeof photo === 'string') {
+                return {
+                    src: photo,
+                    alt: `${album.judul} - Foto ${idx + 1}`,
+                    title: `${album.judul} - Foto ${idx + 1}`,
+                };
+            }
+
+            return {
+                src: photo.url || '',
+                alt:
+                    photo.caption || `${album.judul} - Foto ${idx + 1}`,
+                title:
+                    photo.caption || `${album.judul} - Foto ${idx + 1}`,
+            };
+        })
+        .filter((slide) => !!slide.src);
+
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
         { title: 'Dokumentasi', href: '/dokumentasi' },
         {
-            title: resolvedAlbum.judul,
-            href: `/dokumentasi/${resolvedAlbum.slug}`,
+            title: album.judul,
+            href: `/dokumentasi/${album.slug}`,
         },
     ];
 
     return (
         <>
             <Head
-                title={`${resolvedAlbum.judul} - Galeri Dokumentasi BKA UMRI`}
+                title={`${album.judul} - Galeri Dokumentasi BKA UMRI`}
             >
                 <meta
                     name="description"
                     content={
-                        resolvedAlbum.deskripsi ||
+                        album.deskripsi ||
                         'Detail foto dokumentasi kegiatan resmi Biro Keuangan dan Aset UMRI.'
                     }
                 />
@@ -282,7 +193,7 @@ export default function DokumentasiShow({ album }: Props) {
                                 />
                                 <span>
                                     Kegiatan:{' '}
-                                    {formatDate(resolvedAlbum.tanggal_kegiatan)}
+                                    {formatDate(album.tanggal_kegiatan)}
                                 </span>
                             </span>
                         </div>
@@ -290,17 +201,17 @@ export default function DokumentasiShow({ album }: Props) {
                         <h1
                             ref={headerRef}
                             className="bka-reveal mb-6 leading-tight font-bold tracking-tight text-[#1A1A1A]"
-                            style={{ fontSize: 'clamp(24px, 4.5vw, 36px)' }}
+                            style={{ fontSize: 'clamp(24px, 3.5vw, 36px)' }}
                         >
-                            {resolvedAlbum.judul}
+                            {album.judul}
                         </h1>
 
-                        {resolvedAlbum.deskripsi && (
+                        {album.deskripsi && (
                             <p
                                 ref={descRef}
                                 className="bka-reveal mb-8 max-w-3xl text-[15px] leading-relaxed text-[#5C6B73] md:text-[16px]"
                             >
-                                {resolvedAlbum.deskripsi}
+                                {album.deskripsi}
                             </p>
                         )}
 
@@ -310,7 +221,7 @@ export default function DokumentasiShow({ album }: Props) {
                             className="bka-reveal flex flex-wrap items-center gap-3 border-t border-[#F1F3F1] pt-6"
                         >
                             <span className="mr-2 text-xs font-bold text-[#1A1A1A]">
-                                Bagikan Album:
+                                Bagikan:
                             </span>
                             <button
                                 onClick={handleShareWhatsApp}

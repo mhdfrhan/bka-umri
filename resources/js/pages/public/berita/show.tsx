@@ -1,14 +1,15 @@
+import { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Calendar, Facebook, Linkedin, Twitter, User } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 
-// ─── Dummy Data ───
+// ─── Dummy Data fallback ───
 const dummyArticle = {
     slug: 'bka-luncurkan-sistem-keuangan-baru-2026',
     thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
     category: 'Layanan',
     title: 'BKA UMRI Luncurkan Portal Keuangan Terintegrasi untuk Mahasiswa',
-    date: '20 Mei 2026',
+    date: '2026-05-20',
     author: 'Admin BKA',
     content: `
         <p>Universitas Muhammadiyah Riau (UMRI) melalui Biro Keuangan dan Aset (BKA) secara resmi meluncurkan Portal Keuangan Terintegrasi. Inovasi ini ditujukan khusus untuk mempermudah proses administrasi keuangan dan pembayaran biaya kuliah bagi seluruh mahasiswa aktif.</p>
@@ -29,13 +30,54 @@ const dummyArticle = {
         
         <p>Tim IT UMRI memastikan bahwa portal ini telah dilengkapi dengan sistem keamanan enkripsi terkini untuk melindungi data pribadi dan riwayat transaksi mahasiswa. Sistem ini akan mulai diimplementasikan secara penuh pada masa registrasi semester ganjil tahun akademik 2026/2027.</p>
         
-        <p>Bagi mahasiswa yang mengalami kendala teknis saat mengakses portal, BKA telah menyediakan layanan *helpdesk* terpadu yang dapat dihubungi melalui email resmi maupun *hotline* WhatsApp yang beroperasi pada jam kerja.</p>
+        <p>Biga mahasiswa yang mengalami kendala teknis saat mengakses portal, BKA telah menyediakan layanan *helpdesk* terpadu yang dapat dihubungi melalui email resmi maupun *hotline* WhatsApp yang beroperasi pada jam kerja.</p>
     `
+};
+
+const formatDateIndo = (dateStr: string) => {
+    if (!dateStr) return '';
+    if (dateStr.includes(' ') && isNaN(Number(dateStr.split(' ')[0]))) return dateStr; // already formatted like "20 Mei 2026"
+    try {
+        const dateObj = new Date(dateStr);
+        if (isNaN(dateObj.getTime())) return dateStr;
+        const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+        return dateObj.toLocaleDateString('id-ID', options);
+    } catch {
+        return dateStr;
+    }
 };
 
 export default function BeritaShow() {
     const articleRef = useScrollReveal<HTMLDivElement>();
-    const article = dummyArticle;
+    const [article, setArticle] = useState(dummyArticle);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const pathSegments = window.location.pathname.split('/');
+            const slug = pathSegments[pathSegments.length - 1];
+
+            const savedNews = localStorage.getItem('bka_berita');
+            if (savedNews) {
+                try {
+                    const parsed = JSON.parse(savedNews);
+                    const item = parsed.find((n: any) => n.slug === slug);
+                    if (item) {
+                        setArticle({
+                            slug: item.slug,
+                            thumbnail: item.thumbnail,
+                            category: item.category || 'Tanpa Kategori',
+                            title: item.title,
+                            date: item.date,
+                            author: item.author || 'Admin BKA',
+                            content: item.content
+                        });
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+        }
+    }, []);
 
     return (
         <>
@@ -82,7 +124,7 @@ export default function BeritaShow() {
                         <div className="flex flex-wrap items-center justify-center gap-6 text-[14px] font-medium text-white/80">
                             <div className="flex items-center gap-2">
                                 <Calendar size={16} className="text-[#C8A000]" />
-                                <span>{article.date}</span>
+                                <span>{formatDateIndo(article.date)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <User size={16} className="text-[#C8A000]" />

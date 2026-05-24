@@ -1,9 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import PublicLayout from '@/layouts/public-layout';
-import { PageHero } from '@/components/layout/page-hero';
+import { Compass, Target } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { PageHero } from '@/components/layout/page-hero';
 import ProfilTabs from '@/components/public/profil/profil-tabs';
-import { Award, Compass, Milestone, Target } from 'lucide-react';
+import PublicLayout from '@/layouts/public-layout';
 
 interface MisiItem {
     id: number;
@@ -17,12 +18,10 @@ interface VisiMisiProps {
 }
 
 export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
-    // ----------------------------------------------------
-    // Fallback Mock Data for UI Visual Completeness
-    // ----------------------------------------------------
-    const finalVisi = visi || 'Menjadi penyelenggara administrasi keuangan dan pengelolaan aset yang unggul, terpercaya, transparan, dan akuntabel berbasis digitalisasi layanan demi mendukung Universitas Muhammadiyah Riau yang cerdas, inovatif, dan berkemajuan pada tahun 2028.';
+    // Fallback Mock Data
+    const defaultVisi = visi || 'Menjadi penyelenggara administrasi keuangan dan pengelolaan aset yang unggul, terpercaya, transparan, dan akuntabel berbasis digitalisasi layanan demi mendukung Universitas Muhammadiyah Riau yang cerdas, inovatif, dan berkemajuan pada tahun 2028.';
 
-    const finalMisiItems = misiItems || [
+    const defaultMisiItems = misiItems || [
         {
             id: 1,
             isi: 'Menyelenggarakan sistem perencanaan, penganggaran, dan pengendalian keuangan yang efisien, transparan, dan akuntabel.',
@@ -49,6 +48,24 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
             urutan: 5
         }
     ];
+
+    const [liveVisi, setLiveVisi] = useState(defaultVisi);
+    const [liveMisiItems, setLiveMisiItems] = useState<MisiItem[]>(defaultMisiItems);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedData = localStorage.getItem('bka_visi_misi');
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed.visi) setLiveVisi(parsed.visi);
+                    if (parsed.misiItems) setLiveMisiItems(parsed.misiItems);
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
+    }, [defaultVisi, defaultMisiItems]);
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
@@ -89,7 +106,7 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
                             </div>
                             <h2 className="text-xs uppercase tracking-widest text-[#1B5E20] font-bold mb-2">Visi BKA UMRI</h2>
                             <p className="text-2xl font-bold text-gray-900 tracking-tight max-w-3xl leading-relaxed italic">
-                                &ldquo;{finalVisi}&rdquo;
+                                &ldquo;{liveVisi}&rdquo;
                             </p>
                         </div>
                     </div>
@@ -110,7 +127,7 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
 
                             {/* Right column list items */}
                             <div className="md:w-2/3 w-full space-y-6">
-                                {finalMisiItems
+                                {liveMisiItems
                                     .sort((a, b) => a.urutan - b.urutan)
                                     .map((misi, index) => (
                                         <div key={misi.id} className="flex gap-4 items-start group">

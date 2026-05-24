@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
+import PasskeyVerify from '@/components/passkey-verify';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -7,14 +8,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-/* @chisel-registration */
-import { register } from '@/routes';
-/* @end-chisel-registration */
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-/* @chisel-passkeys */
-import PasskeyVerify from '@/components/passkey-verify';
-/* @end-chisel-passkeys */
+import { KeyRound, Mail } from 'lucide-react';
 
 type Props = {
     status?: string;
@@ -24,102 +20,116 @@ type Props = {
 export default function Login({ status, canResetPassword }: Props) {
     return (
         <>
-            <Head title="Log in" />
+            <Head title="Masuk Ke Panel Admin" />
 
-            {/* @chisel-passkeys */}
             <PasskeyVerify />
-            {/* @end-chisel-passkeys */}
+
+            {status && (
+                <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-center text-sm font-medium text-emerald-600 border border-emerald-200/50">
+                    {status}
+                </div>
+            )}
 
             <Form
-                {...store.form()}
+                {...(store as any).form()}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
+                        <div className="grid gap-5">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
+                                <Label htmlFor="email" className="text-neutral-700 font-semibold text-xs tracking-wide uppercase">
+                                    Alamat Email
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        name="email"
+                                        required
+                                        autoFocus
+                                        tabIndex={1}
+                                        autoComplete="email"
+                                        placeholder="nama@umri.ac.id"
+                                        className="pl-10 h-11 rounded-xl border-neutral-300/80 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20 transition-all placeholder:text-neutral-400"
+                                    />
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                                        <Mail className="size-4.5" />
+                                    </div>
+                                </div>
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password" className="text-neutral-700 font-semibold text-xs tracking-wide uppercase">
+                                        Kata Sandi
+                                    </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
                                             tabIndex={5}
                                         >
-                                            Forgot your password?
+                                            Lupa password?
                                         </TextLink>
                                     )}
                                 </div>
-                                <PasswordInput
-                                    id="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
+                                <div className="relative">
+                                    <PasswordInput
+                                        id="password"
+                                        name="password"
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="current-password"
+                                        placeholder="Masukkan kata sandi"
+                                        className="pl-10 h-11 rounded-xl border-neutral-300/80 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20 transition-all placeholder:text-neutral-400"
+                                    />
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                                        <KeyRound className="size-4.5" />
+                                    </div>
+                                </div>
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2.5 py-1">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
+                                    className="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 h-4.5 w-4.5"
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember" className="text-neutral-600 text-sm cursor-pointer select-none">
+                                    Ingat saya di perangkat ini
+                                </Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-2 w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm transition-all hover:shadow-[0_4px_20px_rgba(16,185,129,0.25)] shadow-md hover:scale-[1.01] active:scale-[0.99]"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
-                                {processing && <Spinner />}
-                                Log in
+                                {processing ? (
+                                    <>
+                                        <Spinner className="mr-2" />
+                                        Memproses...
+                                    </>
+                                ) : (
+                                    'Masuk Ke Akun'
+                                )}
                             </Button>
                         </div>
-
-                        {/* @chisel-registration */}
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
-                            </TextLink>
-                        </div>
-                        {/* @end-chisel-registration */}
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </>
     );
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Masuk ke Panel',
+    description: 'Gunakan akun resmi Biro Keuangan & Aset UMRI',
 };

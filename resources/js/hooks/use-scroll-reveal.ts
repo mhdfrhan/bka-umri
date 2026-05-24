@@ -22,13 +22,17 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
 
     useEffect(() => {
         const element = ref.current;
-        if (!element) return;
+
+        if (!element) {
+return;
+}
 
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('bka-visible');
+
                         if (once) {
                             observer.unobserve(entry.target);
                         }
@@ -63,16 +67,23 @@ export function useScrollRevealChildren<T extends HTMLElement = HTMLDivElement>(
 
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+
+        if (!container) {
+return;
+}
 
         const children = container.querySelectorAll(selector);
-        if (children.length === 0) return;
+
+        if (children.length === 0) {
+return;
+}
 
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('bka-visible');
+
                         if (once) {
                             observer.unobserve(entry.target);
                         }

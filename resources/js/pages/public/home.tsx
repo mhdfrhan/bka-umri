@@ -1,16 +1,17 @@
+import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import PublicLayout from '@/layouts/public-layout';
-import HeroSlider from '@/components/sections/hero-slider';
-import SambutanSection from '@/components/sections/sambutan-section';
-import BidangSection from '@/components/sections/bidang-section';
-import LayananSection from '@/components/sections/layanan-section';
+import { CheckCircle2, CreditCard, Landmark } from 'lucide-react';
 import BeritaSection from '@/components/sections/berita-section';
-import PengumumanSection from '@/components/sections/pengumuman-section';
-import StatistikSection from '@/components/sections/statistik-section';
+import BidangSection from '@/components/sections/bidang-section';
 import CtaDokumentasi from '@/components/sections/cta-dokumentasi';
+import HeroSlider from '@/components/sections/hero-slider';
+import LayananSection from '@/components/sections/layanan-section';
+import PengumumanSection from '@/components/sections/pengumuman-section';
+import SambutanSection from '@/components/sections/sambutan-section';
+import StatistikSection from '@/components/sections/statistik-section';
+import PublicLayout from '@/layouts/public-layout';
 
 // Import icons for services section
-import { CheckCircle2, CreditCard, Landmark } from 'lucide-react';
 
 interface Banner {
     id: number;
@@ -84,6 +85,62 @@ export default function Home({
     beritaTerbaru = [],
     pengumumanTerbaru = [],
 }: HomeProps) {
+    const [liveBerita, setLiveBerita] = useState<NewsItem[]>([]);
+    const [livePengumuman, setLivePengumuman] = useState<PengumumanItem[]>([]);
+    const [liveBidangs, setLiveBidangs] = useState<BidangItem[]>([]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            // Sync Bidang
+            const savedBidangs = localStorage.getItem('bka_bidangs');
+            if (savedBidangs) {
+                try {
+                    const parsed = JSON.parse(savedBidangs);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        setLiveBidangs(parsed.map((b: any) => ({
+                            slug: b.slug,
+                            nama: b.nama,
+                            deskripsiSingkat: b.deskripsiSingkat || b.deskripsi_singkat || ''
+                        })));
+                    }
+                } catch {}
+            }
+
+            // Sync Berita
+            const savedNews = localStorage.getItem('bka_berita');
+            if (savedNews) {
+                try {
+                    const parsed = JSON.parse(savedNews);
+                    if (Array.isArray(parsed)) {
+                        const published = parsed.filter((n: any) => n.status === 'terpublikasi').slice(0, 3);
+                        if (published.length > 0) {
+                            setLiveBerita(published);
+                        }
+                    }
+                } catch {}
+            }
+
+            // Sync Pengumuman
+            const savedAnnouncements = localStorage.getItem('bka_pengumuman');
+            if (savedAnnouncements) {
+                try {
+                    const parsed = JSON.parse(savedAnnouncements);
+                    if (Array.isArray(parsed)) {
+                        const published = parsed.filter((p: any) => p.status === 'terpublikasi' || p.status === undefined);
+                        const sorted = [...published].sort((a, b) => {
+                            if (a.is_penting && !b.is_penting) return -1;
+                            if (!a.is_penting && b.is_penting) return 1;
+                            return new Date(b.date).getTime() - new Date(a.date).getTime();
+                        }).slice(0, 3);
+                        if (sorted.length > 0) {
+                            setLivePengumuman(sorted);
+                        }
+                    }
+                } catch {}
+            }
+        }
+    }, []);
+
     // ----------------------------------------------------
     // Fallback Mock Data for UI Visual Completeness
     // ----------------------------------------------------
@@ -122,7 +179,7 @@ export default function Home({
         sambutan: 'Assalamu\'alaikum Warahmatullahi Wabarakatuh. Selamat datang di portal resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau (UMRI). Biro ini berkomitmen untuk menyelenggarakan administrasi keuangan dan pengelolaan aset yang transparan, akuntabel, dan berorientasi pada pelayanan prima. Melalui website ini, kami berharap civitas akademika UMRI dan masyarakat luas dapat mengakses informasi serta layanan administrasi keuangan secara cepat, akurat, dan efisien. Kami terus berinovasi mengintegrasikan sistem digital demi kemudahan kita bersama. Terima kasih atas kepercayaan dan kerjasama Anda semua. Wassalamu\'alaikum Warahmatullahi Wabarakatuh.'
     };
 
-    const finalBidangs = bidangs.length > 0 ? bidangs : [
+    const defaultBidangs = [
         {
             slug: 'keuangan',
             nama: 'Bidang Keuangan & Pembiayaan',
@@ -134,6 +191,7 @@ export default function Home({
             deskripsiSingkat: 'Mengatur inventarisasi, distribusi, pemeliharaan sarana prasarana, pengadaan barang, serta optimalisasi pemanfaatan aset fisik Universitas Muhammadiyah Riau.'
         }
     ];
+    const finalBidangs = liveBidangs.length > 0 ? liveBidangs : (bidangs.length > 0 ? bidangs : defaultBidangs);
 
     const finalLayananList = layanan?.items || [
         {
@@ -160,7 +218,7 @@ export default function Home({
         layananList: finalLayananList
     };
 
-    const finalBerita = beritaTerbaru.length > 0 ? beritaTerbaru : [
+    const defaultBerita = [
         {
             slug: 'bka-luncurkan-sistem-keuangan-baru-2026',
             thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
@@ -189,8 +247,9 @@ export default function Home({
             author: 'Bagian Keuangan'
         }
     ];
+    const finalBerita = liveBerita.length > 0 ? liveBerita : (beritaTerbaru.length > 0 ? beritaTerbaru : defaultBerita);
 
-    const finalPengumuman = pengumumanTerbaru.length > 0 ? pengumumanTerbaru : [
+    const defaultPengumuman = [
         {
             slug: 'jadwal-registrasi-keuangan-semester-ganjil-2026',
             title: 'Jadwal & Prosedur Registrasi Keuangan Semester Ganjil TA 2026/2027',
@@ -213,6 +272,7 @@ export default function Home({
             excerpt: 'BKA membuka pendaftaran berkas dispensasi keringanan pembayaran kuliah hingga 15 Juni 2026 bagi mahasiswa yang memenuhi kriteria berkas pendukung.'
         }
     ];
+    const finalPengumuman = livePengumuman.length > 0 ? livePengumuman : (pengumumanTerbaru.length > 0 ? pengumumanTerbaru : defaultPengumuman);
 
     return (
         <>

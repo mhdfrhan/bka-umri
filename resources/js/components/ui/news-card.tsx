@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Calendar, User } from 'lucide-react';
+import { formatDate } from '@/lib/format-date';
 
 interface NewsCardProps {
     slug: string;
@@ -55,7 +56,7 @@ export default function NewsCard({ slug, thumbnail, category, title, excerpt, da
                     <div className="flex flex-wrap items-center gap-3.5 border-t border-[#DDE5DD] pt-3.5">
                         <span className="flex items-center gap-1.5 text-xs text-[#9EAAB2]">
                             <Calendar size={12} />
-                            {date}
+                            {formatDate(date)}
                         </span>
                         {author && (
                             <span className="flex items-center gap-1.5 text-xs text-[#9EAAB2]">
