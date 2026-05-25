@@ -95,11 +95,43 @@ export default function KontakIndex({ kontak }: KontakProps) {
         { id: 'dark-matter', label: 'Dark Matter (Gelap)', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' },
     ];
 
+    const CAMPUS_POIS = [
+        {
+            id: 'bka',
+            label: 'Kantor BKA (Rektorat)',
+            coords: [101.415461, 0.498705] as [number, number],
+            zoom: 17.6,
+            pitch: 62,
+            bearing: 30,
+            desc: 'Pusat layanan administrasi keuangan & aset di Gedung Rektorat Utama.'
+        },
+        {
+            id: 'gerbang',
+            label: 'Gerbang Utama Kampus',
+            coords: [101.416800, 0.499000] as [number, number],
+            zoom: 16.8,
+            pitch: 45,
+            bearing: -45,
+            desc: 'Akses masuk gerbang depan Universitas Muhammadiyah Riau.'
+        },
+        {
+            id: 'dahlan',
+            label: 'Gedung KH Ahmad Dahlan',
+            coords: [101.414700, 0.498200] as [number, number],
+            zoom: 17.0,
+            pitch: 52,
+            bearing: 60,
+            desc: 'Gedung perkuliahan utama & ruang dekanat fakultas terintegrasi.'
+        }
+    ];
+
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<any>(null);
+    const orbitFrameRef = useRef<number | null>(null);
     
     const [activeStyleId, setActiveStyleId] = useState('voyager');
     const [is3DMode, setIs3DMode] = useState(false);
+    const [isOrbiting, setIsOrbiting] = useState(false);
     const [centerCoords, setCenterCoords] = useState({ lat: 0.498705, lng: 101.415461 });
     const [copied, setCopied] = useState(false);
 
@@ -112,47 +144,61 @@ export default function KontakIndex({ kontak }: KontakProps) {
         import('maplibre-gl').then((maplibreglModule) => {
             const maplibregl = maplibreglModule.default;
 
+            // Smart Night-mode Auto-switcher: default to dark-matter style if local time is night
+            const currentHour = new Date().getHours();
+            const isNightTime = currentHour >= 18 || currentHour < 6;
+            const initialStyleUrl = isNightTime ? MAP_STYLES[2].url : MAP_STYLES[0].url;
+            setActiveStyleId(isNightTime ? 'dark-matter' : 'voyager');
+
             map = new maplibregl.Map({
                 container: mapContainerRef.current!,
-                style: MAP_STYLES[0].url, // Voyager
+                style: initialStyleUrl,
                 center: [101.415461, 0.498705], // Lng, Lat
                 zoom: 16,
-                pitch: 0,
-                bearing: 0,
+                pitch: isNightTime ? 45 : 0,
+                bearing: isNightTime ? -15 : 0,
                 dragRotate: true,
             });
 
+            if (isNightTime) {
+                setIs3DMode(true);
+            }
+
             mapInstanceRef.current = map;
 
-            // Wait for style to load then add custom Forrest Green marker
+            // Wait for style to load then add custom Forrest Green markers for all POIs
             map.on('load', () => {
-                // Create custom pulsed marker DOM element
-                const el = document.createElement('div');
-                el.className = 'custom-marker';
-                el.innerHTML = `
-                    <div class="relative flex items-center justify-center">
-                        <div class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-[#1B5E20] opacity-75"></div>
-                        <div class="relative flex items-center justify-center rounded-full bg-[#1B5E20] border-2 border-white p-2.5 text-white shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                            </svg>
+                CAMPUS_POIS.forEach(poi => {
+                    const isBka = poi.id === 'bka';
+                    
+                    // Create custom pulsed marker DOM element
+                    const el = document.createElement('div');
+                    el.className = 'custom-marker cursor-pointer';
+                    el.innerHTML = `
+                        <div class="relative flex items-center justify-center group/marker">
+                            <div class="animate-ping absolute inline-flex h-7 w-7 rounded-full ${isBka ? 'bg-[#1B5E20]' : 'bg-[#C8A000]'} opacity-75"></div>
+                            <div class="relative flex items-center justify-center rounded-full bg-white border-2 ${isBka ? 'border-[#1B5E20] text-[#1B5E20]' : 'border-[#C8A000] text-[#C8A000]'} p-1.5 shadow-md hover:scale-110 transition-all duration-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
-                // Add popup
-                const popup = new maplibregl.Popup({ offset: 25, closeButton: false }).setHTML(`
-                    <div class="p-2 text-center select-none font-sans">
-                        <p class="font-extrabold text-[#1A1A1A] text-xs">Kantor BKA UMRI</p>
-                        <p class="text-[10px] text-neutral-500 font-light mt-0.5">Gedung Rektorat Kampus Utama</p>
-                    </div>
-                `);
+                    // Add popup
+                    const popup = new maplibregl.Popup({ offset: 25, closeButton: false }).setHTML(`
+                        <div class="p-2 text-center select-none font-sans max-w-[180px]">
+                            <p class="font-extrabold text-[#1A1A1A] text-xs">${poi.label}</p>
+                            <p class="text-[9px] text-neutral-500 font-light mt-0.5">${poi.desc}</p>
+                        </div>
+                    `);
 
-                // Create and add marker
-                new maplibregl.Marker({ element: el })
-                    .setLngLat([101.415461, 0.498705])
-                    .setPopup(popup)
-                    .addTo(map);
+                    // Create and add marker
+                    new maplibregl.Marker({ element: el })
+                        .setLngLat(poi.coords)
+                        .setPopup(popup)
+                        .addTo(map);
+                });
             });
 
             // Track coordinate moves
@@ -160,10 +206,18 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 const center = map.getCenter();
                 setCenterCoords({ lat: center.lat, lng: center.lng });
             });
+
+            // Interruption handlers: stop orbiting if the user manually drags/pans/manipulates the map
+            map.on('dragstart', () => stopOrbitSilently());
+            map.on('zoomstart', () => stopOrbitSilently());
+            map.on('rotatestart', () => stopOrbitSilently());
         });
 
         // Cleanup map instance on unmount
         return () => {
+            if (orbitFrameRef.current) {
+                cancelAnimationFrame(orbitFrameRef.current);
+            }
             if (map) {
                 map.remove();
             }
@@ -180,10 +234,11 @@ export default function KontakIndex({ kontak }: KontakProps) {
     };
 
     const handleRecenter = () => {
+        stopOrbitSilently();
         if (mapInstanceRef.current) {
             mapInstanceRef.current.easeTo({
                 center: [101.415461, 0.498705],
-                zoom: 16,
+                zoom: 16.2,
                 pitch: is3DMode ? 45 : 0,
                 bearing: 0,
                 duration: 1500
@@ -210,6 +265,70 @@ export default function KontakIndex({ kontak }: KontakProps) {
         setCopied(true);
         toast.success('Koordinat Rektorat UMRI disalin ke papan klip!');
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    // ─── CINEMATIC 3D ORBIT & POI TOUR ENGINE ───
+    const handleFlyToPOI = (poi: typeof CAMPUS_POIS[0]) => {
+        stopOrbitSilently();
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo({
+                center: poi.coords,
+                zoom: poi.zoom,
+                pitch: poi.pitch,
+                bearing: poi.bearing,
+                speed: 0.7,
+                curve: 1.35,
+                essential: true,
+                duration: 2500
+            });
+            toast.info(`Terbang menuju: ${poi.label}`);
+        }
+    };
+
+    const startOrbit = () => {
+        if (!mapInstanceRef.current) return;
+        const map = mapInstanceRef.current;
+
+        // Fly to campus center and set beautiful 3D view
+        map.flyTo({
+            center: [101.415461, 0.498705],
+            zoom: 17.4,
+            pitch: 62,
+            bearing: 0,
+            essential: true,
+            duration: 2500
+        });
+
+        setTimeout(() => {
+            setIsOrbiting(true);
+            setIs3DMode(true);
+            let bearing = 0;
+            const orbitLoop = () => {
+                if (!mapInstanceRef.current) return;
+                bearing = (bearing + 0.12) % 360;
+                mapInstanceRef.current.setBearing(bearing);
+                orbitFrameRef.current = requestAnimationFrame(orbitLoop);
+            };
+            orbitFrameRef.current = requestAnimationFrame(orbitLoop);
+            toast.success("Mode Tour Orbit 3D Aktif. Geser peta untuk menghentikan putaran.");
+        }, 2700);
+    };
+
+    const stopOrbit = () => {
+        setIsOrbiting(false);
+        if (orbitFrameRef.current) {
+            cancelAnimationFrame(orbitFrameRef.current);
+            orbitFrameRef.current = null;
+            toast.info("Mode Tour Orbit 3D Dihentikan.");
+        }
+    };
+
+    const stopOrbitSilently = () => {
+        setIsOrbiting(false);
+        if (orbitFrameRef.current) {
+            cancelAnimationFrame(orbitFrameRef.current);
+            orbitFrameRef.current = null;
+        }
     };
 
     // Form inputs state
@@ -699,31 +818,81 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 </div>
 
                 {/* Maplibre container */}
-                <div className="relative w-full h-[450px] md:h-[550px] bg-slate-100 group select-none">
+                <div className="relative w-full h-[480px] md:h-[580px] bg-slate-100 group select-none">
                     <div ref={mapContainerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-                    {/* Floating Controls Overlay - Top Left: Styles Selector */}
-                    <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 bg-white/80 backdrop-blur-md p-2 rounded-2xl border border-[#DDE5DD] shadow-sm transition-all">
-                        <div className="flex items-center gap-1.5 px-1.5 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
-                            <Layers size={10} className="text-[#1B5E20]" />
-                            <span>Gaya Visual Peta</span>
+                    {/* Floating Controls Overlay - Top Left: Styles, Tour & POIs Panel */}
+                    <div className="absolute top-4 left-4 z-10 w-64 bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-[#DDE5DD] shadow-sm flex flex-col gap-3.5 transition-all select-none">
+                        {/* Style Selection header */}
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5 px-1 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
+                                <Layers size={10} className="text-[#1B5E20]" />
+                                <span>Gaya Visual Peta</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                                {MAP_STYLES.map(style => (
+                                    <button
+                                        key={style.id}
+                                        type="button"
+                                        onClick={() => handleStyleChange(style.url, style.id)}
+                                        className={cn(
+                                            "text-[9px] font-extrabold py-1.5 px-1 rounded-lg transition-all text-center outline-none cursor-pointer border",
+                                            activeStyleId === style.id
+                                                ? "bg-[#1B5E20] border-[#1B5E20] text-white shadow-2xs"
+                                                : "bg-white hover:bg-[#E8F5E9] border-neutral-200 text-neutral-600"
+                                        )}
+                                    >
+                                        <span>{style.id === 'voyager' ? 'Voyager' : style.id === 'positron' ? 'Terang' : 'Gelap'}</span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                            {MAP_STYLES.map(style => (
-                                <button
-                                    key={style.id}
-                                    type="button"
-                                    onClick={() => handleStyleChange(style.url, style.id)}
-                                    className={cn(
-                                        "flex items-center justify-between text-[11px] font-bold py-1.5 px-3 rounded-lg transition-all text-left outline-none cursor-pointer",
-                                        activeStyleId === style.id
-                                            ? "bg-[#1B5E20] text-white"
-                                            : "hover:bg-[#E8F5E9] text-[#1A1A1A]"
-                                    )}
-                                >
-                                    <span>{style.label}</span>
-                                </button>
-                            ))}
+
+                        {/* 3D Cinematic Tour Block */}
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between px-1 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
+                                <span className="flex items-center gap-1">
+                                    <Compass size={10} className="text-[#1B5E20]" />
+                                    <span>Cinematic Tour 3D</span>
+                                </span>
+                                <span className={cn("h-1.5 w-1.5 rounded-full", isOrbiting ? "bg-emerald-500 animate-ping" : "bg-neutral-300")} />
+                            </div>
+                            
+                            <button
+                                type="button"
+                                onClick={isOrbiting ? stopOrbit : startOrbit}
+                                className={cn(
+                                    "w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-[10px] font-extrabold uppercase tracking-wider transition-all outline-none cursor-pointer border",
+                                    isOrbiting
+                                        ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100/50"
+                                        : "bg-emerald-50/70 border-emerald-200 text-[#1B5E20] hover:bg-[#1B5E20]/15"
+                                )}
+                            >
+                                <Compass size={12} className={cn(isOrbiting && "animate-spin-slow")} />
+                                <span>{isOrbiting ? 'Matikan Orbit' : 'Mulai Orbit 3D'}</span>
+                            </button>
+                        </div>
+
+                        {/* POIs List Block */}
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5 px-1 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
+                                <MapPin size={10} className="text-[#1B5E20]" />
+                                <span>Kawasan Kampus (POIs)</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                {CAMPUS_POIS.map(poi => (
+                                    <button
+                                        key={poi.id}
+                                        type="button"
+                                        onClick={() => handleFlyToPOI(poi)}
+                                        className="w-full flex items-center gap-2 text-left py-1.5 px-2.5 rounded-lg bg-neutral-50/50 hover:bg-[#E8F5E9]/50 border border-neutral-100 hover:border-[#1B5E20]/20 text-[10px] text-neutral-700 font-bold transition-all outline-none cursor-pointer"
+                                    >
+                                        <div className={cn("size-2 rounded-full shrink-0", poi.id === 'bka' ? "bg-[#1B5E20]" : "bg-[#C8A000]")} />
+                                        <span className="truncate flex-1">{poi.label}</span>
+                                        <Maximize2 size={9} className="opacity-40" />
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
