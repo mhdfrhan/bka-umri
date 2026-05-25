@@ -26,10 +26,7 @@ export default function AnnouncementItem({ slug, title, date, isPenting = false,
                     hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)]
                 `}
             >
-                {/* Left accent bar for important items */}
-                {isPenting && (
-                    <div className="absolute top-3 bottom-3 left-0 w-[3px] rounded-r-full bg-[#C62828]" />
-                )}
+
 
                 {/* Icon */}
                 <span

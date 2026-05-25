@@ -147,7 +147,7 @@ export default function Home({
     const finalBanners = banners.length > 0 ? banners : [
         {
             id: 1,
-            image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80',
+            image: 'assets/bg-umri.jpeg',
             title: 'Biro Keuangan & Aset UMRI',
             description: 'Mengelola keuangan dan aset secara transparan, akuntabel, dan profesional demi kemajuan civitas akademika Universitas Muhammadiyah Riau.',
             ctaText: 'Layanan Mahasiswa',

@@ -10,13 +10,21 @@ import {
     Youtube,
     Twitter,
     Loader2,
+    Compass,
+    Layers,
+    Navigation,
+    Maximize2,
+    Copy,
+    Check,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { PageHero } from '@/components/layout/page-hero';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
+import { cn } from '@/lib/utils';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface MediaSosialItem {
     platform: string;
@@ -44,7 +52,7 @@ const dummyKontak: KontakDetail = {
     jam_operasional:
         "Sen - Jum : 08.00 - 16.00 WIB\nSabtu : 08.00 - 13.00 WIB",
     google_maps_embed:
-        'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.6892305886367!2d101.41584367501061!3d0.48514986377759885!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31d5a9477e68dbb5%3A0xe5a1b32d0c268800!2sUniversitas%20Muhammadiyah%20Riau!5e0!3m2!1sid!2sid!4v1716500000000!5m2!1sid!2sid',
+        'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d997.4167965592992!2d101.41546138047615!3d0.49870495320004715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31d5a940e01df989%3A0xdc96c279c6f07bc3!2sUniversitas%20Muhammadiyah%20Riau!5e0!3m2!1sid!2sid!4v1779673086975!5m2!1sid!2sid',
     mediaSosial: [
         { platform: 'Facebook', url: 'https://facebook.com/umri.official' },
         { platform: 'Instagram', url: 'https://instagram.com/umri.official' },
@@ -79,6 +87,130 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
     // Safe fallback handling for dynamic vs mock data
     const resolvedKontak = localKontak || kontak || dummyKontak;
+
+    // ─── MAPLIBRE GL INTERACTIVE MAP ENGINE STATES & REFS ───
+    const MAP_STYLES = [
+        { id: 'voyager', label: 'Voyager (Warna)', url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' },
+        { id: 'positron', label: 'Positron (Terang)', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
+        { id: 'dark-matter', label: 'Dark Matter (Gelap)', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' },
+    ];
+
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<any>(null);
+    
+    const [activeStyleId, setActiveStyleId] = useState('voyager');
+    const [is3DMode, setIs3DMode] = useState(false);
+    const [centerCoords, setCenterCoords] = useState({ lat: 0.498705, lng: 101.415461 });
+    const [copied, setCopied] = useState(false);
+
+    // Initializing MapLibre GL dynamically to prevent SSR global evaluation issues
+    useEffect(() => {
+        if (typeof window === 'undefined' || !mapContainerRef.current) return;
+
+        let map: any;
+
+        import('maplibre-gl').then((maplibreglModule) => {
+            const maplibregl = maplibreglModule.default;
+
+            map = new maplibregl.Map({
+                container: mapContainerRef.current!,
+                style: MAP_STYLES[0].url, // Voyager
+                center: [101.415461, 0.498705], // Lng, Lat
+                zoom: 16,
+                pitch: 0,
+                bearing: 0,
+                dragRotate: true,
+            });
+
+            mapInstanceRef.current = map;
+
+            // Wait for style to load then add custom Forrest Green marker
+            map.on('load', () => {
+                // Create custom pulsed marker DOM element
+                const el = document.createElement('div');
+                el.className = 'custom-marker';
+                el.innerHTML = `
+                    <div class="relative flex items-center justify-center">
+                        <div class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-[#1B5E20] opacity-75"></div>
+                        <div class="relative flex items-center justify-center rounded-full bg-[#1B5E20] border-2 border-white p-2.5 text-white shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                `;
+
+                // Add popup
+                const popup = new maplibregl.Popup({ offset: 25, closeButton: false }).setHTML(`
+                    <div class="p-2 text-center select-none font-sans">
+                        <p class="font-extrabold text-[#1A1A1A] text-xs">Kantor BKA UMRI</p>
+                        <p class="text-[10px] text-neutral-500 font-light mt-0.5">Gedung Rektorat Kampus Utama</p>
+                    </div>
+                `);
+
+                // Create and add marker
+                new maplibregl.Marker({ element: el })
+                    .setLngLat([101.415461, 0.498705])
+                    .setPopup(popup)
+                    .addTo(map);
+            });
+
+            // Track coordinate moves
+            map.on('move', () => {
+                const center = map.getCenter();
+                setCenterCoords({ lat: center.lat, lng: center.lng });
+            });
+        });
+
+        // Cleanup map instance on unmount
+        return () => {
+            if (map) {
+                map.remove();
+            }
+        };
+    }, []);
+
+    // ─── MAP CONTROL ACTIONS ───
+    const handleStyleChange = (url: string, id: string) => {
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.setStyle(url);
+            setActiveStyleId(id);
+            toast.success(`Gaya peta berhasil diubah ke ${id.toUpperCase()}`);
+        }
+    };
+
+    const handleRecenter = () => {
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.easeTo({
+                center: [101.415461, 0.498705],
+                zoom: 16,
+                pitch: is3DMode ? 45 : 0,
+                bearing: 0,
+                duration: 1500
+            });
+            toast.success('Peta dikembalikan ke lokasi kampus utama.');
+        }
+    };
+
+    const handleToggle3D = () => {
+        const nextMode = !is3DMode;
+        setIs3DMode(nextMode);
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.easeTo({
+                pitch: nextMode ? 45 : 0,
+                bearing: nextMode ? -20 : 0,
+                duration: 1200
+            });
+            toast.success(nextMode ? 'Mode kemiringan 3D diaktifkan' : 'Mode 2D diaktifkan');
+        }
+    };
+
+    const handleCopyCoords = () => {
+        navigator.clipboard.writeText('0.498705, 101.415461');
+        setCopied(true);
+        toast.success('Koordinat Rektorat UMRI disalin ke papan klip!');
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     // Form inputs state
     const [formData, setFormData] = useState({
@@ -360,21 +492,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                     )}
                             </div>
 
-                            {/* Responsive Interactive Google Maps Card */}
-                            <div className="overflow-hidden rounded-2xl border border-[#DDE5DD] bg-white p-3 shadow-sm">
-                                <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-100">
-                                    <iframe
-                                        src={resolvedKontak.google_maps_embed}
-                                        width="100%"
-                                        height="100%"
-                                        style={{ border: 0 }}
-                                        allowFullScreen={false}
-                                        loading="lazy"
-                                        referrerPolicy="no-referrer-when-downgrade"
-                                        title="Google Maps Lokasi Universitas Muhammadiyah Riau"
-                                    />
-                                </div>
-                            </div>
+                            {/* Maps placeholder removed in favor of full-width interactive section below */}
                         </div>
 
                         {/* RIGHT COLUMN: Contact Form (7/12 cols) */}
@@ -562,6 +680,136 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                     </div>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* FULL WIDTH INTERACTIVE MAPLIBRE MAP SECTION */}
+            <section className="relative w-full border-t border-[#DDE5DD] bg-white">
+                {/* Visual Section Intro Header */}
+                <div className="bka-container pt-12 pb-6">
+                    <div className="flex flex-col gap-2">
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B5E20]">Lokasi Kampus Utama</span>
+                        <h2 className="text-xl md:text-2xl font-bold text-[#1A1A1A]">Peta Interaktif Kampus Universitas Muhammadiyah Riau</h2>
+                        <p className="text-xs text-[#5C6B73] font-light max-w-2xl">
+                            Eksplorasi wilayah kampus UMRI secara interaktif menggunakan rendering vektor 3D 60FPS. Anda dapat menggeser, melakukan zoom, memutar orientasi peta, dan mengganti gaya visual peta.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Maplibre container */}
+                <div className="relative w-full h-[450px] md:h-[550px] bg-slate-100 group select-none">
+                    <div ref={mapContainerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+
+                    {/* Floating Controls Overlay - Top Left: Styles Selector */}
+                    <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 bg-white/80 backdrop-blur-md p-2 rounded-2xl border border-[#DDE5DD] shadow-sm transition-all">
+                        <div className="flex items-center gap-1.5 px-1.5 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
+                            <Layers size={10} className="text-[#1B5E20]" />
+                            <span>Gaya Visual Peta</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            {MAP_STYLES.map(style => (
+                                <button
+                                    key={style.id}
+                                    type="button"
+                                    onClick={() => handleStyleChange(style.url, style.id)}
+                                    className={cn(
+                                        "flex items-center justify-between text-[11px] font-bold py-1.5 px-3 rounded-lg transition-all text-left outline-none cursor-pointer",
+                                        activeStyleId === style.id
+                                            ? "bg-[#1B5E20] text-white"
+                                            : "hover:bg-[#E8F5E9] text-[#1A1A1A]"
+                                    )}
+                                >
+                                    <span>{style.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Floating Controls Overlay - Top Right: Quick Navigation Tools */}
+                    <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+                        {/* Re-center Button */}
+                        <button
+                            type="button"
+                            onClick={handleRecenter}
+                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 backdrop-blur-md border border-[#DDE5DD] hover:bg-white text-[#1B5E20] shadow-sm transition-all hover:scale-105 outline-none cursor-pointer"
+                            title="Kembali ke UMRI"
+                        >
+                            <Navigation size={16} />
+                        </button>
+                        
+                        {/* Tilt / 3D Mode Toggle */}
+                        <button
+                            type="button"
+                            onClick={handleToggle3D}
+                            className={cn(
+                                "flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 backdrop-blur-md border shadow-sm transition-all hover:scale-105 outline-none cursor-pointer",
+                                is3DMode
+                                    ? "border-[#1B5E20]/40 text-[#1B5E20] bg-emerald-50/50"
+                                    : "border-[#DDE5DD] text-neutral-500 hover:bg-white"
+                            )}
+                            title="Aktifkan Mode 3D / Kemiringan"
+                        >
+                            <Compass size={16} className={cn(is3DMode && "animate-pulse")} />
+                        </button>
+                    </div>
+
+                    {/* Floating Info Overlay - Bottom Left: Coordinates Tracker */}
+                    <div className="absolute bottom-4 left-4 z-10 hidden sm:flex items-center gap-4 bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-[#DDE5DD] shadow-xs text-[10px] font-semibold text-neutral-500">
+                        <div className="flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            <span>Koordinat Peta:</span>
+                        </div>
+                        <div className="font-mono">
+                            <span>Lat: </span>
+                            <span className="text-neutral-800 font-bold select-all">{centerCoords.lat.toFixed(6)}</span>
+                        </div>
+                        <div className="font-mono">
+                            <span>Lng: </span>
+                            <span className="text-neutral-800 font-bold select-all">{centerCoords.lng.toFixed(6)}</span>
+                        </div>
+                    </div>
+
+                    {/* Floating Info Overlay - Bottom Right: Interactive Contact Details Glassmorphism Card */}
+                    <div className="absolute bottom-4 right-4 z-10 w-72 bg-white/80 backdrop-blur-lg border border-[#DDE5DD]/80 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-lg bg-[#E8F5E9] flex items-center justify-center text-[#1B5E20] shrink-0">
+                                <MapPin size={12} />
+                            </div>
+                            <span className="text-xs font-bold text-[#1A1A1A]">Rektorat UMRI Pekanbaru</span>
+                        </div>
+                        <p className="text-[10px] text-[#5C6B73] leading-relaxed font-light">
+                            Jl. T. Tambusai, Delima, Kec. Tampan, Kota Pekanbaru, Riau 28290. Gedung Rektorat Utama, Ruang BKA.
+                        </p>
+                        
+                        <div className="flex gap-1.5 mt-1 border-t border-[#F1F3F1] pt-2.5 select-none">
+                            <button
+                                type="button"
+                                onClick={handleCopyCoords}
+                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-[10px] font-bold text-neutral-600 transition-colors cursor-pointer outline-none"
+                            >
+                                {copied ? (
+                                    <>
+                                        <Check size={11} className="text-[#1B5E20]" />
+                                        <span>Tersalin</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={11} />
+                                        <span>Salin Lat Lng</span>
+                                    </>
+                                )}
+                            </button>
+                            <a
+                                href="https://maps.google.com/?q=Universitas+Muhammadiyah+Riau"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#1B5E20] hover:bg-[#145218] text-white text-[10px] font-bold transition-all hover:scale-[1.02] shadow-xs text-center"
+                            >
+                                <Maximize2 size={11} />
+                                <span>Buka Google Maps</span>
+                            </a>
                         </div>
                     </div>
                 </div>

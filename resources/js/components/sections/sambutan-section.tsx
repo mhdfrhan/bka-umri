@@ -101,9 +101,9 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                             <Quote
                                 size={56}
                                 aria-hidden="true"
-                                className="absolute -top-6 -left-6 z-0 -scale-x-100 text-[#E8F5E9]"
+                                className="absolute -top-6 -left-6 z-0 -scale-x-100 text-[#C8A000]/15"
                             />
-                            <div className="relative z-[1] rounded-xl border-l-[3px] border-[#C8A000] bg-[#F7F9F7] py-5 pr-5 pl-5">
+                            <div className="relative z-[1] rounded-2xl border border-[#C8A000]/20 bg-[#FFF8DC]/40 py-6 pr-6 pl-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] backdrop-blur-[2px]">
                                 <p className="text-base leading-[1.8] text-[#5C6B73] italic">
                                     {kepalaBiro.sambutan}
                                 </p>
