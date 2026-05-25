@@ -110,32 +110,44 @@ export default function AdminDashboard() {
         if (typeof window !== 'undefined') {
             // Set current user details in localStorage
             if (user) {
-                localStorage.setItem('bka_current_user', JSON.stringify({
-                    name: user.name,
-                    email: user.email,
-                    role: isSuperAdmin ? 'super_admin' : 'admin'
-                }));
+                localStorage.setItem(
+                    'bka_current_user',
+                    JSON.stringify({
+                        name: user.name,
+                        email: user.email,
+                        role: isSuperAdmin ? 'super_admin' : 'admin',
+                    }),
+                );
             }
 
             // Hydrate statistics
             const savedBerita = localStorage.getItem('bka_berita');
-            const countBerita = savedBerita ? JSON.parse(savedBerita).length : 12;
+            const countBerita = savedBerita
+                ? JSON.parse(savedBerita).length
+                : 12;
 
             const savedPengumuman = localStorage.getItem('bka_pengumuman');
-            const countPengumuman = savedPengumuman ? JSON.parse(savedPengumuman).length : 8;
+            const countPengumuman = savedPengumuman
+                ? JSON.parse(savedPengumuman).length
+                : 8;
 
             const savedPesan = localStorage.getItem('bka_pesan');
             const parsedPesan = savedPesan ? JSON.parse(savedPesan) : [];
-            const countPesan = parsedPesan.length > 0 ? parsedPesan.filter((p: any) => !p.dibaca).length : 4;
+            const countPesan =
+                parsedPesan.length > 0
+                    ? parsedPesan.filter((p: any) => !p.dibaca).length
+                    : 4;
 
             const savedLampiran = localStorage.getItem('bka_berkas_lampiran');
-            const countLampiran = savedLampiran ? JSON.parse(savedLampiran).length : 15;
+            const countLampiran = savedLampiran
+                ? JSON.parse(savedLampiran).length
+                : 15;
 
             setStats({
                 berita: countBerita,
                 pengumuman: countPengumuman,
                 pesan: countPesan,
-                lampiran: countLampiran
+                lampiran: countLampiran,
             });
 
             // Hydrate activity logs
@@ -153,7 +165,9 @@ export default function AdminDashboard() {
                 const seededLogs = [
                     {
                         id: 1,
-                        time: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+                        time: new Date(
+                            Date.now() - 5 * 60 * 1000,
+                        ).toISOString(),
                         user: 'Super Admin',
                         role: 'Super Admin',
                         action: 'Menerbitkan berita baru',
@@ -162,7 +176,9 @@ export default function AdminDashboard() {
                     },
                     {
                         id: 2,
-                        time: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+                        time: new Date(
+                            Date.now() - 20 * 60 * 1000,
+                        ).toISOString(),
                         user: 'Admin BKA',
                         role: 'Admin',
                         action: 'Mengubah status pengumuman',
@@ -171,7 +187,9 @@ export default function AdminDashboard() {
                     },
                     {
                         id: 3,
-                        time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+                        time: new Date(
+                            Date.now() - 60 * 60 * 1000,
+                        ).toISOString(),
                         user: 'Super Admin',
                         role: 'Super Admin',
                         action: 'Mengubah pengaturan sistem',
@@ -180,7 +198,9 @@ export default function AdminDashboard() {
                     },
                     {
                         id: 4,
-                        time: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+                        time: new Date(
+                            Date.now() - 3 * 60 * 60 * 1000,
+                        ).toISOString(),
                         user: 'Super Admin',
                         role: 'Super Admin',
                         action: 'Membuat akun pengguna',
@@ -189,7 +209,9 @@ export default function AdminDashboard() {
                     },
                     {
                         id: 5,
-                        time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                        time: new Date(
+                            Date.now() - 24 * 60 * 60 * 1000,
+                        ).toISOString(),
                         user: 'Admin BKA',
                         role: 'Admin',
                         action: 'Menghapus berkas lampiran kedaluwarsa',
@@ -197,7 +219,10 @@ export default function AdminDashboard() {
                         type: 'delete',
                     },
                 ];
-                localStorage.setItem('bka_activity_logs', JSON.stringify(seededLogs));
+                localStorage.setItem(
+                    'bka_activity_logs',
+                    JSON.stringify(seededLogs),
+                );
                 logsList = seededLogs;
             }
             setActivities(logsList);
@@ -504,7 +529,7 @@ export default function AdminDashboard() {
                             {isSuperAdmin ? (
                                 <Link
                                     href="/admin/logs"
-                                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
+                                    className="text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700 hover:underline"
                                 >
                                     Lihat Detail Log &rarr;
                                 </Link>
@@ -555,8 +580,7 @@ export default function AdminDashboard() {
                                             <li key={activity.id}>
                                                 <div className="relative pb-8">
                                                     {idx !==
-                                                    activities.length -
-                                                        1 ? (
+                                                    activities.length - 1 ? (
                                                         <span
                                                             className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-neutral-100"
                                                             aria-hidden="true"
@@ -599,7 +623,9 @@ export default function AdminDashboard() {
                                                                 </p>
                                                             </div>
                                                             <div className="shrink-0 pt-0.5 text-right text-xs font-bold whitespace-nowrap text-neutral-400">
-                                                                {formatRelativeDate(activity.time)}
+                                                                {formatRelativeDate(
+                                                                    activity.time,
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>

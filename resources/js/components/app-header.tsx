@@ -203,18 +203,22 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="h-12 rounded-full px-2 py-1.5 flex items-center gap-3 hover:bg-muted/50"
+                                    className="flex h-12 items-center gap-3 rounded-full px-2 py-1.5 hover:bg-muted/50"
                                 >
                                     <div className="hidden flex-col items-end sm:flex">
-                                        <span className="text-sm font-semibold">{auth.user?.name}</span>
-                                        <span className="text-[10px] uppercase text-primary font-bold tracking-wider">Admin</span>
+                                        <span className="text-sm font-semibold">
+                                            {auth.user?.name}
+                                        </span>
+                                        <span className="text-[10px] font-bold tracking-wider text-primary uppercase">
+                                            Admin
+                                        </span>
                                     </div>
                                     <Avatar className="size-8 overflow-hidden rounded-full border border-border">
                                         <AvatarImage
                                             src={auth.user?.avatar}
                                             alt={auth.user?.name}
                                         />
-                                        <AvatarFallback className="rounded-full bg-primary/10 text-primary font-semibold">
+                                        <AvatarFallback className="rounded-full bg-primary/10 font-semibold text-primary">
                                             {getInitials(auth.user?.name ?? '')}
                                         </AvatarFallback>
                                     </Avatar>

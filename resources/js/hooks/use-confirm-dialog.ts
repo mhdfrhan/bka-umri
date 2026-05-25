@@ -16,12 +16,15 @@ export function useConfirmDialog() {
         title: '',
     });
 
-    const openConfirm = useCallback((options: Omit<ConfirmDialogState, 'isOpen'>) => {
-        setState({
-            ...options,
-            isOpen: true,
-        });
-    }, []);
+    const openConfirm = useCallback(
+        (options: Omit<ConfirmDialogState, 'isOpen'>) => {
+            setState({
+                ...options,
+                isOpen: true,
+            });
+        },
+        [],
+    );
 
     const closeConfirm = useCallback(() => {
         setState((prev) => ({ ...prev, isOpen: false }));

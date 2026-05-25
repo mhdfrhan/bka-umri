@@ -1,6 +1,9 @@
 import { Award, BookOpen, Building2, Users } from 'lucide-react';
 import StatCounter from '@/components/ui/stat-counter';
-import { useScrollReveal, useScrollRevealChildren } from '@/hooks/use-scroll-reveal';
+import {
+    useScrollReveal,
+    useScrollRevealChildren,
+} from '@/hooks/use-scroll-reveal';
 
 interface StatItem {
     icon: typeof Award;
@@ -23,7 +26,8 @@ export default function StatistikSection({
     stats = defaultStats,
 }: StatistikSectionProps) {
     const headerRef = useScrollReveal<HTMLDivElement>();
-    const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal-scale');
+    const gridRef =
+        useScrollRevealChildren<HTMLDivElement>('.bka-reveal-scale');
 
     return (
         <section
@@ -31,7 +35,8 @@ export default function StatistikSection({
             aria-label="Statistik Kelembagaan BKA UMRI"
             className="relative z-[3] overflow-hidden border-t-[3px] border-[#C8A000]"
             style={{
-                background: 'linear-gradient(135deg, #144317 0%, #1B5E20 50%, #206825 100%)',
+                background:
+                    'linear-gradient(135deg, #144317 0%, #1B5E20 50%, #206825 100%)',
             }}
         >
             {/* Dot Pattern Overlay */}
@@ -68,12 +73,12 @@ export default function StatistikSection({
             <div className="bka-container relative z-[2] py-20">
                 {/* Header */}
                 <div ref={headerRef} className="bka-reveal mb-12 text-center">
-                    <span className="mb-3 inline-block rounded-full bg-[rgba(200,160,0,0.15)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[#C8A000]">
+                    <span className="mb-3 inline-block rounded-full bg-[rgba(200,160,0,0.15)] px-3 py-1 text-[11px] font-bold tracking-[0.1em] text-[#C8A000] uppercase">
                         Kelembagaan
                     </span>
                     <h2
-                        className="mb-4 font-bold leading-[1.2] text-white"
-                        style={{ fontSize: 'clamp(22px, 4vw, 30px)' }}
+                        className="mb-4 leading-[1.2] font-extrabold tracking-tight text-white"
+                        style={{ fontSize: 'clamp(28px, 4.5vw, 40px)' }}
                     >
                         BKA UMRI dalam Angka
                     </h2>
@@ -81,7 +86,10 @@ export default function StatistikSection({
                 </div>
 
                 {/* Stats Grid */}
-                <div ref={gridRef} className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+                <div
+                    ref={gridRef}
+                    className="grid grid-cols-2 gap-5 lg:grid-cols-4"
+                >
                     {stats.map((stat, idx) => (
                         <div
                             key={stat.label}

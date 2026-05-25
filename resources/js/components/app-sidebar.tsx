@@ -14,6 +14,7 @@ import {
     Activity,
     Cpu,
     ShieldAlert,
+    Globe,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -27,6 +28,11 @@ import { dashboard } from '@/routes/admin';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
+    {
+        title: 'Kembali ke Home',
+        href: '/',
+        icon: Globe,
+    },
     {
         title: 'Dashboard',
         href: dashboard(),

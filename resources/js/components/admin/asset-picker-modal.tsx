@@ -18,10 +18,16 @@ interface AssetPickerModalProps {
     onSelect: (url: string) => void;
 }
 
-export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModalProps) {
+export function AssetPickerModal({
+    isOpen,
+    onClose,
+    onSelect,
+}: AssetPickerModalProps) {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedAssetUrl, setSelectedAssetUrl] = useState<string | null>(null);
+    const [selectedAssetUrl, setSelectedAssetUrl] = useState<string | null>(
+        null,
+    );
 
     useEffect(() => {
         if (isOpen) {
@@ -30,7 +36,9 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                 try {
                     const parsed = JSON.parse(saved);
                     // only show visible image assets
-                    const images = parsed.filter((a: any) => a.type === 'image' && a.isVisible);
+                    const images = parsed.filter(
+                        (a: any) => a.type === 'image' && a.isVisible,
+                    );
                     setAssets(images);
                 } catch {
                     setAssets([]);
@@ -41,7 +49,9 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
         }
     }, [isOpen]);
 
-    const filtered = assets.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filtered = assets.filter((a) =>
+        a.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
 
     const handleConfirm = () => {
         if (selectedAssetUrl) {
@@ -53,18 +63,23 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-3xl rounded-2xl bg-white border border-neutral-200 p-6 shadow-2xl flex flex-col max-h-[85vh] relative animate-in zoom-in-95 duration-200">
-                
+        <div
+            onClick={onClose}
+            className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-200 fade-in"
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className="relative flex max-h-[85vh] w-full max-w-3xl animate-in flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl duration-200 zoom-in-95"
+            >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-neutral-100 pb-4 mb-4">
-                    <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2">
+                <div className="mb-4 flex items-center justify-between border-b border-neutral-100 pb-4">
+                    <h3 className="flex items-center gap-2 text-lg font-bold text-neutral-800">
                         <ImageIcon className="size-5 text-emerald-600" />
                         Pilih Aset Gambar
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                        className="rounded-lg p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
                     >
                         <X className="size-5" />
                     </button>
@@ -77,42 +92,47 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                         placeholder="Cari nama gambar..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                        className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pr-4 pl-10 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
                     />
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
+                    <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-neutral-400" />
                 </div>
 
                 {/* Grid */}
-                <div className="flex-1 overflow-y-auto min-h-[300px] border border-neutral-100 rounded-xl p-4 bg-neutral-50/50 mb-6">
+                <div className="mb-6 min-h-[300px] flex-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">
                     {filtered.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                             {filtered.map((asset) => {
-                                const isSelected = selectedAssetUrl === asset.url;
+                                const isSelected =
+                                    selectedAssetUrl === asset.url;
                                 return (
                                     <div
                                         key={asset.id}
-                                        onClick={() => setSelectedAssetUrl(asset.url)}
+                                        onClick={() =>
+                                            setSelectedAssetUrl(asset.url)
+                                        }
                                         onDoubleClick={() => {
                                             onSelect(asset.url);
                                             onClose();
                                         }}
-                                        className={`group cursor-pointer rounded-xl overflow-hidden border bg-white aspect-video relative flex flex-col justify-between transition-all select-none ${
-                                            isSelected 
-                                                ? 'border-emerald-600 ring-2 ring-emerald-600/20' 
+                                        className={`group relative flex aspect-video cursor-pointer flex-col justify-between overflow-hidden rounded-xl border bg-white transition-all select-none ${
+                                            isSelected
+                                                ? 'border-emerald-600 ring-2 ring-emerald-600/20'
                                                 : 'border-neutral-200 hover:border-neutral-300 hover:shadow-xs'
                                         }`}
                                     >
-                                        <img 
-                                            src={asset.url} 
-                                            alt={asset.name} 
-                                            className="w-full h-full object-cover flex-1"
+                                        <img
+                                            src={asset.url}
+                                            alt={asset.name}
+                                            className="h-full w-full flex-1 object-cover"
                                         />
-                                        <div className="p-2 bg-white/90 border-t border-neutral-100 backdrop-blur-xs">
-                                            <p className="text-xs font-bold text-neutral-700 truncate">{asset.name}</p>
+                                        <div className="border-t border-neutral-100 bg-white/90 p-2 backdrop-blur-xs">
+                                            <p className="truncate text-xs font-bold text-neutral-700">
+                                                {asset.name}
+                                            </p>
                                         </div>
 
                                         {isSelected && (
-                                            <div className="absolute top-2 right-2 bg-emerald-600 text-white rounded-full p-1 size-5 flex items-center justify-center">
+                                            <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-emerald-600 p-1 text-white">
                                                 <Check className="size-3 stroke-[3]" />
                                             </div>
                                         )}
@@ -122,9 +142,14 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
-                            <ImageIcon className="size-12 opacity-35 mb-2 animate-pulse" />
-                            <p className="text-sm font-semibold">Belum ada aset gambar.</p>
-                            <p className="text-xs text-neutral-400 mt-0.5">Unggah gambar di menu Aset Media terlebih dahulu.</p>
+                            <ImageIcon className="mb-2 size-12 animate-pulse opacity-35" />
+                            <p className="text-sm font-semibold">
+                                Belum ada aset gambar.
+                            </p>
+                            <p className="mt-0.5 text-xs text-neutral-400">
+                                Unggah gambar di menu Aset Media terlebih
+                                dahulu.
+                            </p>
                         </div>
                     )}
                 </div>
@@ -147,7 +172,6 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                         Pilih Gambar
                     </button>
                 </div>
-
             </div>
         </div>
     );

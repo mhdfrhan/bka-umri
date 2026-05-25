@@ -46,11 +46,10 @@ interface KontakProps {
 
 // ─── Detailed Mock Data for Fallback & Local Evaluator ───
 const dummyKontak: KontakDetail = {
-    alamat: "Ruang Biro Keuangan dan Aset, Gedung Rektorat Universitas Muhammadiyah Riau\nJl. T. Tambusai, Kota Pekanbaru",
+    alamat: 'Ruang Biro Keuangan dan Aset, Gedung Rektorat Universitas Muhammadiyah Riau\nJl. T. Tambusai, Kota Pekanbaru',
     telepon: '+62 761 35008 / +62 811-7676-000',
     email: 'bka@umri.ac.id',
-    jam_operasional:
-        "Sen - Jum : 08.00 - 16.00 WIB\nSabtu : 08.00 - 13.00 WIB",
+    jam_operasional: 'Sen - Jum : 08.00 - 16.00 WIB\nSabtu : 08.00 - 13.00 WIB',
     google_maps_embed:
         'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d997.4167965592992!2d101.41546138047615!3d0.49870495320004715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31d5a940e01df989%3A0xdc96c279c6f07bc3!2sUniversitas%20Muhammadiyah%20Riau!5e0!3m2!1sid!2sid!4v1779673086975!5m2!1sid!2sid',
     mediaSosial: [
@@ -79,7 +78,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                     email: parsed.email,
                     jam_operasional: parsed.jam_operasional,
                     google_maps_embed: parsed.google_maps_embed,
-                    mediaSosial: parsed.mediaSosial
+                    mediaSosial: parsed.mediaSosial,
                 });
             } catch {}
         }
@@ -90,49 +89,32 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
     // ─── MAPLIBRE GL INTERACTIVE MAP ENGINE STATES & REFS ───
     const MAP_STYLES = [
-        { id: 'voyager', label: 'Voyager (Warna)', url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' },
-        { id: 'positron', label: 'Positron (Terang)', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
-        { id: 'dark-matter', label: 'Dark Matter (Gelap)', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' },
-    ];
-
-    const CAMPUS_POIS = [
         {
-            id: 'bka',
-            label: 'Kantor BKA (Rektorat)',
-            coords: [101.415461, 0.498705] as [number, number],
-            zoom: 17.6,
-            pitch: 62,
-            bearing: 30,
-            desc: 'Pusat layanan administrasi keuangan & aset di Gedung Rektorat Utama.'
+            id: 'voyager',
+            label: 'Voyager (Warna)',
+            url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
         },
         {
-            id: 'gerbang',
-            label: 'Gerbang Utama Kampus',
-            coords: [101.416800, 0.499000] as [number, number],
-            zoom: 16.8,
-            pitch: 45,
-            bearing: -45,
-            desc: 'Akses masuk gerbang depan Universitas Muhammadiyah Riau.'
+            id: 'positron',
+            label: 'Positron (Terang)',
+            url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
         },
         {
-            id: 'dahlan',
-            label: 'Gedung KH Ahmad Dahlan',
-            coords: [101.414700, 0.498200] as [number, number],
-            zoom: 17.0,
-            pitch: 52,
-            bearing: 60,
-            desc: 'Gedung perkuliahan utama & ruang dekanat fakultas terintegrasi.'
-        }
+            id: 'dark-matter',
+            label: 'Dark Matter (Gelap)',
+            url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+        },
     ];
 
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<any>(null);
-    const orbitFrameRef = useRef<number | null>(null);
-    
+
     const [activeStyleId, setActiveStyleId] = useState('voyager');
     const [is3DMode, setIs3DMode] = useState(false);
-    const [isOrbiting, setIsOrbiting] = useState(false);
-    const [centerCoords, setCenterCoords] = useState({ lat: 0.498705, lng: 101.415461 });
+    const [centerCoords, setCenterCoords] = useState({
+        lat: 0.498705,
+        lng: 101.415461,
+    });
     const [copied, setCopied] = useState(false);
 
     // Initializing MapLibre GL dynamically to prevent SSR global evaluation issues
@@ -144,61 +126,50 @@ export default function KontakIndex({ kontak }: KontakProps) {
         import('maplibre-gl').then((maplibreglModule) => {
             const maplibregl = maplibreglModule.default;
 
-            // Smart Night-mode Auto-switcher: default to dark-matter style if local time is night
-            const currentHour = new Date().getHours();
-            const isNightTime = currentHour >= 18 || currentHour < 6;
-            const initialStyleUrl = isNightTime ? MAP_STYLES[2].url : MAP_STYLES[0].url;
-            setActiveStyleId(isNightTime ? 'dark-matter' : 'voyager');
-
             map = new maplibregl.Map({
                 container: mapContainerRef.current!,
-                style: initialStyleUrl,
+                style: MAP_STYLES[0].url, // Voyager
                 center: [101.415461, 0.498705], // Lng, Lat
                 zoom: 16,
-                pitch: isNightTime ? 45 : 0,
-                bearing: isNightTime ? -15 : 0,
+                pitch: 0,
+                bearing: 0,
                 dragRotate: true,
             });
 
-            if (isNightTime) {
-                setIs3DMode(true);
-            }
-
             mapInstanceRef.current = map;
 
-            // Wait for style to load then add custom Forrest Green markers for all POIs
+            // Wait for style to load then add custom Forrest Green marker
             map.on('load', () => {
-                CAMPUS_POIS.forEach(poi => {
-                    const isBka = poi.id === 'bka';
-                    
-                    // Create custom pulsed marker DOM element
-                    const el = document.createElement('div');
-                    el.className = 'custom-marker cursor-pointer';
-                    el.innerHTML = `
-                        <div class="relative flex items-center justify-center group/marker">
-                            <div class="animate-ping absolute inline-flex h-7 w-7 rounded-full ${isBka ? 'bg-[#1B5E20]' : 'bg-[#C8A000]'} opacity-75"></div>
-                            <div class="relative flex items-center justify-center rounded-full bg-white border-2 ${isBka ? 'border-[#1B5E20] text-[#1B5E20]' : 'border-[#C8A000] text-[#C8A000]'} p-1.5 shadow-md hover:scale-110 transition-all duration-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                // Create custom pulsed marker DOM element
+                const el = document.createElement('div');
+                el.className = 'custom-marker';
+                el.innerHTML = `
+                    <div class="relative flex items-center justify-center">
+                        <div class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-[#1B5E20] opacity-75"></div>
+                        <div class="relative flex items-center justify-center rounded-full bg-[#1B5E20] border-2 border-white p-2.5 text-white shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
                         </div>
-                    `;
+                    </div>
+                `;
 
-                    // Add popup
-                    const popup = new maplibregl.Popup({ offset: 25, closeButton: false }).setHTML(`
-                        <div class="p-2 text-center select-none font-sans max-w-[180px]">
-                            <p class="font-extrabold text-[#1A1A1A] text-xs">${poi.label}</p>
-                            <p class="text-[9px] text-neutral-500 font-light mt-0.5">${poi.desc}</p>
-                        </div>
-                    `);
+                // Add popup
+                const popup = new maplibregl.Popup({
+                    offset: 25,
+                    closeButton: false,
+                }).setHTML(`
+                    <div class="p-2 text-center select-none font-sans">
+                        <p class="font-extrabold text-[#1A1A1A] text-xs">Kantor BKA UMRI</p>
+                        <p class="text-[10px] text-neutral-500 font-light mt-0.5">Gedung Rektorat Kampus Utama</p>
+                    </div>
+                `);
 
-                    // Create and add marker
-                    new maplibregl.Marker({ element: el })
-                        .setLngLat(poi.coords)
-                        .setPopup(popup)
-                        .addTo(map);
-                });
+                // Create and add marker
+                new maplibregl.Marker({ element: el })
+                    .setLngLat([101.415461, 0.498705])
+                    .setPopup(popup)
+                    .addTo(map);
             });
 
             // Track coordinate moves
@@ -206,18 +177,10 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 const center = map.getCenter();
                 setCenterCoords({ lat: center.lat, lng: center.lng });
             });
-
-            // Interruption handlers: stop orbiting if the user manually drags/pans/manipulates the map
-            map.on('dragstart', () => stopOrbitSilently());
-            map.on('zoomstart', () => stopOrbitSilently());
-            map.on('rotatestart', () => stopOrbitSilently());
         });
 
         // Cleanup map instance on unmount
         return () => {
-            if (orbitFrameRef.current) {
-                cancelAnimationFrame(orbitFrameRef.current);
-            }
             if (map) {
                 map.remove();
             }
@@ -234,14 +197,13 @@ export default function KontakIndex({ kontak }: KontakProps) {
     };
 
     const handleRecenter = () => {
-        stopOrbitSilently();
         if (mapInstanceRef.current) {
             mapInstanceRef.current.easeTo({
                 center: [101.415461, 0.498705],
-                zoom: 16.2,
+                zoom: 16,
                 pitch: is3DMode ? 45 : 0,
                 bearing: 0,
-                duration: 1500
+                duration: 1500,
             });
             toast.success('Peta dikembalikan ke lokasi kampus utama.');
         }
@@ -254,9 +216,13 @@ export default function KontakIndex({ kontak }: KontakProps) {
             mapInstanceRef.current.easeTo({
                 pitch: nextMode ? 45 : 0,
                 bearing: nextMode ? -20 : 0,
-                duration: 1200
+                duration: 1200,
             });
-            toast.success(nextMode ? 'Mode kemiringan 3D diaktifkan' : 'Mode 2D diaktifkan');
+            toast.success(
+                nextMode
+                    ? 'Mode kemiringan 3D diaktifkan'
+                    : 'Mode 2D diaktifkan',
+            );
         }
     };
 
@@ -265,70 +231,6 @@ export default function KontakIndex({ kontak }: KontakProps) {
         setCopied(true);
         toast.success('Koordinat Rektorat UMRI disalin ke papan klip!');
         setTimeout(() => setCopied(false), 2000);
-    };
-
-    // ─── CINEMATIC 3D ORBIT & POI TOUR ENGINE ───
-    const handleFlyToPOI = (poi: typeof CAMPUS_POIS[0]) => {
-        stopOrbitSilently();
-        if (mapInstanceRef.current) {
-            mapInstanceRef.current.flyTo({
-                center: poi.coords,
-                zoom: poi.zoom,
-                pitch: poi.pitch,
-                bearing: poi.bearing,
-                speed: 0.7,
-                curve: 1.35,
-                essential: true,
-                duration: 2500
-            });
-            toast.info(`Terbang menuju: ${poi.label}`);
-        }
-    };
-
-    const startOrbit = () => {
-        if (!mapInstanceRef.current) return;
-        const map = mapInstanceRef.current;
-
-        // Fly to campus center and set beautiful 3D view
-        map.flyTo({
-            center: [101.415461, 0.498705],
-            zoom: 17.4,
-            pitch: 62,
-            bearing: 0,
-            essential: true,
-            duration: 2500
-        });
-
-        setTimeout(() => {
-            setIsOrbiting(true);
-            setIs3DMode(true);
-            let bearing = 0;
-            const orbitLoop = () => {
-                if (!mapInstanceRef.current) return;
-                bearing = (bearing + 0.12) % 360;
-                mapInstanceRef.current.setBearing(bearing);
-                orbitFrameRef.current = requestAnimationFrame(orbitLoop);
-            };
-            orbitFrameRef.current = requestAnimationFrame(orbitLoop);
-            toast.success("Mode Tour Orbit 3D Aktif. Geser peta untuk menghentikan putaran.");
-        }, 2700);
-    };
-
-    const stopOrbit = () => {
-        setIsOrbiting(false);
-        if (orbitFrameRef.current) {
-            cancelAnimationFrame(orbitFrameRef.current);
-            orbitFrameRef.current = null;
-            toast.info("Mode Tour Orbit 3D Dihentikan.");
-        }
-    };
-
-    const stopOrbitSilently = () => {
-        setIsOrbiting(false);
-        if (orbitFrameRef.current) {
-            cancelAnimationFrame(orbitFrameRef.current);
-            orbitFrameRef.current = null;
-        }
     };
 
     // Form inputs state
@@ -426,7 +328,9 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 let currentMessages = [];
                 const savedInbox = localStorage.getItem('bka_pesan');
                 if (savedInbox) {
-                    try { currentMessages = JSON.parse(savedInbox); } catch {}
+                    try {
+                        currentMessages = JSON.parse(savedInbox);
+                    } catch {}
                 }
                 const newMsg = {
                     id: 'msg-' + Date.now(),
@@ -435,12 +339,15 @@ export default function KontakIndex({ kontak }: KontakProps) {
                     subjek: formData.subjek.trim(),
                     pesan: formData.pesan.trim(),
                     tanggal: new Date().toISOString(),
-                    dibaca: false
+                    dibaca: false,
                 };
                 const updatedInbox = [newMsg, ...currentMessages];
                 localStorage.setItem('bka_pesan', JSON.stringify(updatedInbox));
             } catch (err) {
-                console.error('Failed to save message to local storage inbox', err);
+                console.error(
+                    'Failed to save message to local storage inbox',
+                    err,
+                );
             }
 
             setSubmitting(false);
@@ -495,7 +402,10 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 description="Kami siap membantu Anda. Silakan hubungi kontak resmi kami atau kirimkan pesan melalui formulir di bawah ini."
             >
                 <div ref={heroRef} className="bka-reveal">
-                    <Breadcrumbs breadcrumbs={breadcrumbItems} />
+                    <Breadcrumbs
+                        breadcrumbs={breadcrumbItems}
+                        variant="public"
+                    />
                 </div>
             </PageHero>
 
@@ -513,8 +423,10 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                 <h2 className="mb-2 text-xl font-bold text-[#1A1A1A]">
                                     Kantor Biro Keuangan dan Aset
                                 </h2>
-                                <p className="text-[13px] leading-relaxed text-[#5C6B73] mb-6 border-b border-[#F1F3F1] pb-4">
-                                    Jangan ragu untuk menemui kami terkait keuangan dan aset Universitas Muhammadiyah Riau
+                                <p className="mb-6 border-b border-[#F1F3F1] pb-4 text-[13px] leading-relaxed text-[#5C6B73]">
+                                    Jangan ragu untuk menemui kami terkait
+                                    keuangan dan aset Universitas Muhammadiyah
+                                    Riau
                                 </p>
 
                                 <div className="flex flex-col gap-6">
@@ -527,7 +439,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                             <span className="mb-1 text-xs font-bold text-[#5C6B73]">
                                                 Alamat Kantor Biro
                                             </span>
-                                            <p className="text-[14px] leading-relaxed break-words text-[#1A1A1A] whitespace-pre-line">
+                                            <p className="text-[14px] leading-relaxed break-words whitespace-pre-line text-[#1A1A1A]">
                                                 {resolvedKontak.alamat}
                                             </p>
                                         </div>
@@ -575,7 +487,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                             <span className="mb-1 text-xs font-bold text-[#5C6B73]">
                                                 Jam Operasional
                                             </span>
-                                            <p className="text-[14px] leading-relaxed text-[#1A1A1A] whitespace-pre-line">
+                                            <p className="text-[14px] leading-relaxed whitespace-pre-line text-[#1A1A1A]">
                                                 {resolvedKontak.jam_operasional}
                                             </p>
                                         </div>
@@ -809,90 +721,52 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 {/* Visual Section Intro Header */}
                 <div className="bka-container pt-12 pb-6">
                     <div className="flex flex-col gap-2">
-                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B5E20]">Lokasi Kampus Utama</span>
-                        <h2 className="text-xl md:text-2xl font-bold text-[#1A1A1A]">Peta Interaktif Kampus Universitas Muhammadiyah Riau</h2>
-                        <p className="text-xs text-[#5C6B73] font-light max-w-2xl">
-                            Eksplorasi wilayah kampus UMRI secara interaktif menggunakan rendering vektor 3D 60FPS. Anda dapat menggeser, melakukan zoom, memutar orientasi peta, dan mengganti gaya visual peta.
+                        <span className="text-[10px] font-extrabold tracking-widest text-[#1B5E20] uppercase">
+                            Lokasi Kampus Utama
+                        </span>
+                        <h2 className="text-xl font-bold text-[#1A1A1A] md:text-2xl">
+                            Peta Interaktif Kampus Universitas Muhammadiyah Riau
+                        </h2>
+                        <p className="max-w-2xl text-xs font-light text-[#5C6B73]">
+                            Eksplorasi wilayah kampus UMRI secara interaktif
+                            menggunakan rendering vektor 3D 60FPS. Anda dapat
+                            menggeser, melakukan zoom, memutar orientasi peta,
+                            dan mengganti gaya visual peta.
                         </p>
                     </div>
                 </div>
 
                 {/* Maplibre container */}
-                <div className="relative w-full h-[480px] md:h-[580px] bg-slate-100 group select-none">
-                    <div ref={mapContainerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+                <div className="group relative h-[450px] w-full bg-slate-100 select-none md:h-[550px]">
+                    <div
+                        ref={mapContainerRef}
+                        className="h-full w-full cursor-grab active:cursor-grabbing"
+                    />
 
-                    {/* Floating Controls Overlay - Top Left: Styles, Tour & POIs Panel */}
-                    <div className="absolute top-4 left-4 z-10 w-64 bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-[#DDE5DD] shadow-sm flex flex-col gap-3.5 transition-all select-none">
-                        {/* Style Selection header */}
-                        <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-1.5 px-1 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
-                                <Layers size={10} className="text-[#1B5E20]" />
-                                <span>Gaya Visual Peta</span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-1">
-                                {MAP_STYLES.map(style => (
-                                    <button
-                                        key={style.id}
-                                        type="button"
-                                        onClick={() => handleStyleChange(style.url, style.id)}
-                                        className={cn(
-                                            "text-[9px] font-extrabold py-1.5 px-1 rounded-lg transition-all text-center outline-none cursor-pointer border",
-                                            activeStyleId === style.id
-                                                ? "bg-[#1B5E20] border-[#1B5E20] text-white shadow-2xs"
-                                                : "bg-white hover:bg-[#E8F5E9] border-neutral-200 text-neutral-600"
-                                        )}
-                                    >
-                                        <span>{style.id === 'voyager' ? 'Voyager' : style.id === 'positron' ? 'Terang' : 'Gelap'}</span>
-                                    </button>
-                                ))}
-                            </div>
+                    {/* Floating Controls Overlay - Top Left: Styles Selector */}
+                    <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 rounded-2xl border border-[#DDE5DD] bg-white/80 p-2 shadow-sm backdrop-blur-md transition-all">
+                        <div className="flex items-center gap-1.5 border-b border-[#F1F3F1] px-1.5 pb-1 text-[9px] font-extrabold tracking-wide text-neutral-400 uppercase">
+                            <Layers size={10} className="text-[#1B5E20]" />
+                            <span>Gaya Visual Peta</span>
                         </div>
-
-                        {/* 3D Cinematic Tour Block */}
-                        <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center justify-between px-1 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
-                                <span className="flex items-center gap-1">
-                                    <Compass size={10} className="text-[#1B5E20]" />
-                                    <span>Cinematic Tour 3D</span>
-                                </span>
-                                <span className={cn("h-1.5 w-1.5 rounded-full", isOrbiting ? "bg-emerald-500 animate-ping" : "bg-neutral-300")} />
-                            </div>
-                            
-                            <button
-                                type="button"
-                                onClick={isOrbiting ? stopOrbit : startOrbit}
-                                className={cn(
-                                    "w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-[10px] font-extrabold uppercase tracking-wider transition-all outline-none cursor-pointer border",
-                                    isOrbiting
-                                        ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100/50"
-                                        : "bg-emerald-50/70 border-emerald-200 text-[#1B5E20] hover:bg-[#1B5E20]/15"
-                                )}
-                            >
-                                <Compass size={12} className={cn(isOrbiting && "animate-spin-slow")} />
-                                <span>{isOrbiting ? 'Matikan Orbit' : 'Mulai Orbit 3D'}</span>
-                            </button>
-                        </div>
-
-                        {/* POIs List Block */}
-                        <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-1.5 px-1 pb-1 border-b border-[#F1F3F1] text-[9px] font-extrabold uppercase tracking-wide text-neutral-400">
-                                <MapPin size={10} className="text-[#1B5E20]" />
-                                <span>Kawasan Kampus (POIs)</span>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                {CAMPUS_POIS.map(poi => (
-                                    <button
-                                        key={poi.id}
-                                        type="button"
-                                        onClick={() => handleFlyToPOI(poi)}
-                                        className="w-full flex items-center gap-2 text-left py-1.5 px-2.5 rounded-lg bg-neutral-50/50 hover:bg-[#E8F5E9]/50 border border-neutral-100 hover:border-[#1B5E20]/20 text-[10px] text-neutral-700 font-bold transition-all outline-none cursor-pointer"
-                                    >
-                                        <div className={cn("size-2 rounded-full shrink-0", poi.id === 'bka' ? "bg-[#1B5E20]" : "bg-[#C8A000]")} />
-                                        <span className="truncate flex-1">{poi.label}</span>
-                                        <Maximize2 size={9} className="opacity-40" />
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="flex flex-col gap-1">
+                            {MAP_STYLES.map((style) => (
+                                <button
+                                    key={style.id}
+                                    type="button"
+                                    onClick={() =>
+                                        handleStyleChange(style.url, style.id)
+                                    }
+                                    className={cn(
+                                        'flex cursor-pointer items-center justify-between rounded-lg px-3 py-1.5 text-left text-[11px] font-bold transition-all outline-none',
+                                        activeStyleId === style.id
+                                            ? 'bg-[#1B5E20] text-white'
+                                            : 'text-[#1A1A1A] hover:bg-[#E8F5E9]',
+                                    )}
+                                >
+                                    <span>{style.label}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -902,65 +776,79 @@ export default function KontakIndex({ kontak }: KontakProps) {
                         <button
                             type="button"
                             onClick={handleRecenter}
-                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 backdrop-blur-md border border-[#DDE5DD] hover:bg-white text-[#1B5E20] shadow-sm transition-all hover:scale-105 outline-none cursor-pointer"
+                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-[#DDE5DD] bg-white/90 text-[#1B5E20] shadow-sm backdrop-blur-md transition-all outline-none hover:scale-105 hover:bg-white"
                             title="Kembali ke UMRI"
                         >
                             <Navigation size={16} />
                         </button>
-                        
+
                         {/* Tilt / 3D Mode Toggle */}
                         <button
                             type="button"
                             onClick={handleToggle3D}
                             className={cn(
-                                "flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 backdrop-blur-md border shadow-sm transition-all hover:scale-105 outline-none cursor-pointer",
+                                'flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border bg-white/90 shadow-sm backdrop-blur-md transition-all outline-none hover:scale-105',
                                 is3DMode
-                                    ? "border-[#1B5E20]/40 text-[#1B5E20] bg-emerald-50/50"
-                                    : "border-[#DDE5DD] text-neutral-500 hover:bg-white"
+                                    ? 'border-[#1B5E20]/40 bg-emerald-50/50 text-[#1B5E20]'
+                                    : 'border-[#DDE5DD] text-neutral-500 hover:bg-white',
                             )}
                             title="Aktifkan Mode 3D / Kemiringan"
                         >
-                            <Compass size={16} className={cn(is3DMode && "animate-pulse")} />
+                            <Compass
+                                size={16}
+                                className={cn(is3DMode && 'animate-pulse')}
+                            />
                         </button>
                     </div>
 
                     {/* Floating Info Overlay - Bottom Left: Coordinates Tracker */}
-                    <div className="absolute bottom-4 left-4 z-10 hidden sm:flex items-center gap-4 bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-[#DDE5DD] shadow-xs text-[10px] font-semibold text-neutral-500">
+                    <div className="absolute bottom-4 left-4 z-10 hidden items-center gap-4 rounded-2xl border border-[#DDE5DD] bg-white/90 px-4 py-2.5 text-[10px] font-semibold text-neutral-500 shadow-xs backdrop-blur-md sm:flex">
                         <div className="flex items-center gap-1.5">
-                            <span className="size-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            <span className="size-1.5 animate-ping rounded-full bg-emerald-500" />
                             <span>Koordinat Peta:</span>
                         </div>
                         <div className="font-mono">
                             <span>Lat: </span>
-                            <span className="text-neutral-800 font-bold select-all">{centerCoords.lat.toFixed(6)}</span>
+                            <span className="font-bold text-neutral-800 select-all">
+                                {centerCoords.lat.toFixed(6)}
+                            </span>
                         </div>
                         <div className="font-mono">
                             <span>Lng: </span>
-                            <span className="text-neutral-800 font-bold select-all">{centerCoords.lng.toFixed(6)}</span>
+                            <span className="font-bold text-neutral-800 select-all">
+                                {centerCoords.lng.toFixed(6)}
+                            </span>
                         </div>
                     </div>
 
                     {/* Floating Info Overlay - Bottom Right: Interactive Contact Details Glassmorphism Card */}
-                    <div className="absolute bottom-4 right-4 z-10 w-72 bg-white/80 backdrop-blur-lg border border-[#DDE5DD]/80 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                    <div className="absolute right-4 bottom-4 z-10 flex w-72 flex-col gap-2 rounded-2xl border border-[#DDE5DD]/80 bg-white/80 p-4 shadow-sm backdrop-blur-lg">
                         <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-lg bg-[#E8F5E9] flex items-center justify-center text-[#1B5E20] shrink-0">
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#E8F5E9] text-[#1B5E20]">
                                 <MapPin size={12} />
                             </div>
-                            <span className="text-xs font-bold text-[#1A1A1A]">Rektorat UMRI Pekanbaru</span>
+                            <span className="text-xs font-bold text-[#1A1A1A]">
+                                Rektorat UMRI Pekanbaru
+                            </span>
                         </div>
-                        <p className="text-[10px] text-[#5C6B73] leading-relaxed font-light">
-                            Jl. T. Tambusai, Delima, Kec. Tampan, Kota Pekanbaru, Riau 28290. Gedung Rektorat Utama, Ruang BKA.
+                        <p className="text-[10px] leading-relaxed font-light text-[#5C6B73]">
+                            Jl. T. Tambusai, Delima, Kec. Tampan, Kota
+                            Pekanbaru, Riau 28290. Gedung Rektorat Utama, Ruang
+                            BKA.
                         </p>
-                        
-                        <div className="flex gap-1.5 mt-1 border-t border-[#F1F3F1] pt-2.5 select-none">
+
+                        <div className="mt-1 flex gap-1.5 border-t border-[#F1F3F1] pt-2.5 select-none">
                             <button
                                 type="button"
                                 onClick={handleCopyCoords}
-                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-[10px] font-bold text-neutral-600 transition-colors cursor-pointer outline-none"
+                                className="flex flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg border border-neutral-200 bg-white py-1.5 text-[10px] font-bold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
                             >
                                 {copied ? (
                                     <>
-                                        <Check size={11} className="text-[#1B5E20]" />
+                                        <Check
+                                            size={11}
+                                            className="text-[#1B5E20]"
+                                        />
                                         <span>Tersalin</span>
                                     </>
                                 ) : (
@@ -974,7 +862,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                 href="https://maps.google.com/?q=Universitas+Muhammadiyah+Riau"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#1B5E20] hover:bg-[#145218] text-white text-[10px] font-bold transition-all hover:scale-[1.02] shadow-xs text-center"
+                                className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#1B5E20] py-1.5 text-center text-[10px] font-bold text-white shadow-xs transition-all hover:scale-[1.02] hover:bg-[#145218]"
                             >
                                 <Maximize2 size={11} />
                                 <span>Buka Google Maps</span>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 interface UseScrollRevealOptions {
     /** Threshold for triggering (0 to 1) */
@@ -11,96 +11,133 @@ interface UseScrollRevealOptions {
 
 /**
  * Custom hook for scroll-reveal animations.
- * Attaches IntersectionObserver to the ref element.
- * When visible, adds `bka-visible` class to trigger CSS animation.
+ * Uses a Callback Ref pattern to seamlessly support conditionally/asynchronously
+ * rendered elements (e.g. elements rendered after loading states).
  */
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
     options: UseScrollRevealOptions = {},
 ) {
-    const { threshold = 0.15, rootMargin = '0px 0px -40px 0px', once = true } = options;
-    const ref = useRef<T>(null);
+    const {
+        threshold = 0.15,
+        rootMargin = '0px 0px -40px 0px',
+        once = true,
+    } = options;
+    const observerRef = useRef<IntersectionObserver | null>(null);
 
-    useEffect(() => {
-        const element = ref.current;
+    const setRef = useCallback(
+        (element: T | null) => {
+            // Disconnect previous observer
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+                observerRef.current = null;
+            }
 
-        if (!element) {
-return;
-}
+            if (!element) return;
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('bka-visible');
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('bka-visible');
 
-                        if (once) {
-                            observer.unobserve(entry.target);
+                            if (once) {
+                                observer.unobserve(entry.target);
+                            }
+                        } else if (!once) {
+                            entry.target.classList.remove('bka-visible');
                         }
-                    } else if (!once) {
-                        entry.target.classList.remove('bka-visible');
-                    }
-                });
-            },
-            { threshold, rootMargin },
-        );
+                    });
+                },
+                { threshold, rootMargin },
+            );
 
-        observer.observe(element);
+            observer.observe(element);
+            observerRef.current = observer;
+        },
+        [threshold, rootMargin, once],
+    );
 
-        return () => {
-            observer.disconnect();
-        };
-    }, [threshold, rootMargin, once]);
-
-    return ref;
+    return setRef;
 }
 
 /**
  * Hook variant that observes all children of a container.
- * Useful for staggered animations on a list of items.
+ * Combines Callback Ref and MutationObserver to automatically discover and observe
+ * dynamic or asynchronously loaded children (such as items loaded from an API/local storage).
  */
 export function useScrollRevealChildren<T extends HTMLElement = HTMLDivElement>(
     selector: string = '.bka-reveal, .bka-reveal-left, .bka-reveal-right, .bka-reveal-scale',
     options: UseScrollRevealOptions = {},
 ) {
-    const { threshold = 0.1, rootMargin = '0px 0px -40px 0px', once = true } = options;
-    const containerRef = useRef<T>(null);
+    const {
+        threshold = 0.1,
+        rootMargin = '0px 0px -40px 0px',
+        once = true,
+    } = options;
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    const mutationObserverRef = useRef<MutationObserver | null>(null);
 
-    useEffect(() => {
-        const container = containerRef.current;
+    const setRef = useCallback(
+        (container: T | null) => {
+            // Cleanup previous observers
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+                observerRef.current = null;
+            }
+            if (mutationObserverRef.current) {
+                mutationObserverRef.current.disconnect();
+                mutationObserverRef.current = null;
+            }
 
-        if (!container) {
-return;
-}
+            if (!container) return;
 
-        const children = container.querySelectorAll(selector);
+            let observedElements = new Set<Element>();
 
-        if (children.length === 0) {
-return;
-}
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('bka-visible');
-
-                        if (once) {
-                            observer.unobserve(entry.target);
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('bka-visible');
+                            if (once) {
+                                observer.unobserve(entry.target);
+                                observedElements.delete(entry.target);
+                            }
+                        } else if (!once) {
+                            entry.target.classList.remove('bka-visible');
                         }
-                    } else if (!once) {
-                        entry.target.classList.remove('bka-visible');
+                    });
+                },
+                { threshold, rootMargin },
+            );
+
+            const updateObservations = () => {
+                const children = container.querySelectorAll(selector);
+                children.forEach((child) => {
+                    if (!observedElements.has(child)) {
+                        observer.observe(child);
+                        observedElements.add(child);
                     }
                 });
-            },
-            { threshold, rootMargin },
-        );
+            };
 
-        children.forEach((child) => observer.observe(child));
+            // Initial run
+            updateObservations();
 
-        return () => {
-            observer.disconnect();
-        };
-    }, [selector, threshold, rootMargin, once]);
+            // Setup MutationObserver to watch for dynamic children additions
+            const mutationObserver = new MutationObserver(() => {
+                updateObservations();
+            });
 
-    return containerRef;
+            mutationObserver.observe(container, {
+                childList: true,
+                subtree: true,
+            });
+
+            observerRef.current = observer;
+            mutationObserverRef.current = mutationObserver;
+        },
+        [selector, threshold, rootMargin, once],
+    );
+
+    return setRef;
 }

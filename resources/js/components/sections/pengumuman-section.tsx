@@ -1,7 +1,10 @@
 import { ArrowRight } from 'lucide-react';
 import AnnouncementItem from '@/components/ui/announcement-item';
 import SectionHeader from '@/components/ui/section-header';
-import { useScrollReveal, useScrollRevealChildren } from '@/hooks/use-scroll-reveal';
+import {
+    useScrollReveal,
+    useScrollRevealChildren,
+} from '@/hooks/use-scroll-reveal';
 
 interface PengumumanItem {
     slug: string;
@@ -25,16 +28,18 @@ export default function PengumumanSection({
         return null;
     }
 
+    // Find the first non-penting announcement to label as "Terbaru"
+    const firstNonPentingIdx = pengumumanList.findIndex((p) => !p.isPenting);
+
     return (
         <section
             id="pengumuman-terbaru"
-            className="bka-section relative overflow-hidden"
-            style={{ backgroundColor: '#E8F5E9' }}
+            className="bka-section bka-noise-overlay relative overflow-hidden bg-[#E8F5E9]"
         >
-            {/* Subtle geometric pattern in background */}
+            {/* Rich multi-color radial gradient mesh overlay */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 opacity-40"
+                className="pointer-events-none absolute inset-0 opacity-40 select-none"
                 style={{
                     backgroundImage:
                         'radial-gradient(circle at 10% 20%, rgba(27,94,32,0.06) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(200,160,0,0.05) 0%, transparent 50%)',
@@ -48,51 +53,55 @@ export default function PengumumanSection({
                         <SectionHeader
                             label="Pengumuman"
                             title="Informasi Penting"
-                            description="Jangan lewatkan pengumuman dan informasi resmi terbaru dari BKA UMRI."
+                            description="Jangan lewatkan pengumuman resmi dan panduan administrasi terbaru dari BKA UMRI."
                         />
 
                         {/* Info panel - desktop only */}
-                        <div className="mt-2 hidden rounded-2xl bg-[#1B5E20] p-6 lg:block">
+                        <div className="mt-4 hidden rounded-2xl bg-[#1B5E20] p-6 shadow-[0_15px_35px_rgba(27,94,32,0.12)] lg:block">
                             {/* Subtle inner pattern */}
                             <div
                                 aria-hidden="true"
-                                className="pointer-events-none absolute inset-0 rounded-2xl opacity-30"
+                                className="pointer-events-none absolute inset-0 rounded-2xl opacity-20"
                                 style={{
                                     backgroundImage:
                                         'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)',
                                     backgroundSize: '16px 16px',
                                 }}
                             />
-                            <p className="relative mb-5 text-sm leading-[1.7] text-white/75">
-                                Semua pengumuman resmi BKA UMRI tersedia di
-                                halaman pengumuman. Pastikan untuk selalu
-                                memperhatikan pengumuman berlabel{' '}
-                                <strong className="text-[#C8A000]">
+                            <p className="relative mb-5 text-sm leading-[1.75] font-normal text-white/80">
+                                Seluruh pengumuman resmi civitas akademika UMRI
+                                dikelola langsung secara terpusat oleh BKA.
+                                Pastikan untuk selalu memperhatikan pengumuman
+                                dengan label{' '}
+                                <strong className="font-bold text-[#E8C840]">
                                     PENTING
-                                </strong>
-                                .
+                                </strong>{' '}
+                                demi kelancaran administrasi akademik Anda.
                             </p>
                             <a
                                 href="/pengumuman"
-                                className="group relative inline-flex items-center gap-1.5 text-sm font-semibold text-[#C8A000] no-underline transition-all duration-200 hover:gap-2.5"
+                                className="group relative inline-flex items-center gap-1.5 text-sm font-bold text-[#E8C840] no-underline transition-all duration-200 hover:gap-2.5"
                             >
                                 Lihat Semua Pengumuman
-                                <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                                <ArrowRight
+                                    size={15}
+                                    className="transition-transform duration-200 group-hover:translate-x-1"
+                                />
                             </a>
                         </div>
                     </div>
 
                     {/* Right Column - Announcement items */}
-                    <div
-                        ref={rightRef}
-                        className="flex flex-col gap-3"
-                    >
+                    <div ref={rightRef} className="flex flex-col gap-4.5">
                         {pengumumanList.map((item, idx) => (
                             <div
                                 key={item.slug}
                                 className={`bka-reveal bka-stagger-${idx + 1}`}
                             >
-                                <AnnouncementItem {...item} />
+                                <AnnouncementItem
+                                    {...item}
+                                    isTerbaru={idx === firstNonPentingIdx}
+                                />
                             </div>
                         ))}
 

@@ -25,7 +25,7 @@ export default function Login({ status, canResetPassword }: Props) {
             <PasskeyVerify />
 
             {status && (
-                <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-center text-sm font-medium text-emerald-600 border border-emerald-200/50">
+                <div className="mb-4 rounded-xl border border-emerald-200/50 bg-emerald-50 p-3 text-center text-sm font-medium text-emerald-600">
                     {status}
                 </div>
             )}
@@ -39,7 +39,10 @@ export default function Login({ status, canResetPassword }: Props) {
                     <>
                         <div className="grid gap-5">
                             <div className="grid gap-2">
-                                <Label htmlFor="email" className="text-neutral-700 font-semibold text-xs tracking-wide uppercase">
+                                <Label
+                                    htmlFor="email"
+                                    className="text-xs font-semibold tracking-wide text-neutral-700 uppercase"
+                                >
                                     Alamat Email
                                 </Label>
                                 <div className="relative">
@@ -52,9 +55,9 @@ export default function Login({ status, canResetPassword }: Props) {
                                         tabIndex={1}
                                         autoComplete="email"
                                         placeholder="nama@umri.ac.id"
-                                        className="pl-10 h-11 rounded-xl border-neutral-300/80 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20 transition-all placeholder:text-neutral-400"
+                                        className="h-11 rounded-xl border-neutral-300/80 pl-10 transition-all placeholder:text-neutral-400 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                                     />
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                                    <div className="absolute top-1/2 left-3.5 -translate-y-1/2 text-neutral-400">
                                         <Mail className="size-4.5" />
                                     </div>
                                 </div>
@@ -63,13 +66,16 @@ export default function Login({ status, canResetPassword }: Props) {
 
                             <div className="grid gap-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className="text-neutral-700 font-semibold text-xs tracking-wide uppercase">
+                                    <Label
+                                        htmlFor="password"
+                                        className="text-xs font-semibold tracking-wide text-neutral-700 uppercase"
+                                    >
                                         Kata Sandi
                                     </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                                            className="text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700"
                                             tabIndex={5}
                                         >
                                             Lupa password?
@@ -84,9 +90,9 @@ export default function Login({ status, canResetPassword }: Props) {
                                         tabIndex={2}
                                         autoComplete="current-password"
                                         placeholder="Masukkan kata sandi"
-                                        className="pl-10 h-11 rounded-xl border-neutral-300/80 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20 transition-all placeholder:text-neutral-400"
+                                        className="h-11 rounded-xl border-neutral-300/80 pl-10 transition-all placeholder:text-neutral-400 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                                     />
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                                    <div className="absolute top-1/2 left-3.5 -translate-y-1/2 text-neutral-400">
                                         <KeyRound className="size-4.5" />
                                     </div>
                                 </div>
@@ -98,16 +104,19 @@ export default function Login({ status, canResetPassword }: Props) {
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
-                                    className="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 h-4.5 w-4.5"
+                                    className="h-4.5 w-4.5 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500"
                                 />
-                                <Label htmlFor="remember" className="text-neutral-600 text-sm cursor-pointer select-none">
+                                <Label
+                                    htmlFor="remember"
+                                    className="cursor-pointer text-sm text-neutral-600 select-none"
+                                >
                                     Ingat saya di perangkat ini
                                 </Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm transition-all hover:shadow-[0_4px_20px_rgba(16,185,129,0.25)] shadow-md hover:scale-[1.01] active:scale-[0.99]"
+                                className="mt-2 h-11 w-full rounded-xl bg-emerald-600 text-sm font-semibold text-white shadow-md transition-all hover:scale-[1.01] hover:bg-emerald-700 hover:shadow-[0_4px_20px_rgba(16,185,129,0.25)] active:scale-[0.99] active:bg-emerald-800"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"

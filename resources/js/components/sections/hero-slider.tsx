@@ -54,7 +54,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
             id="hero-slider"
             aria-label="Banner utama"
             className="relative w-full overflow-hidden bg-[#0D3B11]"
-            style={{ height: 'clamp(360px, 56vw, 620px)' }}
+            style={{ height: 'clamp(480px, 65vw, 720px)' }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -81,13 +81,12 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                         }`}
                     />
 
-                    {/* Multi-stop gradient overlay for premium depth */}
                     <div
                         aria-hidden="true"
                         className="absolute inset-0"
                         style={{
                             background:
-                                'linear-gradient(135deg, rgba(10,40,14,0.9) 0%, rgba(10,40,14,0.65) 40%, rgba(10,40,14,0.35) 70%, rgba(10,40,14,0.5) 100%)',
+                                'linear-gradient(to right, rgba(8,32,12,0.75) 0%, rgba(8,32,12,0.45) 45%, rgba(8,32,12,0.15) 75%, transparent 100%)',
                         }}
                     />
 
@@ -97,16 +96,16 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                         className="absolute inset-0"
                         style={{
                             background:
-                                'radial-gradient(ellipse at 20% 50%, rgba(200,160,0,0.08) 0%, transparent 60%)',
+                                'radial-gradient(ellipse at 20% 50%, rgba(200,160,0,0.1) 0%, transparent 60%)',
                         }}
                     />
 
                     {/* Content */}
                     <div className="bka-container relative z-[2] flex h-full items-center">
-                        <div className="max-w-[620px]">
+                        <div className="max-w-[720px] pl-0 lg:pl-6">
                             {/* Gold accent line */}
                             <div
-                                className="mb-5 h-[3px] w-12 rounded-full transition-all duration-700 ease-out"
+                                className="mb-6 h-[3px] w-16 rounded-full transition-all duration-700 ease-out"
                                 style={{
                                     background:
                                         'linear-gradient(90deg, #C8A000, #E8C840)',
@@ -121,9 +120,9 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
 
                             {/* Title */}
                             <h1
-                                className="mb-4 leading-[1.15] font-bold text-white"
+                                className="mb-5 leading-[1.12] font-bold tracking-tight text-white"
                                 style={{
-                                    fontSize: 'clamp(26px, 4.5vw, 48px)',
+                                    fontSize: 'clamp(34px, 5.5vw, 64px)',
                                     opacity: idx === current ? 1 : 0,
                                     transform:
                                         idx === current
@@ -139,11 +138,11 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                             {/* Description */}
                             {slide.description && (
                                 <p
-                                    className="max-w-[540px] leading-relaxed text-white/85"
+                                    className="max-w-[580px] leading-relaxed text-white/90"
                                     style={{
-                                        fontSize: 'clamp(14px, 2vw, 18px)',
+                                        fontSize: 'clamp(15px, 2.2vw, 20px)',
                                         marginBottom: slide.ctaText
-                                            ? '32px'
+                                            ? '40px'
                                             : 0,
                                         opacity: idx === current ? 1 : 0,
                                         transform:
@@ -161,7 +160,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                             {/* CTA */}
                             {slide.ctaText && (
                                 <div
-                                    className="flex flex-wrap gap-3"
+                                    className="flex flex-wrap items-center gap-4"
                                     style={{
                                         opacity: idx === current ? 1 : 0,
                                         transform:
@@ -174,20 +173,38 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                                 >
                                     <a
                                         href={slide.ctaHref ?? '#'}
-                                        className="bka-btn-primary shadow-[0_4px_20px_rgba(27,94,32,0.4)]"
+                                        className="bka-btn-primary shadow-[0_4px_25px_rgba(27,94,32,0.45)]"
                                         style={{
                                             fontSize: '15px',
-                                            padding: '12px 28px',
+                                            padding: '14px 32px',
                                         }}
                                     >
                                         {slide.ctaText}
                                     </a>
+                                    {idx === 0 && (
+                                        <a
+                                            href="/profil/tentang-kami"
+                                            className="rounded-full border border-white/40 bg-white/5 px-8 py-3.5 text-[15px] font-medium text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-[#1B5E20] hover:shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
+                                        >
+                                            Profil BKA
+                                        </a>
+                                    )}
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
             ))}
+
+            {/* Decorative diagonal geometric lines */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-20 bottom-10 z-[1] hidden h-[1px] w-[50%] origin-right rotate-[-40deg] bg-gradient-to-l from-white/12 to-transparent lg:block"
+            />
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-10 bottom-24 z-[1] hidden h-[1px] w-[40%] origin-right rotate-[-40deg] bg-gradient-to-l from-[#C8A000]/25 to-transparent lg:block"
+            />
 
             {/* Decorative floating shapes */}
             <div

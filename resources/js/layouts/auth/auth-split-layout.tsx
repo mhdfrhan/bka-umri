@@ -21,10 +21,7 @@ export default function AuthSplitLayout({
                 <div className="absolute top-20 right-10 h-96 w-96 rounded-full bg-teal-400/15 blur-[150px]" />
 
                 <div className="relative z-20 flex items-center">
-                    <Link
-                        href={home()}
-                        className="flex items-center"
-                    >
+                    <Link href={home()} className="flex items-center">
                         <img
                             src="/assets/logo-bka.png"
                             alt="Logo BKA UMRI"

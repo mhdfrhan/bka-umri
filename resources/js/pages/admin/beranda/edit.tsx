@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
+import { AdminModal } from '@/components/admin/admin-modal';
 
 // Curated list of Lucide icons for statistics and services dropdowns
 const CURATED_ICONS = [
@@ -43,29 +44,34 @@ const CURATED_ICONS = [
 
 export default function EditBeranda() {
     // Current Active Tab State
-    const [activeTab, setActiveTab] = useState<'banners' | 'kepalaBiro' | 'stats' | 'services'>('banners');
+    const [activeTab, setActiveTab] = useState<
+        'banners' | 'kepalaBiro' | 'stats' | 'services'
+    >('banners');
 
     // ────────────────────────────────────────────────────────
     // DATA STATES & STORAGE LOADING
     // ────────────────────────────────────────────────────────
-    
-
 
     // Asset Picker Modal Target State
-    const [assetPickerTarget, setAssetPickerTarget] = useState<'banner' | 'kepalaBiro' | null>(null);
+    const [assetPickerTarget, setAssetPickerTarget] = useState<
+        'banner' | 'kepalaBiro' | null
+    >(null);
 
     const handleSelectAsset = (url: string) => {
         if (assetPickerTarget === 'banner') {
-            setBannerForm(prev => ({ ...prev, imgUrl: url }));
+            setBannerForm((prev) => ({ ...prev, imgUrl: url }));
         } else if (assetPickerTarget === 'kepalaBiro') {
-            setKepalaBiro(prev => ({ ...prev, fotoUrl: url }));
+            setKepalaBiro((prev) => ({ ...prev, fotoUrl: url }));
         }
         setAssetPickerTarget(null);
     };
 
     // Direct Upload Configuration for Banners
-    const [isBannerUploadModalOpen, setIsBannerUploadModalOpen] = useState(false);
-    const [selectedBannerFile, setSelectedBannerFile] = useState<File | null>(null);
+    const [isBannerUploadModalOpen, setIsBannerUploadModalOpen] =
+        useState(false);
+    const [selectedBannerFile, setSelectedBannerFile] = useState<File | null>(
+        null,
+    );
 
     const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -82,7 +88,7 @@ export default function EditBeranda() {
     };
 
     const handleBannerUploadConfirm = (result: { base64: string }) => {
-        setBannerForm(prev => ({ ...prev, imgUrl: result.base64 }));
+        setBannerForm((prev) => ({ ...prev, imgUrl: result.base64 }));
         toast.success('Gambar banner berhasil diunggah & dioptimasi!');
     };
 
@@ -105,7 +111,7 @@ export default function EditBeranda() {
     };
 
     const handleKbUploadConfirm = (result: { base64: string }) => {
-        setKepalaBiro(prev => ({ ...prev, fotoUrl: result.base64 }));
+        setKepalaBiro((prev) => ({ ...prev, fotoUrl: result.base64 }));
         toast.success('Foto Kepala Biro berhasil diunggah & dioptimasi!');
     };
 
@@ -371,7 +377,7 @@ export default function EditBeranda() {
                 </div>
 
                 {/* Glassmorphic Tabs Shell */}
-                <div className="grid w-full grid-cols-1 gap-8 items-start lg:grid-cols-[30%_1fr]">
+                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[30%_1fr]">
                     {/* Tab Navigation Pane */}
                     <div className="flex w-full shrink-0 scrollbar-none flex-row gap-1.5 overflow-x-auto pb-2 select-none lg:w-full lg:flex-col lg:pb-0">
                         <button
@@ -629,29 +635,36 @@ export default function EditBeranda() {
                                 <div className="min-w-0 flex-1 space-y-6 rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
                                     <div className="border-b border-neutral-100 pb-4">
                                         {/* Foto Kepala Biro & Upload Section */}
-                                        <div className="space-y-3 border border-neutral-200/80 rounded-2xl p-5 bg-neutral-50/30">
-                                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                                                <label className="text-sm font-bold text-neutral-700 flex items-center gap-2">
+                                        <div className="space-y-3 rounded-2xl border border-neutral-200/80 bg-neutral-50/30 p-5">
+                                            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                                                <label className="flex items-center gap-2 text-sm font-bold text-neutral-700">
                                                     <ImageIcon className="size-4 text-emerald-600" />
-                                                    Foto Kepala Biro (Rasio 1:1 atau 3:4)
+                                                    Foto Kepala Biro (Rasio 1:1
+                                                    atau 3:4)
                                                 </label>
                                                 <div className="flex gap-2">
                                                     <button
                                                         type="button"
-                                                        onClick={() => setAssetPickerTarget('kepalaBiro')}
-                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 hover:bg-neutral-50 hover:text-emerald-700 shadow-xs"
+                                                        onClick={() =>
+                                                            setAssetPickerTarget(
+                                                                'kepalaBiro',
+                                                            )
+                                                        }
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 shadow-xs hover:bg-neutral-50 hover:text-emerald-700"
                                                     >
                                                         <ImageIcon className="size-3.5" />
                                                         Pilih dari Aset
                                                     </button>
-                                                    <label className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs cursor-pointer">
+                                                    <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700">
                                                         <Upload className="size-3.5" />
                                                         Unggah Langsung
                                                         <input
                                                             type="file"
                                                             accept="image/*"
                                                             className="hidden"
-                                                            onChange={handleKbFileChange}
+                                                            onChange={
+                                                                handleKbFileChange
+                                                            }
                                                         />
                                                     </label>
                                                 </div>
@@ -663,13 +676,21 @@ export default function EditBeranda() {
                                                     type="text"
                                                     placeholder="Atau masukkan URL gambar di sini..."
                                                     value={kepalaBiro.fotoUrl}
-                                                    onChange={(e) => setKepalaBiro(prev => ({ ...prev, fotoUrl: e.target.value }))}
-                                                    className="w-full rounded-xl border border-neutral-200 bg-white p-2.5 text-xs font-mono text-neutral-600 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                                                    onChange={(e) =>
+                                                        setKepalaBiro(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                fotoUrl:
+                                                                    e.target
+                                                                        .value,
+                                                            }),
+                                                        )
+                                                    }
+                                                    className="w-full rounded-xl border border-neutral-200 bg-white p-2.5 font-mono text-xs text-neutral-600 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
                                                 />
                                             </div>
                                         </div>
                                     </div>
-
 
                                     <form
                                         onSubmit={handleSaveKepalaBiro}
@@ -733,8 +754,6 @@ export default function EditBeranda() {
                                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                             />
                                         </div>
-
-
 
                                         <div className="space-y-1.5">
                                             <div className="flex items-center justify-between text-sm font-semibold text-neutral-700">
@@ -1191,184 +1210,175 @@ export default function EditBeranda() {
             </div>
 
             {/* BANNER ADD/EDIT MODAL DIALOG */}
-            {isBannerModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 p-4 backdrop-blur-xs transition-all select-none">
-                    <div className="w-full max-w-lg animate-in space-y-4 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl duration-200 zoom-in-95 fade-in">
-                        <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                            <h3 className="flex items-center gap-2 text-base font-bold text-neutral-800">
-                                <Home className="size-5 text-emerald-600" />
-                                {editingBannerId !== null
-                                    ? 'Edit Slide Banner'
-                                    : 'Tambah Slide Banner'}
-                            </h3>
-                            <button
-                                onClick={() => setIsBannerModalOpen(false)}
-                                className="p-1 text-sm font-semibold text-neutral-400 outline-none hover:text-neutral-600"
+            <AdminModal
+                isOpen={isBannerModalOpen}
+                onClose={() => setIsBannerModalOpen(false)}
+                title={
+                    editingBannerId !== null
+                        ? 'Edit Slide Banner'
+                        : 'Tambah Slide Banner'
+                }
+                icon={<Home className="size-5 text-emerald-600" />}
+                maxWidth="lg"
+            >
+                <form onSubmit={handleSaveBanner} className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-neutral-700">
+                            Judul Slide (Maksimal 100)
+                        </label>
+                        <input
+                            type="text"
+                            maxLength={100}
+                            value={bannerForm.title}
+                            onChange={(e) =>
+                                setBannerForm((prev) => ({
+                                    ...prev,
+                                    title: e.target.value,
+                                }))
+                            }
+                            placeholder="Contoh: Portal Informasi BKA Resmi"
+                            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-neutral-700">
+                            Deskripsi Pendek (Maksimal 200)
+                        </label>
+                        <textarea
+                            rows={3}
+                            maxLength={200}
+                            value={bannerForm.desc}
+                            onChange={(e) =>
+                                setBannerForm((prev) => ({
+                                    ...prev,
+                                    desc: e.target.value,
+                                }))
+                            }
+                            placeholder="Contoh: Selamat datang di portal biro kelembagaan yang tepercaya..."
+                            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm leading-relaxed text-neutral-700 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-neutral-700">
+                                Teks Tombol CTA (Maks 30)
+                            </label>
+                            <input
+                                type="text"
+                                maxLength={30}
+                                value={bannerForm.btnText}
+                                onChange={(e) =>
+                                    setBannerForm((prev) => ({
+                                        ...prev,
+                                        btnText: e.target.value,
+                                    }))
+                                }
+                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-neutral-700">
+                                Tautan Tombol CTA (URL Valid)
+                            </label>
+                            <input
+                                type="text"
+                                value={bannerForm.btnUrl}
+                                onChange={(e) =>
+                                    setBannerForm((prev) => ({
+                                        ...prev,
+                                        btnUrl: e.target.value,
+                                    }))
+                                }
+                                placeholder="Contoh: /admin/berita"
+                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                            <label className="text-sm font-bold text-neutral-700">
+                                Gambar Banner (Rasio 16:9)
+                            </label>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setAssetPickerTarget('banner')
+                                    }
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-600 shadow-xs hover:bg-neutral-50 hover:text-emerald-700"
+                                >
+                                    <ImageIcon className="size-3" />
+                                    Pilih dari Aset
+                                </button>
+                                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700">
+                                    <Upload className="size-3" />
+                                    Unggah Langsung
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleBannerFileChange}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                        <input
+                            type="text"
+                            value={bannerForm.imgUrl}
+                            onChange={(e) =>
+                                setBannerForm((prev) => ({
+                                    ...prev,
+                                    imgUrl: e.target.value,
+                                }))
+                            }
+                            placeholder="Contoh: https://images.unsplash.com/... atau dari unggahan"
+                            className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="active"
+                                checked={bannerForm.active}
+                                onChange={(e) =>
+                                    setBannerForm((prev) => ({
+                                        ...prev,
+                                        active: e.target.checked,
+                                    }))
+                                }
+                                className="size-5 cursor-pointer rounded border-neutral-300 text-emerald-600 focus:ring-emerald-600"
+                            />
+                            <label
+                                htmlFor="active"
+                                className="cursor-pointer text-sm font-semibold text-neutral-700 select-none"
                             >
-                                Tutup
-                            </button>
+                                Tampilkan langsung (Aktif)
+                            </label>
                         </div>
 
-                        <form onSubmit={handleSaveBanner} className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-neutral-700">
-                                    Judul Slide (Maksimal 100)
-                                </label>
-                                <input
-                                    type="text"
-                                    maxLength={100}
-                                    value={bannerForm.title}
-                                    onChange={(e) =>
-                                        setBannerForm((prev) => ({
-                                            ...prev,
-                                            title: e.target.value,
-                                        }))
-                                    }
-                                    placeholder="Contoh: Portal Informasi BKA Resmi"
-                                    className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                />
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-neutral-700">
-                                    Deskripsi Pendek (Maksimal 200)
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    maxLength={200}
-                                    value={bannerForm.desc}
-                                    onChange={(e) =>
-                                        setBannerForm((prev) => ({
-                                            ...prev,
-                                            desc: e.target.value,
-                                        }))
-                                    }
-                                    placeholder="Contoh: Selamat datang di portal biro kelembagaan yang tepercaya..."
-                                    className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm leading-relaxed text-neutral-700 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-neutral-700">
-                                        Teks Tombol CTA (Maks 30)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        maxLength={30}
-                                        value={bannerForm.btnText}
-                                        onChange={(e) =>
-                                            setBannerForm((prev) => ({
-                                                ...prev,
-                                                btnText: e.target.value,
-                                            }))
-                                        }
-                                        className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-neutral-700">
-                                        Tautan Tombol CTA (URL Valid)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={bannerForm.btnUrl}
-                                        onChange={(e) =>
-                                            setBannerForm((prev) => ({
-                                                ...prev,
-                                                btnUrl: e.target.value,
-                                            }))
-                                        }
-                                        placeholder="Contoh: /admin/berita"
-                                        className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                                    <label className="text-sm font-bold text-neutral-700">
-                                        Gambar Banner (Rasio 16:9)
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setAssetPickerTarget('banner')}
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-600 hover:bg-neutral-50 hover:text-emerald-700 shadow-xs"
-                                        >
-                                            <ImageIcon className="size-3" />
-                                            Pilih dari Aset
-                                        </button>
-                                        <label className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs cursor-pointer">
-                                            <Upload className="size-3" />
-                                            Unggah Langsung
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleBannerFileChange}
-                                            />
-                                        </label>
-                                    </div>
-                                </div>
-                                <input
-                                    type="text"
-                                    value={bannerForm.imgUrl}
-                                    onChange={(e) =>
-                                        setBannerForm((prev) => ({
-                                            ...prev,
-                                            imgUrl: e.target.value,
-                                        }))
-                                    }
-                                    placeholder="Contoh: https://images.unsplash.com/... atau dari unggahan"
-                                    className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="active"
-                                        checked={bannerForm.active}
-                                        onChange={(e) =>
-                                            setBannerForm((prev) => ({
-                                                ...prev,
-                                                active: e.target.checked,
-                                            }))
-                                        }
-                                        className="size-5 cursor-pointer rounded border-neutral-300 text-emerald-600 focus:ring-emerald-600"
-                                    />
-                                    <label
-                                        htmlFor="active"
-                                        className="cursor-pointer text-sm font-semibold text-neutral-700 select-none"
-                                    >
-                                        Tampilkan langsung (Aktif)
-                                    </label>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setIsBannerModalOpen(false)
-                                        }
-                                        className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-600 outline-none hover:bg-neutral-50"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all outline-none hover:bg-emerald-700"
-                                    >
-                                        Simpan Slide
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsBannerModalOpen(false)}
+                                className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-600 outline-none hover:bg-neutral-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all outline-none hover:bg-emerald-700"
+                            >
+                                Simpan Slide
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                </form>
+            </AdminModal>
 
             <AssetPickerModal
                 isOpen={assetPickerTarget !== null}

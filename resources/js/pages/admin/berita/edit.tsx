@@ -1,36 +1,54 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Newspaper, ArrowLeft, Save, Globe, Image as ImageIcon, Upload, Sliders } from 'lucide-react';
+import {
+    Newspaper,
+    ArrowLeft,
+    Save,
+    Globe,
+    Image as ImageIcon,
+    Upload,
+    Sliders,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
 
-const DEFAULT_CATEGORIES = ['Kegiatan', 'Layanan', 'Mitra', 'Prestasi', 'Aturan'];
+const DEFAULT_CATEGORIES = [
+    'Kegiatan',
+    'Layanan',
+    'Mitra',
+    'Prestasi',
+    'Aturan',
+];
 
 export default function EditBerita() {
     const [newsId, setNewsId] = useState<number | null>(null);
     const [newsList, setNewsList] = useState<any[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    
+
     // Form States
     const [title, setTitle] = useState('');
     const [slug, setSlug] = useState('');
     const [category, setCategory] = useState('');
     const [thumbnail, setThumbnail] = useState('');
     const [content, setContent] = useState('');
-    const [status, setStatus] = useState<'draf' | 'terpublikasi' | 'diarsipkan'>('draf');
+    const [status, setStatus] = useState<
+        'draf' | 'terpublikasi' | 'diarsipkan'
+    >('draf');
     const [date, setDate] = useState('');
     const [author, setAuthor] = useState('Admin BKA');
     const [isSaving, setIsSaving] = useState(false);
 
     // Asset Picker Modal State
     const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
-    
+
     // Direct Upload Optimization Modal State
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null);
+    const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
+        null,
+    );
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -90,7 +108,9 @@ export default function EditBerita() {
             if (item) {
                 setTitle(item.title || '');
                 setSlug(item.slug || '');
-                setCategory(item.category || loadedCategories[0] || 'Tanpa Kategori');
+                setCategory(
+                    item.category || loadedCategories[0] || 'Tanpa Kategori',
+                );
                 setThumbnail(item.thumbnail || '');
                 setContent(item.content || '');
                 setStatus(item.status || 'draf');
@@ -111,8 +131,8 @@ export default function EditBerita() {
             const generated = val
                 .toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '') // remove special characters
-                .replace(/\s+/g, '-')         // replace spaces with dashes
-                .replace(/-+/g, '-');         // remove redundant dashes
+                .replace(/\s+/g, '-') // replace spaces with dashes
+                .replace(/-+/g, '-'); // remove redundant dashes
             setSlug(generated);
         }
     };
@@ -151,9 +171,13 @@ export default function EditBerita() {
 
         try {
             // Slug uniqueness check (excluding currently edited item)
-            const isSlugTaken = newsList.some((n: any) => n.slug === slug && n.id !== newsId);
+            const isSlugTaken = newsList.some(
+                (n: any) => n.slug === slug && n.id !== newsId,
+            );
             if (isSlugTaken) {
-                toast.error('Slug URL sudah digunakan artikel lain! Ubah slug secara manual.');
+                toast.error(
+                    'Slug URL sudah digunakan artikel lain! Ubah slug secara manual.',
+                );
                 setIsSaving(false);
                 return;
             }
@@ -168,10 +192,12 @@ export default function EditBerita() {
                 excerpt: content.replace(/<[^>]*>/g, '').slice(0, 160) + '...',
                 date: date || new Date().toISOString().split('T')[0],
                 author,
-                status
+                status,
             };
 
-            const updatedList = newsList.map((n: any) => n.id === newsId ? updatedArticle : n);
+            const updatedList = newsList.map((n: any) =>
+                n.id === newsId ? updatedArticle : n,
+            );
             localStorage.setItem('bka_berita', JSON.stringify(updatedList));
 
             toast.success(`Berita "${title}" berhasil diperbarui!`);
@@ -197,33 +223,40 @@ export default function EditBerita() {
 
             <div className="mx-auto w-full max-w-3xl space-y-6 p-6 md:space-y-8 md:p-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-5">
+                <div className="flex flex-col justify-between gap-4 border-b border-neutral-200 pb-5 md:flex-row md:items-center">
                     <div>
-                        <div className="flex items-center gap-2 text-sm text-neutral-400 font-semibold mb-1">
-                            <Link href="/admin/berita" className="hover:text-emerald-700 flex items-center gap-1 transition-colors select-none">
+                        <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-neutral-400">
+                            <Link
+                                href="/admin/berita"
+                                className="flex items-center gap-1 transition-colors select-none hover:text-emerald-700"
+                            >
                                 <ArrowLeft className="size-4" />
                                 Kembali ke Daftar
                             </Link>
                         </div>
-                        <h1 className="text-2xl font-extrabold tracking-tight text-neutral-800 flex items-center gap-2">
+                        <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-neutral-800">
                             <Newspaper className="size-6 text-emerald-600" />
                             Edit Berita: {title || 'Detail Artikel'}
                         </h1>
-                        <p className="text-sm text-neutral-500 mt-1 font-light leading-relaxed">
-                            Sesuaikan isi tulisan, kategori, status terbit, atau gambar cover artikel berita.
+                        <p className="mt-1 text-sm leading-relaxed font-light text-neutral-500">
+                            Sesuaikan isi tulisan, kategori, status terbit, atau
+                            gambar cover artikel berita.
                         </p>
                     </div>
                 </div>
 
                 {/* Form Card */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8 space-y-5">
-                        
+                    <div className="space-y-5 rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
                         {/* Judul Berita */}
                         <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-neutral-700">Judul Berita</label>
-                                <span className={`text-xs ${title.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Judul Berita
+                                </label>
+                                <span
+                                    className={`text-xs ${title.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}
+                                >
                                     {title.length} / 200 karakter (min 10)
                                 </span>
                             </div>
@@ -232,7 +265,9 @@ export default function EditBerita() {
                                 maxLength={200}
                                 required
                                 value={title}
-                                onChange={(e) => handleTitleChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleTitleChange(e.target.value)
+                                }
                                 placeholder="Contoh: Sosialisasi Pengajuan Beasiswa Mahasiswa UMRI 2026"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
@@ -240,54 +275,78 @@ export default function EditBerita() {
 
                         {/* Slug URL */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-neutral-700 flex items-center gap-1">
+                            <label className="flex items-center gap-1 text-sm font-semibold text-neutral-700">
                                 <Globe className="size-4 text-neutral-400" />
                                 Slug URL Artikel
-                                <span className="text-xs font-normal text-neutral-400">(Auto-generated / Editable)</span>
+                                <span className="text-xs font-normal text-neutral-400">
+                                    (Auto-generated / Editable)
+                                </span>
                             </label>
                             <input
                                 type="text"
                                 required
                                 value={slug}
-                                onChange={(e) => handleSlugChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleSlugChange(e.target.value)
+                                }
                                 placeholder="contoh: sosialisasi-pengajuan-beasiswa"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
                         </div>
 
                         {/* Kategori & Status (Grid) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-neutral-700">Kategori Artikel</label>
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Kategori Artikel
+                                </label>
                                 <select
                                     value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
+                                    onChange={(e) =>
+                                        setCategory(e.target.value)
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
-                                    {categories.map(c => (
-                                        <option key={c} value={c}>{c}</option>
+                                    {categories.map((c) => (
+                                        <option key={c} value={c}>
+                                            {c}
+                                        </option>
                                     ))}
-                                    <option value="Tanpa Kategori">Tanpa Kategori</option>
+                                    <option value="Tanpa Kategori">
+                                        Tanpa Kategori
+                                    </option>
                                 </select>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-neutral-700">Status Publikasi</label>
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Status Publikasi
+                                </label>
                                 <select
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value as any)}
+                                    onChange={(e) =>
+                                        setStatus(e.target.value as any)
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
-                                    <option value="draf">Draf (Disimpan Intern)</option>
-                                    <option value="terpublikasi">Terpublikasi (Tampil Publik)</option>
-                                    <option value="diarsipkan">Diarsipkan (Disembunyikan)</option>
+                                    <option value="draf">
+                                        Draf (Disimpan Intern)
+                                    </option>
+                                    <option value="terpublikasi">
+                                        Terpublikasi (Tampil Publik)
+                                    </option>
+                                    <option value="diarsipkan">
+                                        Diarsipkan (Disembunyikan)
+                                    </option>
                                 </select>
                             </div>
                         </div>
 
                         {/* Tanggal Rilis Berita */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-neutral-700">Tanggal Rilis Berita</label>
+                            <label className="text-sm font-semibold text-neutral-700">
+                                Tanggal Rilis Berita
+                            </label>
                             <input
                                 type="date"
                                 value={date}
@@ -297,22 +356,24 @@ export default function EditBerita() {
                         </div>
 
                         {/* Cover Image & Upload Section */}
-                        <div className="space-y-3 border border-neutral-200/80 rounded-2xl p-5 bg-neutral-50/30">
-                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
-                                <label className="text-sm font-bold text-neutral-700 flex items-center gap-2">
+                        <div className="space-y-3 rounded-2xl border border-neutral-200/80 bg-neutral-50/30 p-5">
+                            <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                                <label className="flex items-center gap-2 text-sm font-bold text-neutral-700">
                                     <ImageIcon className="size-4 text-emerald-600" />
                                     Gambar Cover Berita (Rasio 16:9)
                                 </label>
                                 <div className="flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => setIsAssetModalOpen(true)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 hover:bg-neutral-50 hover:text-emerald-700 shadow-xs"
+                                        onClick={() =>
+                                            setIsAssetModalOpen(true)
+                                        }
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 shadow-xs hover:bg-neutral-50 hover:text-emerald-700"
                                     >
                                         <ImageIcon className="size-3.5" />
                                         Pilih dari Aset
                                     </button>
-                                    <label className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs cursor-pointer">
+                                    <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700">
                                         <Upload className="size-3.5" />
                                         Unggah Langsung
                                         <input
@@ -331,22 +392,29 @@ export default function EditBerita() {
                                     type="text"
                                     placeholder="Atau masukkan URL gambar di sini..."
                                     value={thumbnail}
-                                    onChange={(e) => setThumbnail(e.target.value)}
-                                    className="w-full rounded-xl border border-neutral-200 bg-white p-2.5 text-xs font-mono text-neutral-600 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                                    onChange={(e) =>
+                                        setThumbnail(e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-neutral-200 bg-white p-2.5 font-mono text-xs text-neutral-600 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
                                 />
                             </div>
 
                             {/* Thumbnail preview */}
                             {thumbnail && (
-                                <div className="space-y-1.5 pt-2 border-t border-neutral-100">
-                                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Preview Gambar Cover</label>
-                                    <div className="aspect-video max-w-md rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50/50 flex items-center justify-center relative group">
-                                        <img 
-                                            src={thumbnail} 
-                                            alt="Preview Cover" 
-                                            className="w-full h-full object-cover" 
+                                <div className="space-y-1.5 border-t border-neutral-100 pt-2">
+                                    <label className="block text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
+                                        Preview Gambar Cover
+                                    </label>
+                                    <div className="group relative flex aspect-video max-w-md items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/50">
+                                        <img
+                                            src={thumbnail}
+                                            alt="Preview Cover"
+                                            className="h-full w-full object-cover"
                                             onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80';
+                                                (
+                                                    e.target as HTMLImageElement
+                                                ).src =
+                                                    'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80';
                                             }}
                                         />
                                     </div>
@@ -372,9 +440,13 @@ export default function EditBerita() {
 
                         {/* Editor Konten */}
                         <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-neutral-700">Isi Konten Berita</label>
-                                <span className="text-xs text-neutral-400 font-medium">Minimal 50 karakter</span>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Isi Konten Berita
+                                </label>
+                                <span className="text-xs font-medium text-neutral-400">
+                                    Minimal 50 karakter
+                                </span>
                             </div>
                             <RichTextEditor
                                 value={content}
@@ -382,7 +454,6 @@ export default function EditBerita() {
                                 className="border-neutral-200 focus-within:border-emerald-600 focus-within:ring-emerald-600/20"
                             />
                         </div>
-
                     </div>
 
                     {/* Action Bar */}

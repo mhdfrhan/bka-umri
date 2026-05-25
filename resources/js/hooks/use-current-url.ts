@@ -45,8 +45,14 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
 
         const comparePath = (path: string): boolean => {
             if (startsWith) {
-                const normPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
-                const normCompare = urlToCompare.endsWith('/') && urlToCompare.length > 1 ? urlToCompare.slice(0, -1) : urlToCompare;
+                const normPath =
+                    path.endsWith('/') && path.length > 1
+                        ? path.slice(0, -1)
+                        : path;
+                const normCompare =
+                    urlToCompare.endsWith('/') && urlToCompare.length > 1
+                        ? urlToCompare.slice(0, -1)
+                        : urlToCompare;
 
                 if (normPath === '/') {
                     return normCompare === '/';

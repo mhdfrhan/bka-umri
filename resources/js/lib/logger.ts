@@ -11,12 +11,12 @@ export interface ActivityLog {
 export function logActivity(
     action: string,
     target: string,
-    type: 'create' | 'update' | 'delete' | 'system' | 'user'
+    type: 'create' | 'update' | 'delete' | 'system' | 'user',
 ) {
     try {
         const savedLogs = localStorage.getItem('bka_activity_logs');
         let logs: ActivityLog[] = [];
-        
+
         if (savedLogs) {
             try {
                 logs = JSON.parse(savedLogs);
@@ -27,13 +27,18 @@ export function logActivity(
 
         const savedUser = localStorage.getItem('bka_current_user');
         let currentUser = { name: 'Super Admin', role: 'Super Admin' };
-        
+
         if (savedUser) {
             try {
                 const parsed = JSON.parse(savedUser);
                 currentUser = {
                     name: parsed.name || 'Super Admin',
-                    role: parsed.role === 'super_admin' ? 'Super Admin' : (parsed.role === 'admin' ? 'Admin' : parsed.role || 'Super Admin')
+                    role:
+                        parsed.role === 'super_admin'
+                            ? 'Super Admin'
+                            : parsed.role === 'admin'
+                              ? 'Admin'
+                              : parsed.role || 'Super Admin',
                 };
             } catch {}
         }

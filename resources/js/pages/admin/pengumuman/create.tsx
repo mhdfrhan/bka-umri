@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Megaphone, ArrowLeft, Save, Globe, Image as ImageIcon, Paperclip, Trash2 } from 'lucide-react';
+import {
+    Megaphone,
+    ArrowLeft,
+    Save,
+    Globe,
+    Image as ImageIcon,
+    Paperclip,
+    Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
@@ -19,20 +27,28 @@ export default function TambahPengumuman() {
     const [title, setTitle] = useState('');
     const [slug, setSlug] = useState('');
     const [content, setContent] = useState('');
-    const [status, setStatus] = useState<'draf' | 'terpublikasi' | 'diarsipkan'>('draf');
+    const [status, setStatus] = useState<
+        'draf' | 'terpublikasi' | 'diarsipkan'
+    >('draf');
     const [isPenting, setIsPenting] = useState(false);
-    const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
-    const [thumbnail, setThumbnail] = useState('https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80');
-    
+    const [date, setDate] = useState(
+        () => new Date().toISOString().split('T')[0],
+    );
+    const [thumbnail, setThumbnail] = useState(
+        'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+    );
+
     // Attachments State
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    
+
     // Modal Asset Picker
     const [isPickerOpen, setIsPickerOpen] = useState(false);
-    
+
     // Direct Upload Optimization Modal State
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null);
+    const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
+        null,
+    );
     const [isSaving, setIsSaving] = useState(false);
     const [isSlugEdited, setIsSlugEdited] = useState(false);
 
@@ -75,11 +91,15 @@ export default function TambahPengumuman() {
 
     const handleUploadConfirm = (result: { base64: string }) => {
         setThumbnail(result.base64);
-        toast.success('Gambar cover pengumuman berhasil diunggah & dioptimasi!');
+        toast.success(
+            'Gambar cover pengumuman berhasil diunggah & dioptimasi!',
+        );
     };
 
     // Direct Attachment File Upload
-    const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAttachmentUpload = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
@@ -92,7 +112,7 @@ export default function TambahPengumuman() {
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            
+
             // Limit 10MB
             if (file.size > 10 * 1024 * 1024) {
                 toast.error(`File "${file.name}" melebihi batas 10MB!`);
@@ -105,7 +125,7 @@ export default function TambahPengumuman() {
                     name: result.name,
                     url: result.base64,
                     size: result.size,
-                    extension: result.extension
+                    extension: result.extension,
                 });
             } catch (err) {
                 toast.error(`Gagal memuat berkas "${file.name}"`);
@@ -119,7 +139,7 @@ export default function TambahPengumuman() {
 
     // Delete Attachment
     const handleDeleteAttachment = (index: number) => {
-        setAttachments(prev => prev.filter((_, idx) => idx !== index));
+        setAttachments((prev) => prev.filter((_, idx) => idx !== index));
     };
 
     // Form submit
@@ -153,7 +173,10 @@ export default function TambahPengumuman() {
                 return;
             }
 
-            const nextId = list.length > 0 ? Math.max(...list.map((a: any) => a.id)) + 1 : 1;
+            const nextId =
+                list.length > 0
+                    ? Math.max(...list.map((a: any) => a.id)) + 1
+                    : 1;
             const newAnnouncement = {
                 id: nextId,
                 title: title.trim(),
@@ -165,7 +188,7 @@ export default function TambahPengumuman() {
                 status,
                 isPenting,
                 thumbnail,
-                attachments
+                attachments,
             };
 
             const updatedList = [newAnnouncement, ...list];
@@ -186,33 +209,40 @@ export default function TambahPengumuman() {
 
             <div className="mx-auto w-full max-w-3xl space-y-6 p-6 md:space-y-8 md:p-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-5">
+                <div className="flex flex-col justify-between gap-4 border-b border-neutral-200 pb-5 md:flex-row md:items-center">
                     <div>
-                        <div className="flex items-center gap-2 text-sm text-neutral-400 font-semibold mb-1">
-                            <Link href="/admin/pengumuman" className="hover:text-emerald-700 flex items-center gap-1 transition-colors select-none">
+                        <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-neutral-400">
+                            <Link
+                                href="/admin/pengumuman"
+                                className="flex items-center gap-1 transition-colors select-none hover:text-emerald-700"
+                            >
                                 <ArrowLeft className="size-4" />
                                 Kembali ke Daftar
                             </Link>
                         </div>
-                        <h1 className="text-2xl font-extrabold tracking-tight text-neutral-800 flex items-center gap-2">
+                        <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-neutral-800">
                             <Megaphone className="size-6 text-emerald-600" />
                             Tambah Pengumuman Baru
                         </h1>
-                        <p className="text-sm text-neutral-500 mt-1 font-light leading-relaxed">
-                            Terbitkan pengumuman penting akademik, prosedur keuangan, atau edaran administrasi kampus.
+                        <p className="mt-1 text-sm leading-relaxed font-light text-neutral-500">
+                            Terbitkan pengumuman penting akademik, prosedur
+                            keuangan, atau edaran administrasi kampus.
                         </p>
                     </div>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8 space-y-5">
-                        
+                    <div className="space-y-5 rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
                         {/* Judul */}
                         <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-neutral-700">Judul Pengumuman</label>
-                                <span className={`text-xs ${title.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Judul Pengumuman
+                                </label>
+                                <span
+                                    className={`text-xs ${title.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}
+                                >
                                     {title.length} / 200 karakter (min 10)
                                 </span>
                             </div>
@@ -221,7 +251,9 @@ export default function TambahPengumuman() {
                                 maxLength={200}
                                 required
                                 value={title}
-                                onChange={(e) => handleTitleChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleTitleChange(e.target.value)
+                                }
                                 placeholder="Contoh: Jadwal Pembayaran Uang Kuliah Semester Ganjil TA 2026/2027"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
@@ -229,38 +261,52 @@ export default function TambahPengumuman() {
 
                         {/* Slug URL */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-neutral-700 flex items-center gap-1">
+                            <label className="flex items-center gap-1 text-sm font-semibold text-neutral-700">
                                 <Globe className="size-4 text-neutral-400" />
                                 Slug URL Pengumuman
-                                <span className="text-xs font-normal text-neutral-400">(Auto-generated / Editable)</span>
+                                <span className="text-xs font-normal text-neutral-400">
+                                    (Auto-generated / Editable)
+                                </span>
                             </label>
                             <input
                                 type="text"
                                 required
                                 value={slug}
-                                onChange={(e) => handleSlugChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleSlugChange(e.target.value)
+                                }
                                 placeholder="contoh: jadwal-pembayaran-uang-kuliah"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
                         </div>
 
                         {/* Status, Tanggal, & Penting */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-neutral-700">Status</label>
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Status
+                                </label>
                                 <select
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value as any)}
+                                    onChange={(e) =>
+                                        setStatus(e.target.value as any)
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
                                     <option value="draf">Draf</option>
-                                    <option value="terpublikasi">Terpublikasi</option>
-                                    <option value="diarsipkan">Diarsipkan</option>
+                                    <option value="terpublikasi">
+                                        Terpublikasi
+                                    </option>
+                                    <option value="diarsipkan">
+                                        Diarsipkan
+                                    </option>
                                 </select>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-neutral-700">Tanggal Rilis</label>
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Tanggal Rilis
+                                </label>
                                 <input
                                     type="date"
                                     value={date}
@@ -269,38 +315,50 @@ export default function TambahPengumuman() {
                                 />
                             </div>
 
-                            <label className="flex items-center gap-2 cursor-pointer select-none border border-neutral-200 rounded-xl px-4 py-2 mt-6">
+                            <label className="mt-6 flex cursor-pointer items-center gap-2 rounded-xl border border-neutral-200 px-4 py-2 select-none">
                                 <input
                                     type="checkbox"
                                     checked={isPenting}
-                                    onChange={(e) => setIsPenting(e.target.checked)}
-                                    className="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 size-4 cursor-pointer"
+                                    onChange={(e) =>
+                                        setIsPenting(e.target.checked)
+                                    }
+                                    className="size-4 cursor-pointer rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500"
                                 />
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-bold text-neutral-700">Tandai Penting</span>
-                                    <span className="text-[10px] text-neutral-400">Tampil pin di atas.</span>
+                                    <span className="text-xs font-bold text-neutral-700">
+                                        Tandai Penting
+                                    </span>
+                                    <span className="text-[10px] text-neutral-400">
+                                        Tampil pin di atas.
+                                    </span>
                                 </div>
                             </label>
                         </div>
 
                         {/* Image Thumbnail with picker integration */}
                         <div className="space-y-3 pt-2">
-                            <label className="text-sm font-semibold text-neutral-700 block">Gambar Cover Pengumuman (Opsional)</label>
-                            
-                            <div className="flex flex-col md:flex-row gap-4 items-start">
+                            <label className="block text-sm font-semibold text-neutral-700">
+                                Gambar Cover Pengumuman (Opsional)
+                            </label>
+
+                            <div className="flex flex-col items-start gap-4 md:flex-row">
                                 {/* Image input and selection buttons */}
-                                <div className="flex-1 space-y-3 w-full">
+                                <div className="w-full flex-1 space-y-3">
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             value={thumbnail}
-                                            onChange={(e) => setThumbnail(e.target.value)}
+                                            onChange={(e) =>
+                                                setThumbnail(e.target.value)
+                                            }
                                             placeholder="URL Gambar..."
-                                            className="flex-1 rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1"
+                                            className="flex-1 rounded-xl border border-neutral-200 bg-white p-3 font-mono text-xs text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1"
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => setIsPickerOpen(true)}
+                                            onClick={() =>
+                                                setIsPickerOpen(true)
+                                            }
                                             className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-100"
                                         >
                                             Pilih dari Aset
@@ -308,27 +366,30 @@ export default function TambahPengumuman() {
                                     </div>
 
                                     {/* Upload directly with WebP compression options */}
-                                    <div className="border border-dashed border-neutral-200 rounded-xl p-4 space-y-3 bg-neutral-50/50">
+                                    <div className="space-y-3 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/50 p-4">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-neutral-600">Unggah Gambar Langsung</span>
+                                            <span className="text-xs font-bold text-neutral-600">
+                                                Unggah Gambar Langsung
+                                            </span>
                                         </div>
                                         <input
                                             type="file"
                                             accept="image/*"
                                             onChange={handleFileChange}
-                                            className="w-full text-xs text-neutral-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 file:hover:bg-emerald-100"
+                                            className="w-full text-xs text-neutral-500 file:mr-3 file:rounded-xl file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-emerald-700 file:hover:bg-emerald-100"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Preview container */}
-                                <div className="aspect-video w-full md:w-56 rounded-xl border border-neutral-200/60 overflow-hidden bg-neutral-100 flex items-center justify-center">
-                                    <img 
-                                        src={thumbnail} 
-                                        alt="Pratinjau Cover" 
-                                        className="w-full h-full object-cover"
+                                <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-neutral-200/60 bg-neutral-100 md:w-56">
+                                    <img
+                                        src={thumbnail}
+                                        alt="Pratinjau Cover"
+                                        className="h-full w-full object-cover"
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&q=80';
+                                            (e.target as HTMLImageElement).src =
+                                                'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&q=80';
                                         }}
                                     />
                                 </div>
@@ -337,9 +398,13 @@ export default function TambahPengumuman() {
 
                         {/* Rich Content Editor */}
                         <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-neutral-700">Konten Pengumuman</label>
-                                <span className="text-xs text-neutral-400 font-medium">Minimal 20 karakter</span>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Konten Pengumuman
+                                </label>
+                                <span className="text-xs font-medium text-neutral-400">
+                                    Minimal 20 karakter
+                                </span>
                             </div>
                             <RichTextEditor
                                 value={content}
@@ -349,13 +414,15 @@ export default function TambahPengumuman() {
                         </div>
 
                         {/* Attachments Repeater Upload */}
-                        <div className="space-y-3 pt-3 border-t border-neutral-100">
+                        <div className="space-y-3 border-t border-neutral-100 pt-3">
                             <div className="flex items-center justify-between">
-                                <label className="text-sm font-semibold text-neutral-700 flex items-center gap-1">
+                                <label className="flex items-center gap-1 text-sm font-semibold text-neutral-700">
                                     <Paperclip className="size-4 text-neutral-500" />
                                     Lampiran Berkas ({attachments.length} / 3)
                                 </label>
-                                <span className="text-[10px] font-bold text-neutral-400">PDF / Word / Excel, maks 10MB</span>
+                                <span className="text-[10px] font-bold text-neutral-400">
+                                    PDF / Word / Excel, maks 10MB
+                                </span>
                             </div>
 
                             {/* Direct attachments picker */}
@@ -365,7 +432,7 @@ export default function TambahPengumuman() {
                                     multiple
                                     accept=".pdf,.docx,.xlsx,.pptx"
                                     onChange={handleAttachmentUpload}
-                                    className="w-full text-xs text-neutral-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-neutral-100 file:text-neutral-700 file:hover:bg-neutral-200"
+                                    className="w-full text-xs text-neutral-500 file:mr-3 file:rounded-xl file:border-0 file:bg-neutral-100 file:px-4 file:py-2 file:text-xs file:font-bold file:text-neutral-700 file:hover:bg-neutral-200"
                                 />
                             )}
 
@@ -373,20 +440,31 @@ export default function TambahPengumuman() {
                             {attachments.length > 0 && (
                                 <div className="space-y-2 pt-1">
                                     {attachments.map((file, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-neutral-100 bg-neutral-50/50">
-                                            <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className="text-[9px] font-extrabold uppercase bg-emerald-600 text-white px-2 py-0.5 rounded shadow-sm">
+                                        <div
+                                            key={idx}
+                                            className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50/50 p-3"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-2.5">
+                                                <div className="rounded bg-emerald-600 px-2 py-0.5 text-[9px] font-extrabold text-white uppercase shadow-sm">
                                                     {file.extension}
                                                 </div>
-                                                <span className="text-xs font-bold text-neutral-800 truncate" title={file.name}>
+                                                <span
+                                                    className="truncate text-xs font-bold text-neutral-800"
+                                                    title={file.name}
+                                                >
                                                     {file.name}
                                                 </span>
-                                                <span className="text-[10px] text-neutral-400 font-semibold">({formatFileSize(file.size)})</span>
+                                                <span className="text-[10px] font-semibold text-neutral-400">
+                                                    ({formatFileSize(file.size)}
+                                                    )
+                                                </span>
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => handleDeleteAttachment(idx)}
-                                                className="p-1 rounded hover:bg-red-50 text-red-600"
+                                                onClick={() =>
+                                                    handleDeleteAttachment(idx)
+                                                }
+                                                className="rounded p-1 text-red-600 hover:bg-red-50"
                                                 title="Hapus Lampiran"
                                             >
                                                 <Trash2 className="size-4" />
@@ -396,7 +474,6 @@ export default function TambahPengumuman() {
                                 </div>
                             )}
                         </div>
-
                     </div>
 
                     {/* Action Bar */}

@@ -45,7 +45,9 @@ export default function EditTentang() {
 
         try {
             localStorage.setItem('bka_tentang_kami', konten);
-            toast.success('Profil Tentang BKA berhasil diperbarui secara lokal!');
+            toast.success(
+                'Profil Tentang BKA berhasil diperbarui secara lokal!',
+            );
         } catch (error) {
             toast.error('Gagal menyimpan perubahan.');
         } finally {
@@ -66,7 +68,9 @@ export default function EditTentang() {
                             Kelola Halaman: Tentang Kami
                         </h1>
                         <p className="mt-1 text-sm leading-relaxed font-normal text-neutral-500">
-                            Tulis profil singkat, sejarah pendirian, nilai-nilai utama, dan tupoksi resmi BKA UMRI yang tampil di website publik.
+                            Tulis profil singkat, sejarah pendirian, nilai-nilai
+                            utama, dan tupoksi resmi BKA UMRI yang tampil di
+                            website publik.
                         </p>
                     </div>
 
@@ -86,10 +90,18 @@ export default function EditTentang() {
                 {/* Form Editor Card */}
                 <form onSubmit={handleSave} className="space-y-6">
                     <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
-                        <div className="mb-6 flex items-start gap-3 rounded-xl bg-amber-50/50 border border-amber-200/60 p-4 text-amber-800">
-                            <FileText className="size-5 shrink-0 mt-0.5 text-amber-600" />
+                        <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200/60 bg-amber-50/50 p-4 text-amber-800">
+                            <FileText className="mt-0.5 size-5 shrink-0 text-amber-600" />
                             <div className="text-sm leading-relaxed">
-                                <span className="font-bold">Panduan Konten:</span> Gunakan pemformatan heading (H2, H3), list (unordered/ordered list), kutipan blok (blockquote), serta tautan (links) untuk menyusun tata letak profil yang profesional dan terstruktur. Gunakan tombol simpan di bawah setelah selesai mengedit.
+                                <span className="font-bold">
+                                    Panduan Konten:
+                                </span>{' '}
+                                Gunakan pemformatan heading (H2, H3), list
+                                (unordered/ordered list), kutipan blok
+                                (blockquote), serta tautan (links) untuk
+                                menyusun tata letak profil yang profesional dan
+                                terstruktur. Gunakan tombol simpan di bawah
+                                setelah selesai mengedit.
                             </div>
                         </div>
 
@@ -110,7 +122,7 @@ export default function EditTentang() {
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <Save className="size-4.5" />
                             {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}

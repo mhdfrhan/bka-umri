@@ -18,11 +18,18 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
         // System Maintenance Mode Interceptor
         if (typeof window !== 'undefined') {
-            const isMaintenance = localStorage.getItem('bka_maintenance_mode') === 'true';
-            const bypassToken = localStorage.getItem('bka_maintenance_bypass') || 'BKA-SECRET-2026';
-            
-            const isMaintenancePath = window.location.pathname === '/maintenance' || window.location.pathname.startsWith('/error');
-            const isAdminPath = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/login');
+            const isMaintenance =
+                localStorage.getItem('bka_maintenance_mode') === 'true';
+            const bypassToken =
+                localStorage.getItem('bka_maintenance_bypass') ||
+                'BKA-SECRET-2026';
+
+            const isMaintenancePath =
+                window.location.pathname === '/maintenance' ||
+                window.location.pathname.startsWith('/error');
+            const isAdminPath =
+                window.location.pathname.startsWith('/admin') ||
+                window.location.pathname.startsWith('/login');
 
             if (isMaintenance && !isMaintenancePath && !isAdminPath) {
                 // Check for URL query bypass param: ?bypass=TOKEN
@@ -30,10 +37,15 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 const queryBypass = params.get('bypass');
 
                 if (queryBypass === bypassToken) {
-                    sessionStorage.setItem('bka_maintenance_bypass_active', 'true');
+                    sessionStorage.setItem(
+                        'bka_maintenance_bypass_active',
+                        'true',
+                    );
                 }
 
-                const isBypassActive = sessionStorage.getItem('bka_maintenance_bypass_active') === 'true';
+                const isBypassActive =
+                    sessionStorage.getItem('bka_maintenance_bypass_active') ===
+                    'true';
 
                 if (!isBypassActive) {
                     // Redirect to the public maintenance view

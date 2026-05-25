@@ -1,20 +1,20 @@
-import { 
-    FileIcon, 
-    FileTextIcon, 
-    FileSpreadsheetIcon, 
-    FileVideoIcon, 
-    FileAudioIcon, 
-    FileImageIcon, 
-    FileArchiveIcon 
-} from "lucide-react";
+import {
+    FileIcon,
+    FileTextIcon,
+    FileSpreadsheetIcon,
+    FileVideoIcon,
+    FileAudioIcon,
+    FileImageIcon,
+    FileArchiveIcon,
+} from 'lucide-react';
 
 export function getFileIcon(filename: string | undefined | null) {
     if (!filename) {
-return FileIcon;
-}
-    
+        return FileIcon;
+    }
+
     const extension = filename.split('.').pop()?.toLowerCase();
-    
+
     switch (extension) {
         case 'pdf':
             return FileTextIcon;

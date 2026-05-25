@@ -14,7 +14,12 @@ interface UseCountUpOptions {
  *   "1.000+" → { prefix: "", value: 1000, suffix: "+" }
  *   "2015" → { prefix: "", value: 2015, suffix: "" }
  */
-function parseDisplayValue(raw: string): { prefix: string; value: number; suffix: string; formatted: (n: number) => string } {
+function parseDisplayValue(raw: string): {
+    prefix: string;
+    value: number;
+    suffix: string;
+    formatted: (n: number) => string;
+} {
     const match = raw.match(/^([^\d]*?)([\d.,]+)(.*)$/);
 
     if (!match) {
@@ -81,7 +86,9 @@ export function useCountUp(
             const eased = 1 - Math.pow(1 - progress, 3);
             const currentValue = Math.round(eased * endValue);
 
-            setDisplayValue(`${parsed.prefix}${parsed.formatted(currentValue)}${parsed.suffix}`);
+            setDisplayValue(
+                `${parsed.prefix}${parsed.formatted(currentValue)}${parsed.suffix}`,
+            );
 
             if (progress < 1) {
                 requestAnimationFrame(step);
@@ -95,13 +102,16 @@ export function useCountUp(
         const element = ref.current;
 
         if (!element) {
-return;
-}
+            return;
+        }
 
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    if (entry.isIntersecting && (!once || !hasAnimated.current)) {
+                    if (
+                        entry.isIntersecting &&
+                        (!once || !hasAnimated.current)
+                    ) {
                         hasAnimated.current = true;
                         animate();
 

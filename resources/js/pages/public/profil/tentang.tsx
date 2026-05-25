@@ -12,7 +12,9 @@ interface TentangProps {
 
 export default function Tentang({ konten }: TentangProps) {
     // Fallback Mock Data
-    const defaultKonten = konten || `
+    const defaultKonten =
+        konten ||
+        `
         <p class="lead">Biro Keuangan dan Aset (BKA) Universitas Muhammadiyah Riau merupakan unsur pelaksana administratif yang menyelenggarakan pelayanan teknis dan administratif di bidang pengelolaan keuangan serta pembinaan dan pengelolaan sarana, prasarana, dan aset universitas.</p>
         
         <h2>Sejarah Singkat</h2>
@@ -54,34 +56,35 @@ export default function Tentang({ konten }: TentangProps) {
         <>
             <Head>
                 <title>Tentang Kami - Profil BKA UMRI</title>
-                <meta name="description" content="Ketahui profil lengkap, sejarah singkat, dan fungsi utama Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI)." />
+                <meta
+                    name="description"
+                    content="Ketahui profil lengkap, sejarah singkat, dan fungsi utama Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI)."
+                />
             </Head>
 
-            <div className="min-h-screen bg-[#F7F9F7] flex flex-col w-full pb-16">
+            <div className="flex min-h-screen w-full flex-col bg-[#F7F9F7] pb-16">
                 {/* Reusable PageHero */}
-                <PageHero 
-                    title="Profil BKA" 
+                <PageHero
+                    title="Profil BKA"
                     description="Mengenal Biro Keuangan & Aset Universitas Muhammadiyah Riau lebih dekat."
                     className="bg-gradient-to-r from-[#1B5E20] to-[#0D3C10]"
                 >
-                    <Breadcrumbs breadcrumbs={breadcrumbItems} />
+                    <Breadcrumbs
+                        breadcrumbs={breadcrumbItems}
+                        variant="public"
+                    />
                 </PageHero>
 
                 {/* Sub Navigation Tabs */}
                 <ProfilTabs />
 
                 {/* Main Content Area */}
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 w-full">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="mx-auto mt-12 w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                         {/* Article Column */}
-                        <div className="lg:col-span-2 bg-white rounded-2xl p-6 sm:p-10 shadow-md border border-[#DDE5DD]">
-                            <article 
-                                className="prose prose-emerald max-w-none text-gray-700
-                                           prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-tight
-                                           prose-h2:text-2xl prose-h2:border-b prose-h2:border-[#E8F5E9] prose-h2:pb-3 prose-h2:mt-8
-                                           prose-ul:list-disc prose-ul:pl-5
-                                           prose-blockquote:border-l-4 prose-blockquote:border-[#1B5E20] prose-blockquote:bg-[#E8F5E9] prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:italic
-                                           prose-strong:text-gray-900"
+                        <div className="rounded-2xl border border-[#DDE5DD] bg-white p-6 shadow-md sm:p-10 lg:col-span-2">
+                            <article
+                                className="prose max-w-none text-gray-700 prose-emerald prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 prose-h2:mt-8 prose-h2:border-b prose-h2:border-[#E8F5E9] prose-h2:pb-3 prose-h2:text-2xl prose-blockquote:rounded-r-lg prose-blockquote:border-l-4 prose-blockquote:border-[#1B5E20] prose-blockquote:bg-[#E8F5E9] prose-blockquote:px-5 prose-blockquote:py-2 prose-blockquote:italic prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5"
                                 dangerouslySetInnerHTML={{ __html: liveKonten }}
                             />
                         </div>
@@ -89,50 +92,70 @@ export default function Tentang({ konten }: TentangProps) {
                         {/* Sidebar Info Cards */}
                         <div className="space-y-6">
                             {/* Card 1: Nilai Utama */}
-                            <div className="bg-white rounded-2xl p-6 shadow-md border border-[#DDE5DD] relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-[#E8F5E9] rounded-bl-full -z-0 opacity-40" />
-                                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 relative z-10">
-                                    <ShieldCheck className="text-[#1B5E20]" size={20} />
+                            <div className="relative overflow-hidden rounded-2xl border border-[#DDE5DD] bg-white p-6 shadow-md">
+                                <div className="absolute top-0 right-0 -z-0 h-24 w-24 rounded-bl-full bg-[#E8F5E9] opacity-40" />
+                                <h3 className="relative z-10 mb-4 flex items-center gap-2 text-lg font-bold text-gray-900">
+                                    <ShieldCheck
+                                        className="text-[#1B5E20]"
+                                        size={20}
+                                    />
                                     Nilai-Nilai BKA
                                 </h3>
-                                <ul className="space-y-3 text-sm text-gray-600 relative z-10">
+                                <ul className="relative z-10 space-y-3 text-sm text-gray-600">
                                     <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#C8A000] mt-1.5 flex-shrink-0" />
+                                        <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#C8A000]" />
                                         <div>
-                                            <strong className="text-gray-800 block">Amanah</strong>
-                                            Menjaga keandalan pengelolaan dana dan aset secara jujur dan berintegritas.
+                                            <strong className="block text-gray-800">
+                                                Amanah
+                                            </strong>
+                                            Menjaga keandalan pengelolaan dana
+                                            dan aset secara jujur dan
+                                            berintegritas.
                                         </div>
                                     </li>
                                     <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#C8A000] mt-1.5 flex-shrink-0" />
+                                        <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#C8A000]" />
                                         <div>
-                                            <strong className="text-gray-800 block">Transparan</strong>
-                                            Menyajikan pencatatan keuangan dan laporan aset yang dapat diakses secara terbuka.
+                                            <strong className="block text-gray-800">
+                                                Transparan
+                                            </strong>
+                                            Menyajikan pencatatan keuangan dan
+                                            laporan aset yang dapat diakses
+                                            secara terbuka.
                                         </div>
                                     </li>
                                     <li className="flex items-start gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#C8A000] mt-1.5 flex-shrink-0" />
+                                        <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#C8A000]" />
                                         <div>
-                                            <strong className="text-gray-800 block">Profesional</strong>
-                                            Melayani civitas akademika dengan standar kompetensi tinggi dan keilmuan yang mumpuni.
+                                            <strong className="block text-gray-800">
+                                                Profesional
+                                            </strong>
+                                            Melayani civitas akademika dengan
+                                            standar kompetensi tinggi dan
+                                            keilmuan yang mumpuni.
                                         </div>
                                     </li>
                                 </ul>
                             </div>
 
                             {/* Card 2: Layanan Cepat */}
-                            <div className="bg-gradient-to-br from-[#1B5E20] to-[#0D3C10] text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
-                                <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-white/10 rounded-full" />
-                                <h3 className="text-lg font-bold mb-3 flex items-center gap-2 relative z-10">
-                                    <Landmark size={20} className="text-[#C8A000]" />
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1B5E20] to-[#0D3C10] p-6 text-white shadow-md">
+                                <div className="absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-white/10" />
+                                <h3 className="relative z-10 mb-3 flex items-center gap-2 text-lg font-bold">
+                                    <Landmark
+                                        size={20}
+                                        className="text-[#C8A000]"
+                                    />
                                     Butuh Bantuan Keuangan?
                                 </h3>
-                                <p className="text-sm text-white/80 mb-5 relative z-10">
-                                    BKA menyediakan kanal layanan administrasi pembayaran perkuliahan dan bantuan keuangan untuk seluruh civitas akademika UMRI.
+                                <p className="relative z-10 mb-5 text-sm text-white/80">
+                                    BKA menyediakan kanal layanan administrasi
+                                    pembayaran perkuliahan dan bantuan keuangan
+                                    untuk seluruh civitas akademika UMRI.
                                 </p>
-                                <a 
-                                    href="/kontak" 
-                                    className="inline-flex items-center justify-center w-full py-2.5 px-4 rounded-xl bg-white text-[#1B5E20] font-semibold text-sm shadow hover:bg-gray-100 transition-colors duration-150 relative z-10"
+                                <a
+                                    href="/kontak"
+                                    className="relative z-10 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#1B5E20] shadow transition-colors duration-150 hover:bg-gray-100"
                                 >
                                     Hubungi BKA
                                 </a>

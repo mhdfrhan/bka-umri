@@ -1,7 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
 import { CheckCircle2, CreditCard, Landmark } from 'lucide-react';
 import SectionHeader from '@/components/ui/section-header';
-import { useScrollReveal, useScrollRevealChildren } from '@/hooks/use-scroll-reveal';
+import {
+    useScrollReveal,
+    useScrollRevealChildren,
+} from '@/hooks/use-scroll-reveal';
 
 interface LayananItem {
     icon: LucideIcon;
@@ -37,6 +40,17 @@ const defaultLayanan: LayananItem[] = [
     },
 ];
 
+const getCardBgClass = (idx: number) => {
+    switch (idx % 3) {
+        case 0:
+            return 'bg-[#1B5E20]';
+        case 1:
+            return 'bg-[#2E7D46]';
+        default:
+            return 'bg-[#43A060]';
+    }
+};
+
 export default function LayananSection({
     title = 'Layanan Biro Keuangan dan Aset',
     description = 'BKA memahami kemudahan transaksi adalah penting. Untuk itu, kami memfasilitasi kemudahan transaksi keuangan melalui beberapa hal berikut.',
@@ -53,16 +67,34 @@ export default function LayananSection({
     const hasVideo = !!youtubeEmbedUrl;
 
     return (
-        <section id="layanan-bka" className="bka-section bg-white">
+        <section
+            id="layanan-bka"
+            className="bka-section bka-noise-overlay relative bg-[#F0F7F0]/80"
+        >
+            <div
+                className="pointer-events-none absolute inset-0 overflow-hidden"
+                aria-hidden="true"
+            >
+                <div
+                    className="pointer-events-none absolute top-[10%] right-[-200px] h-[400px] w-[400px] rounded-full opacity-[0.06]"
+                    style={{
+                        background:
+                            'radial-gradient(circle, #C8A000 0%, transparent 70%)',
+                    }}
+                />
+            </div>
+
             <div className="bka-container">
                 <div
                     className={`grid grid-cols-1 items-start gap-12 ${
-                        hasVideo ? 'lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_480px]' : ''
+                        hasVideo
+                            ? 'lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_480px]'
+                            : ''
                     }`}
                 >
                     {/* Left: Header + Layanan items */}
                     <div ref={leftRef}>
-                        <div className="bka-reveal">
+                        <div className="bka-reveal mb-8">
                             <SectionHeader
                                 label="Layanan"
                                 title={title}
@@ -70,27 +102,36 @@ export default function LayananSection({
                             />
                         </div>
 
-                        <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-6 lg:pb-12">
                             {layananList.map((item, idx) => {
-                                const Icon = item.icon;
+                                const Icon = item.icon || CheckCircle2;
+                                const bgClass = getCardBgClass(idx);
+                                const translateYClass =
+                                    idx === 0
+                                        ? 'lg:translate-y-0'
+                                        : idx === 1
+                                          ? 'lg:translate-y-4'
+                                          : 'lg:translate-y-8';
 
                                 return (
                                     <div
                                         key={item.title}
-                                        className={`bka-reveal bka-stagger-${idx + 2}`}
+                                        className={`bka-reveal bka-stagger-${idx + 2} ${translateYClass}`}
                                     >
-                                        <div className="group flex items-start gap-4 rounded-xl border border-transparent p-4 transition-all duration-200 hover:border-[#DDE5DD] hover:bg-[#F7F9F7]">
+                                        <div
+                                            className={`group flex items-start gap-5 rounded-2xl p-6 transition-all duration-300 ${bgClass} bka-cascade-card shadow-[0_12px_35px_rgba(27,94,32,0.12)]`}
+                                        >
                                             {/* Icon */}
-                                            <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#E8F5E9] to-[#C8E6C9] text-[#1B5E20] transition-all duration-200 group-hover:shadow-md">
-                                                <Icon size={20} />
+                                            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/12 text-white ring-4 ring-white/8 transition-all duration-300 group-hover:scale-105 group-hover:bg-white/20">
+                                                <Icon size={26} />
                                             </span>
 
                                             {/* Text */}
-                                            <div className="min-w-0">
-                                                <h3 className="mb-1.5 text-[16px] font-semibold leading-snug text-[#1A1A1A]">
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="mb-2 text-[17px] leading-snug font-bold tracking-wide text-white">
                                                     {item.title}
                                                 </h3>
-                                                <p className="text-[14px] leading-relaxed text-[#5C6B73]">
+                                                <p className="text-[14.5px] leading-relaxed font-normal text-white/85">
                                                     {item.description}
                                                 </p>
                                             </div>
@@ -103,27 +144,29 @@ export default function LayananSection({
 
                     {/* Right: YouTube embed */}
                     {hasVideo && (
-                        <div
-                            ref={videoRef}
-                            className="bka-reveal-right sticky top-24"
-                        >
-                            <div className="overflow-hidden rounded-2xl border border-[#DDE5DD] shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
-                                <div className="relative aspect-video w-full">
-                                    <iframe
-                                        src={youtubeEmbedUrl}
-                                        title="Video Layanan BKA UMRI"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                        referrerPolicy="strict-origin-when-cross-origin"
-                                        allowFullScreen
-                                        className="absolute inset-0 h-full w-full border-0"
-                                    />
+                        <div className="sticky top-28 self-start lg:pl-4">
+                            <div ref={videoRef} className="bka-reveal-right">
+                                {/* Premium gradient border wrapper */}
+                                <div className="relative rounded-3xl bg-gradient-to-br from-[#1B5E20]/30 via-transparent to-[#C8A000]/30 p-1.5 shadow-[0_20px_50px_rgba(27,94,32,0.12)]">
+                                    <div className="overflow-hidden rounded-[18px] bg-white">
+                                        <div className="relative aspect-video w-full">
+                                            <iframe
+                                                src={youtubeEmbedUrl}
+                                                title="Video Layanan BKA UMRI"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                referrerPolicy="strict-origin-when-cross-origin"
+                                                allowFullScreen
+                                                className="absolute inset-0 h-full w-full border-0"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Decorative caption */}
-                            <p className="mt-3 text-center text-xs text-[#9EAAB2]">
-                                Video profil layanan BKA UMRI
-                            </p>
+                                {/* Decorative caption */}
+                                <p className="mt-4 text-center text-xs font-semibold tracking-wide text-[#5C6B73] uppercase">
+                                    Video profil & panduan layanan BKA
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Sliders, Image as ImageIcon, Check, Loader2, Maximize2 } from 'lucide-react';
+import {
+    X,
+    Sliders,
+    Image as ImageIcon,
+    Check,
+    Loader2,
+    Maximize2,
+} from 'lucide-react';
 import { optimizeFile, OptimizedFileResult } from '@/lib/image-optimizer';
 import { formatFileSize } from '@/lib/format-file-size';
 import { toast } from 'sonner';
@@ -8,7 +15,13 @@ interface ImageUploadModalProps {
     isOpen: boolean;
     onClose: () => void;
     file: File | null;
-    onConfirm: (result: { base64: string; size: number; originalSize: number; name: string; isVisible: boolean }) => void;
+    onConfirm: (result: {
+        base64: string;
+        size: number;
+        originalSize: number;
+        name: string;
+        isVisible: boolean;
+    }) => void;
     defaultWidth?: number;
     defaultQuality?: number;
 }
@@ -25,12 +38,19 @@ export function ImageUploadModal({
     const [quality, setQuality] = useState(defaultQuality);
     const [addToGallery, setAddToGallery] = useState(true);
     const [isOptimizing, setIsOptimizing] = useState(false);
-    
+
     const [originalUrl, setOriginalUrl] = useState<string | null>(null);
-    const [originalDimensions, setOriginalDimensions] = useState<{ w: number; h: number } | null>(null);
-    const [optimizedResult, setOptimizedResult] = useState<OptimizedFileResult | null>(null);
-    const [optimizedDimensions, setOptimizedDimensions] = useState<{ w: number; h: number } | null>(null);
-    
+    const [originalDimensions, setOriginalDimensions] = useState<{
+        w: number;
+        h: number;
+    } | null>(null);
+    const [optimizedResult, setOptimizedResult] =
+        useState<OptimizedFileResult | null>(null);
+    const [optimizedDimensions, setOptimizedDimensions] = useState<{
+        w: number;
+        h: number;
+    } | null>(null);
+
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
     // Initial setup when a file is loaded
@@ -84,7 +104,10 @@ export function ImageUploadModal({
                 const optImg = new Image();
                 optImg.src = result.base64;
                 optImg.onload = () => {
-                    setOptimizedDimensions({ w: optImg.width, h: optImg.height });
+                    setOptimizedDimensions({
+                        w: optImg.width,
+                        h: optImg.height,
+                    });
                     setIsOptimizing(false);
                 };
             } catch (err) {
@@ -116,7 +139,7 @@ export function ImageUploadModal({
                 if (saved) {
                     assetsList = JSON.parse(saved);
                 }
-                
+
                 const newAsset = {
                     id: String(Date.now()),
                     name: file.name,
@@ -126,13 +149,16 @@ export function ImageUploadModal({
                     size: optimizedResult.size,
                     originalSize: file.size,
                     isVisible: true,
-                    createdAt: new Date().toISOString().split('T')[0]
+                    createdAt: new Date().toISOString().split('T')[0],
                 };
 
                 assetsList.unshift(newAsset);
                 localStorage.setItem('bka_assets', JSON.stringify(assetsList));
             } catch (e) {
-                console.error('Failed to add optimized image to assets library:', e);
+                console.error(
+                    'Failed to add optimized image to assets library:',
+                    e,
+                );
             }
         }
 
@@ -142,99 +168,122 @@ export function ImageUploadModal({
             size: optimizedResult.size,
             originalSize: file.size,
             name: file.name,
-            isVisible: addToGallery
+            isVisible: addToGallery,
         });
-        
+
         onClose();
     };
 
     const originalSize = file.size;
     const optimizedSize = optimizedResult?.size || 0;
-    const sizeSavings = originalSize > 0 && optimizedSize > 0 
-        ? Math.round(((originalSize - optimizedSize) / originalSize) * 100)
-        : 0;
+    const sizeSavings =
+        originalSize > 0 && optimizedSize > 0
+            ? Math.round(((originalSize - optimizedSize) / originalSize) * 100)
+            : 0;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200 select-none">
-            <div className="w-full max-w-4xl rounded-2xl bg-white border border-neutral-200 p-6 shadow-2xl flex flex-col max-h-[90vh] relative animate-in zoom-in-95 duration-200">
-                
+        <div
+            onClick={onClose}
+            className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-black/70 p-4 backdrop-blur-xs duration-200 select-none fade-in"
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className="relative flex max-h-[90vh] w-full max-w-4xl animate-in flex-col rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl duration-200 zoom-in-95"
+            >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-neutral-100 pb-4 mb-4">
-                    <h3 className="text-base font-bold text-neutral-800 flex items-center gap-2">
-                        <Sliders className="size-5 text-emerald-600 animate-pulse" />
+                <div className="mb-4 flex items-center justify-between border-b border-neutral-100 pb-4">
+                    <h3 className="flex items-center gap-2 text-base font-bold text-neutral-800">
+                        <Sliders className="size-5 animate-pulse text-emerald-600" />
                         Konfigurasi & Optimasi Unggah Gambar
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                        className="rounded-lg p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
                     >
                         <X className="size-5" />
                     </button>
                 </div>
 
                 {/* Body (Split Screen: Preview Left/Top, Configurations Right/Bottom) */}
-                <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[300px] pr-1">
-                    
+                <div className="grid min-h-[300px] flex-1 grid-cols-1 gap-6 overflow-y-auto pr-1 lg:grid-cols-12">
                     {/* Visual Comparison Area (8 cols) */}
-                    <div className="lg:col-span-8 flex flex-col gap-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                    <div className="flex flex-col gap-4 lg:col-span-8">
+                        <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
                             {/* Before Image */}
-                            <div className="rounded-xl border border-neutral-200 overflow-hidden bg-neutral-50/50 flex flex-col h-[280px]">
-                                <div className="bg-neutral-100/80 px-3 py-1.5 border-b border-neutral-200 flex justify-between items-center text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                            <div className="flex h-[280px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/50">
+                                <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-100/80 px-3 py-1.5 text-[10px] font-bold tracking-wider text-neutral-500 uppercase">
                                     <span>Sebelum (Original)</span>
-                                    <span>{originalDimensions ? `${originalDimensions.w} x ${originalDimensions.h}` : ''}</span>
+                                    <span>
+                                        {originalDimensions
+                                            ? `${originalDimensions.w} x ${originalDimensions.h}`
+                                            : ''}
+                                    </span>
                                 </div>
-                                <div className="flex-1 flex items-center justify-center p-2 relative overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+                                <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] p-2">
                                     {originalUrl ? (
-                                        <img 
-                                            src={originalUrl} 
-                                            alt="Original preview" 
-                                            className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                                        <img
+                                            src={originalUrl}
+                                            alt="Original preview"
+                                            className="max-h-full max-w-full rounded-lg object-contain shadow-sm"
                                         />
                                     ) : (
                                         <Loader2 className="size-8 animate-spin text-neutral-300" />
                                     )}
                                 </div>
-                                <div className="bg-neutral-50 px-3 py-1.5 border-t border-neutral-250/30 text-xs font-semibold text-neutral-600 flex justify-between">
+                                <div className="border-neutral-250/30 flex justify-between border-t bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-600">
                                     <span>Ukuran Berkas</span>
-                                    <span className="font-bold text-neutral-700">{formatFileSize(originalSize)}</span>
+                                    <span className="font-bold text-neutral-700">
+                                        {formatFileSize(originalSize)}
+                                    </span>
                                 </div>
                             </div>
 
                             {/* After Image */}
-                            <div className="rounded-xl border border-neutral-200 overflow-hidden bg-neutral-50/50 flex flex-col h-[280px] relative">
-                                <div className="bg-neutral-100/80 px-3 py-1.5 border-b border-neutral-200 flex justify-between items-center text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                            <div className="relative flex h-[280px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/50">
+                                <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-100/80 px-3 py-1.5 text-[10px] font-bold tracking-wider text-neutral-500 uppercase">
                                     <span>Sesudah (Optimized WebP)</span>
-                                    <span>{optimizedDimensions ? `${optimizedDimensions.w} x ${optimizedDimensions.h}` : ''}</span>
+                                    <span>
+                                        {optimizedDimensions
+                                            ? `${optimizedDimensions.w} x ${optimizedDimensions.h}`
+                                            : ''}
+                                    </span>
                                 </div>
-                                <div className="flex-1 flex items-center justify-center p-2 relative overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+                                <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] p-2">
                                     {isOptimizing && (
-                                        <div className="absolute inset-0 bg-white/70 backdrop-blur-xs flex items-center justify-center z-10">
+                                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-xs">
                                             <div className="flex flex-col items-center gap-2">
                                                 <Loader2 className="size-8 animate-spin text-emerald-600" />
-                                                <span className="text-[11px] font-bold text-emerald-700 tracking-wider uppercase">Mengompresi...</span>
+                                                <span className="text-[11px] font-bold tracking-wider text-emerald-700 uppercase">
+                                                    Mengompresi...
+                                                </span>
                                             </div>
                                         </div>
                                     )}
                                     {optimizedResult ? (
-                                        <img 
-                                            src={optimizedResult.base64} 
-                                            alt="Optimized preview" 
-                                            className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                                        <img
+                                            src={optimizedResult.base64}
+                                            alt="Optimized preview"
+                                            className="max-h-full max-w-full rounded-lg object-contain shadow-sm"
                                         />
                                     ) : (
-                                        <div className="flex flex-col items-center text-neutral-350">
-                                            <ImageIcon className="size-10 opacity-30 mb-1" />
-                                            <span className="text-[10px] font-bold uppercase">Memproses Gambar...</span>
+                                        <div className="text-neutral-350 flex flex-col items-center">
+                                            <ImageIcon className="mb-1 size-10 opacity-30" />
+                                            <span className="text-[10px] font-bold uppercase">
+                                                Memproses Gambar...
+                                            </span>
                                         </div>
                                     )}
                                 </div>
-                                <div className="bg-neutral-50 px-3 py-1.5 border-t border-neutral-250/30 text-xs font-semibold text-neutral-600 flex justify-between">
+                                <div className="border-neutral-250/30 flex justify-between border-t bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-600">
                                     <span>Ukuran Berkas</span>
                                     <div className="flex items-center gap-1.5 font-bold">
-                                        <span className="text-emerald-700">{optimizedResult ? formatFileSize(optimizedSize) : '...'}</span>
+                                        <span className="text-emerald-700">
+                                            {optimizedResult
+                                                ? formatFileSize(optimizedSize)
+                                                : '...'}
+                                        </span>
                                         {sizeSavings > 0 && (
-                                            <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-1.5 py-0.5 rounded-full font-extrabold">
+                                            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-extrabold text-emerald-700">
                                                 -{sizeSavings}% Hemat
                                             </span>
                                         )}
@@ -244,51 +293,66 @@ export function ImageUploadModal({
                         </div>
 
                         {/* File Details Bar */}
-                        <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-200 flex flex-col md:flex-row justify-between md:items-center gap-2 text-xs font-medium text-neutral-600">
-                            <span className="truncate max-w-md font-semibold text-neutral-700">
-                                Nama Berkas: <span className="font-mono text-neutral-500 font-normal">{file.name}</span>
+                        <div className="flex flex-col justify-between gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-xs font-medium text-neutral-600 md:flex-row md:items-center">
+                            <span className="max-w-md truncate font-semibold text-neutral-700">
+                                Nama Berkas:{' '}
+                                <span className="font-mono font-normal text-neutral-500">
+                                    {file.name}
+                                </span>
                             </span>
                             <span className="shrink-0">
-                                Format Akhir: <span className="font-bold text-emerald-700 font-mono">WEBP</span>
+                                Format Akhir:{' '}
+                                <span className="font-mono font-bold text-emerald-700">
+                                    WEBP
+                                </span>
                             </span>
                         </div>
                     </div>
 
                     {/* Configuration Controls (4 cols) */}
-                    <div className="lg:col-span-4 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-neutral-100 pt-6 lg:pt-0 lg:pl-6 space-y-6">
+                    <div className="flex flex-col justify-between space-y-6 border-t border-neutral-100 pt-6 lg:col-span-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
                         <div className="space-y-5">
-                            <h4 className="text-xs font-extrabold uppercase text-neutral-450 tracking-wider pb-2 border-b border-neutral-50">
+                            <h4 className="text-neutral-450 border-b border-neutral-50 pb-2 text-xs font-extrabold tracking-wider uppercase">
                                 Parameter Optimasi
                             </h4>
 
                             {/* Slider: Max Width */}
                             <div className="space-y-2">
-                                <div className="flex justify-between items-center text-xs font-semibold text-neutral-700">
+                                <div className="flex items-center justify-between text-xs font-semibold text-neutral-700">
                                     <span>Lebar Maksimal</span>
-                                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-mono font-bold">
+                                    <span className="rounded-md border border-emerald-100/50 bg-emerald-50 px-2 py-0.5 font-mono font-bold text-emerald-700">
                                         {width}px
                                     </span>
                                 </div>
                                 <input
                                     type="range"
                                     min={300}
-                                    max={Math.max(1920, originalDimensions?.w || 1200)}
+                                    max={Math.max(
+                                        1920,
+                                        originalDimensions?.w || 1200,
+                                    )}
                                     step={50}
                                     value={width}
-                                    onChange={(e) => setWidth(Number(e.target.value))}
-                                    className="w-full h-1.5 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 outline-none"
+                                    onChange={(e) =>
+                                        setWidth(Number(e.target.value))
+                                    }
+                                    className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-neutral-200 accent-emerald-600 outline-none"
                                 />
-                                <div className="flex justify-between text-[10px] text-neutral-400 font-semibold font-mono">
+                                <div className="flex justify-between font-mono text-[10px] font-semibold text-neutral-400">
                                     <span>300px</span>
-                                    <span>{originalDimensions ? `${originalDimensions.w}px (Asli)` : 'Max'}</span>
+                                    <span>
+                                        {originalDimensions
+                                            ? `${originalDimensions.w}px (Asli)`
+                                            : 'Max'}
+                                    </span>
                                 </div>
                             </div>
 
                             {/* Slider: Compression Quality */}
                             <div className="space-y-2">
-                                <div className="flex justify-between items-center text-xs font-semibold text-neutral-700">
+                                <div className="flex items-center justify-between text-xs font-semibold text-neutral-700">
                                     <span>Kualitas Kompresi</span>
-                                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-mono font-bold">
+                                    <span className="rounded-md border border-emerald-100/50 bg-emerald-50 px-2 py-0.5 font-mono font-bold text-emerald-700">
                                         {quality}%
                                     </span>
                                 </div>
@@ -298,38 +362,46 @@ export function ImageUploadModal({
                                     max={100}
                                     step={5}
                                     value={quality}
-                                    onChange={(e) => setQuality(Number(e.target.value))}
-                                    className="w-full h-1.5 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 outline-none"
+                                    onChange={(e) =>
+                                        setQuality(Number(e.target.value))
+                                    }
+                                    className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-neutral-200 accent-emerald-600 outline-none"
                                 />
-                                <div className="flex justify-between text-[10px] text-neutral-400 font-semibold font-mono">
+                                <div className="flex justify-between font-mono text-[10px] font-semibold text-neutral-400">
                                     <span>10% (Ringan)</span>
                                     <span>100% (Lossless)</span>
                                 </div>
                             </div>
 
                             {/* Checkbox: Add to gallery */}
-                            <label className="flex items-start gap-2.5 cursor-pointer bg-neutral-50/50 border border-neutral-100 p-3 rounded-xl hover:bg-neutral-50 transition-colors select-none">
-                                <input 
+                            <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 transition-colors select-none hover:bg-neutral-50">
+                                <input
                                     type="checkbox"
                                     checked={addToGallery}
-                                    onChange={(e) => setAddToGallery(e.target.checked)}
-                                    className="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 size-4 mt-0.5 cursor-pointer"
+                                    onChange={(e) =>
+                                        setAddToGallery(e.target.checked)
+                                    }
+                                    className="mt-0.5 size-4 cursor-pointer rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500"
                                 />
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-bold text-neutral-700">Simpan ke Pustaka Aset</span>
-                                    <span className="text-[10px] text-neutral-400 font-light mt-0.5 leading-relaxed">
-                                        Aset akan disimpan ke galeri utama agar dapat digunakan kembali di halaman/konten lain.
+                                    <span className="text-xs font-bold text-neutral-700">
+                                        Simpan ke Pustaka Aset
+                                    </span>
+                                    <span className="mt-0.5 text-[10px] leading-relaxed font-light text-neutral-400">
+                                        Aset akan disimpan ke galeri utama agar
+                                        dapat digunakan kembali di
+                                        halaman/konten lain.
                                     </span>
                                 </div>
                             </label>
                         </div>
 
                         {/* Footer Buttons inside container */}
-                        <div className="flex items-center gap-3 border-t border-neutral-100 pt-4 mt-auto">
+                        <div className="mt-auto flex items-center gap-3 border-t border-neutral-100 pt-4">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 rounded-xl border border-neutral-200 bg-white py-2.5 text-xs font-bold text-neutral-600 hover:bg-neutral-50 transition-colors outline-none"
+                                className="flex-1 rounded-xl border border-neutral-200 bg-white py-2.5 text-xs font-bold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
                             >
                                 Batal
                             </button>
@@ -337,16 +409,14 @@ export function ImageUploadModal({
                                 type="button"
                                 disabled={isOptimizing || !optimizedResult}
                                 onClick={handleConfirm}
-                                className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed outline-none"
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-sm transition-colors outline-none hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Check className="size-4 stroke-[2.5]" />
                                 Simpan
                             </button>
                         </div>
                     </div>
-
                 </div>
-
             </div>
         </div>
     );

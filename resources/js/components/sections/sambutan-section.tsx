@@ -17,25 +17,51 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
     const photoRef = useScrollReveal<HTMLDivElement>();
     const contentRef = useScrollReveal<HTMLDivElement>();
 
+    // Split first sentence to serve as an editorial pull quote
+    const sentences = kepalaBiro.sambutan.match(/[^.!?]+[.!?]+/g) || [
+        kepalaBiro.sambutan,
+    ];
+    const pullQuote = sentences[0] ? sentences[0].trim() : '';
+    const remainingText = sentences.slice(1).join(' ').trim();
+
     return (
         <section
             id="sambutan"
-            className="bka-section bg-white"
+            className="bka-section bka-noise-overlay relative overflow-hidden bg-[#FAFBFA]"
         >
-            <div className="bka-container">
-                <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[360px_1fr] lg:gap-16">
+            {/* Soft background mesh gradient */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-40"
+                style={{
+                    background:
+                        'radial-gradient(circle at 80% 20%, rgba(46,125,70,0.06) 0%, transparent 50%)',
+                }}
+            />
+
+            <div className="bka-container relative z-1">
+                <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[400px_1fr] lg:gap-16">
                     {/* Photo Column */}
                     <div
                         ref={photoRef}
-                        className="bka-reveal-left flex flex-col items-center gap-0"
+                        className="bka-reveal-left relative flex flex-col items-center pl-0 lg:pl-10"
                     >
-                        <div className="relative mx-auto w-full max-w-[320px]">
+                        {/* Rotated vertical text label */}
+                        <div
+                            aria-hidden="true"
+                            className="absolute top-1/2 -left-12 hidden origin-center -translate-y-1/2 -rotate-90 text-[11px] font-extrabold tracking-[0.25em] whitespace-nowrap text-[#1B5E20]/45 uppercase select-none lg:block"
+                        >
+                            KEPALA BIRO BKA
+                        </div>
+
+                        <div className="relative mx-auto w-full max-w-[340px]">
                             {/* Decorative gradient background */}
                             <div
                                 aria-hidden="true"
-                                className="absolute -top-4 -left-4 right-4 bottom-4 z-0 rounded-[20px]"
+                                className="absolute -top-4 right-4 bottom-4 -left-4 z-0 rounded-[20px]"
                                 style={{
-                                    background: 'linear-gradient(135deg, #1B5E20 0%, #2E7D46 100%)',
+                                    background:
+                                        'linear-gradient(135deg, #1B5E20 0%, #2E7D46 100%)',
                                 }}
                             />
 
@@ -44,82 +70,86 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                                 aria-hidden="true"
                                 className="bka-float-slow absolute -right-2 -bottom-2 z-0 h-20 w-20 rounded-xl"
                                 style={{
-                                    background: 'linear-gradient(135deg, #C8A000 0%, #E8C840 100%)',
+                                    background:
+                                        'linear-gradient(135deg, #C8A000 0%, #E8C840 100%)',
                                 }}
                             />
 
                             {/* Photo */}
-                            <div className="relative z-[1] aspect-[3/4] overflow-hidden rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
+                            <div className="relative z-[1] aspect-[3/4] overflow-hidden rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
                                 <img
                                     src={kepalaBiro.foto}
                                     alt={`Foto ${kepalaBiro.nama}`}
                                     className="h-full w-full object-cover object-[center_top]"
                                     onError={(e) => {
-                                        (e.currentTarget as HTMLImageElement).src =
+                                        (
+                                            e.currentTarget as HTMLImageElement
+                                        ).src =
                                             'https://placehold.co/320x427/E8F5E9/1B5E20?text=Kepala+Biro';
                                     }}
                                 />
                             </div>
-                        </div>
-
-                        {/* Name Card */}
-                        <div className="mx-auto mt-7 w-full max-w-[320px] rounded-2xl border border-[#DDE5DD] bg-[#F7F9F7] p-5 text-center">
-                            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#9EAAB2]">
-                                {kepalaBiro.periode}
-                            </p>
-                            <h3 className="mb-1 text-lg font-bold leading-tight text-[#1A1A1A]">
-                                {kepalaBiro.nama}
-                            </h3>
-                            <p className="text-sm font-semibold text-[#1B5E20]">
-                                {kepalaBiro.jabatan}
-                            </p>
                         </div>
                     </div>
 
                     {/* Content Column */}
                     <div
                         ref={contentRef}
-                        className="bka-reveal-right"
+                        className="bka-reveal-right flex flex-col justify-center"
                     >
-                        <span className="mb-4 inline-block rounded-full bg-[#E8F5E9] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[#1B5E20]">
+                        <span className="mb-4 self-start rounded-full bg-[#E8F5E9] px-3.5 py-1 text-[11px] font-bold tracking-[0.1em] text-[#1B5E20] uppercase">
                             Kata Sambutan
                         </span>
 
                         <h2
-                            className="mb-3 font-bold leading-[1.25] text-[#1A1A1A]"
-                            style={{ fontSize: 'clamp(22px, 3.5vw, 30px)' }}
+                            className="mb-6 leading-[1.2] font-bold text-[#1A1A1A]"
+                            style={{ fontSize: 'clamp(28px, 4.5vw, 38px)' }}
                         >
                             Selamat Datang di Website
                             <br />
                             <span className="bka-gradient-text">BKA UMRI</span>
                         </h2>
 
-                        <span className="bka-gold-line mb-10" />
+                        {/* Pull Quote */}
+                        {pullQuote && (
+                            <div className="relative mb-8 border-l-4 border-[#C8A000] pl-5 font-sans">
+                                <p className="text-lg leading-relaxed font-medium text-[#1B5E20]/90 italic md:text-xl">
+                                    "{pullQuote}"
+                                </p>
+                            </div>
+                        )}
 
-                        {/* Quote block */}
+                        {/* Full Text / Remaining Text */}
                         <div className="relative">
                             <Quote
                                 size={56}
                                 aria-hidden="true"
-                                className="absolute -top-6 -left-6 z-0 -scale-x-100 text-[#C8A000]/15"
+                                className="absolute -top-7 -left-7 z-0 -scale-x-100 text-[#1B5E20]/5 opacity-60"
                             />
-                            <div className="relative z-[1] rounded-2xl border border-[#C8A000]/20 bg-[#FFF8DC]/40 py-6 pr-6 pl-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] backdrop-blur-[2px]">
-                                <p className="text-base leading-[1.8] text-[#5C6B73] italic">
-                                    {kepalaBiro.sambutan}
-                                </p>
-                            </div>
+                            <p className="relative z-[1] text-base leading-[1.85] font-normal text-[#5C6B73]">
+                                {remainingText || kepalaBiro.sambutan}
+                            </p>
                         </div>
 
-                        {/* Signature */}
-                        <div className="mt-8 flex items-center gap-4 border-t border-[#DDE5DD] pt-6">
-                            <span className="bka-gold-line" />
-                            <div>
-                                <p className="text-[15px] font-bold text-[#1A1A1A]">
+                        {/* Signature / Name Info */}
+                        <div className="mt-10 flex flex-col gap-3 border-t border-[#DDE5DD] pt-6 font-sans sm:flex-row sm:items-center">
+                            <span className="h-[2px] w-12 bg-[#C8A000]" />
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px]">
+                                <span className="font-extrabold tracking-wide text-[#1A1A1A] uppercase">
                                     {kepalaBiro.nama}
-                                </p>
-                                <p className="text-[13px] text-[#5C6B73]">
+                                </span>
+                                <span className="hidden text-neutral-300 sm:inline">
+                                    |
+                                </span>
+                                <span className="font-semibold text-[#1B5E20]">
                                     {kepalaBiro.jabatan}
-                                </p>
+                                </span>
+                                <span className="hidden text-neutral-300 sm:inline">
+                                    |
+                                </span>
+                                <span className="font-medium text-[#9EAAB2]">
+                                    {kepalaBiro.periode}
+                                </span>
                             </div>
                         </div>
                     </div>

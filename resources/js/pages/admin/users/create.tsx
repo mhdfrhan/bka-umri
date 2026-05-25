@@ -12,7 +12,7 @@ import {
     EyeOff,
     Info,
     AlertCircle,
-    Save
+    Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Auth } from '@/types';
@@ -38,7 +38,7 @@ export default function UserCreate() {
     const [role, setRole] = useState<'super_admin' | 'admin'>('admin');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -57,10 +57,33 @@ export default function UserCreate() {
 
     // Get strength label & colors
     const getStrengthInfo = () => {
-        if (password.length === 0) return { label: 'Kosong', color: 'bg-neutral-200', text: 'text-neutral-400', width: 'w-0' };
-        if (score <= 2) return { label: 'Lemah', color: 'bg-red-500', text: 'text-red-500', width: 'w-1/3' };
-        if (score <= 4) return { label: 'Sedang', color: 'bg-amber-500', text: 'text-amber-500', width: 'w-2/3' };
-        return { label: 'Kuat', color: 'bg-emerald-500', text: 'text-emerald-500', width: 'w-full' };
+        if (password.length === 0)
+            return {
+                label: 'Kosong',
+                color: 'bg-neutral-200',
+                text: 'text-neutral-400',
+                width: 'w-0',
+            };
+        if (score <= 2)
+            return {
+                label: 'Lemah',
+                color: 'bg-red-500',
+                text: 'text-red-500',
+                width: 'w-1/3',
+            };
+        if (score <= 4)
+            return {
+                label: 'Sedang',
+                color: 'bg-amber-500',
+                text: 'text-amber-500',
+                width: 'w-2/3',
+            };
+        return {
+            label: 'Kuat',
+            color: 'bg-emerald-500',
+            text: 'text-emerald-500',
+            width: 'w-full',
+        };
     };
 
     const strength = getStrengthInfo();
@@ -73,7 +96,9 @@ export default function UserCreate() {
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    const activeCount = parsed.filter((u: CMSUser) => u.is_active).length;
+                    const activeCount = parsed.filter(
+                        (u: CMSUser) => u.is_active,
+                    ).length;
                     if (activeCount >= 10) {
                         setIsLimitReached(true);
                     }
@@ -86,7 +111,9 @@ export default function UserCreate() {
         e.preventDefault();
 
         if (isLimitReached) {
-            toast.error('Batas Akun Aktif Terpenuhi: Tidak dapat menambah administrator baru karena kuota 10 akun aktif telah penuh.');
+            toast.error(
+                'Batas Akun Aktif Terpenuhi: Tidak dapat menambah administrator baru karena kuota 10 akun aktif telah penuh.',
+            );
             return;
         }
 
@@ -101,7 +128,9 @@ export default function UserCreate() {
         }
 
         if (score < 5) {
-            toast.error('Kata sandi harus memenuhi seluruh kriteria keamanan yang ditetapkan!');
+            toast.error(
+                'Kata sandi harus memenuhi seluruh kriteria keamanan yang ditetapkan!',
+            );
             return;
         }
 
@@ -117,7 +146,12 @@ export default function UserCreate() {
             const list = saved ? JSON.parse(saved) : [];
 
             // Check if email already exists
-            if (list.some((u: CMSUser) => u.email.toLowerCase() === email.toLowerCase())) {
+            if (
+                list.some(
+                    (u: CMSUser) =>
+                        u.email.toLowerCase() === email.toLowerCase(),
+                )
+            ) {
                 toast.error('Email sudah terdaftar! Gunakan email lain.');
                 setIsSaving(false);
                 return;
@@ -129,15 +163,21 @@ export default function UserCreate() {
                 email: email.trim().toLowerCase(),
                 role,
                 is_active: true, // defaults to active
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
             };
 
             const updatedList = [...list, newUser];
             localStorage.setItem('bka_users', JSON.stringify(updatedList));
 
-            logActivity('Membuat akun pengguna', `${newUser.name} (${newUser.email}) - Peran: ${newUser.role === 'super_admin' ? 'Super Admin' : 'Admin'}`, 'user');
+            logActivity(
+                'Membuat akun pengguna',
+                `${newUser.name} (${newUser.email}) - Peran: ${newUser.role === 'super_admin' ? 'Super Admin' : 'Admin'}`,
+                'user',
+            );
 
-            toast.success(`Akun administrator "${newUser.name}" berhasil dibuat!`);
+            toast.success(
+                `Akun administrator "${newUser.name}" berhasil dibuat!`,
+            );
             router.visit('/admin/users');
         } catch {
             toast.error('Gagal menyimpan data administrator.');
@@ -153,22 +193,28 @@ export default function UserCreate() {
                 <div className="mx-auto w-full max-w-4xl p-6 md:p-12">
                     <div className="relative overflow-hidden rounded-3xl border border-red-200 bg-white p-8 text-center shadow-lg md:p-16">
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,#FEF2F2_0%,transparent_100%)] opacity-70" />
-                        <div className="relative z-10 flex flex-col items-center max-w-md mx-auto space-y-6">
-                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 border border-red-100 text-red-600 animate-bounce">
+                        <div className="relative z-10 mx-auto flex max-w-md flex-col items-center space-y-6">
+                            <div className="flex h-16 w-16 animate-bounce items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-red-600">
                                 <ShieldAlert size={32} />
                             </div>
                             <div className="space-y-2">
                                 <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900 md:text-3xl">
                                     Akses Terbatas
                                 </h1>
-                                <p className="text-sm font-light leading-relaxed text-neutral-500">
-                                    Halaman Manajemen Pengguna dan Administrator portal BKA hanya dapat diakses oleh akun dengan tingkat wewenang <strong className="font-semibold text-red-700">Super Admin</strong>.
+                                <p className="text-sm leading-relaxed font-light text-neutral-500">
+                                    Halaman Manajemen Pengguna dan Administrator
+                                    portal BKA hanya dapat diakses oleh akun
+                                    dengan tingkat wewenang{' '}
+                                    <strong className="font-semibold text-red-700">
+                                        Super Admin
+                                    </strong>
+                                    .
                                 </p>
                             </div>
-                            <div className="pt-4 flex w-full flex-col gap-2">
+                            <div className="flex w-full flex-col gap-2 pt-4">
                                 <a
                                     href="/admin"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs py-3 px-6 transition-all shadow-sm"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 px-6 py-3 text-xs font-bold text-white shadow-sm transition-all hover:bg-neutral-800"
                                 >
                                     <ArrowLeft size={14} />
                                     <span>Kembali ke Dashboard</span>
@@ -190,7 +236,7 @@ export default function UserCreate() {
                 <div>
                     <a
                         href="/admin/users"
-                        className="inline-flex items-center gap-2 text-xs font-bold text-neutral-500 hover:text-neutral-900 transition-colors"
+                        className="inline-flex items-center gap-2 text-xs font-bold text-neutral-500 transition-colors hover:text-neutral-900"
                     >
                         <ArrowLeft size={14} />
                         <span>Kembali ke Daftar Pengguna</span>
@@ -207,98 +253,149 @@ export default function UserCreate() {
                             Tambah Administrator Baru
                         </h1>
                     </div>
-                    <p className="text-sm font-light leading-relaxed text-neutral-500">
-                        Buat kredensial masuk baru untuk pengelola BKA. Kredensial akan langsung aktif setelah disimpan.
+                    <p className="text-sm leading-relaxed font-light text-neutral-500">
+                        Buat kredensial masuk baru untuk pengelola BKA.
+                        Kredensial akan langsung aktif setelah disimpan.
                     </p>
                 </div>
 
                 {/* Main Form container */}
-                <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 md:p-8 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="grid grid-cols-1 gap-8 md:grid-cols-12"
+                    >
                         {/* Left Column: Core Fields */}
                         <div className="space-y-5 md:col-span-7">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-bold text-neutral-700">Nama Lengkap *</label>
+                                <label className="text-sm font-bold text-neutral-700">
+                                    Nama Lengkap *
+                                </label>
                                 <input
                                     type="text"
                                     placeholder="Masukkan nama lengkap staff..."
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-xs focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none font-medium bg-neutral-50/10"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     required
                                     disabled={isSaving}
                                 />
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-bold text-neutral-700">Alamat Email *</label>
+                                <label className="text-sm font-bold text-neutral-700">
+                                    Alamat Email *
+                                </label>
                                 <input
                                     type="email"
                                     placeholder="contoh: staff@bka.umri.ac.id"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-xs focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none font-medium bg-neutral-50/10"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     required
                                     disabled={isSaving}
                                 />
-                                <p className="text-[10px] text-neutral-400 mt-0.5 leading-normal">
-                                    Disarankan menggunakan domain email resmi instansi (@bka.umri.ac.id).
+                                <p className="mt-0.5 text-[10px] leading-normal text-neutral-400">
+                                    Disarankan menggunakan domain email resmi
+                                    instansi (@bka.umri.ac.id).
                                 </p>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-bold text-neutral-700">Tingkat Hak Akses / Peran *</label>
+                                <label className="text-sm font-bold text-neutral-700">
+                                    Tingkat Hak Akses / Peran *
+                                </label>
                                 <select
                                     value={role}
-                                    onChange={(e) => setRole(e.target.value as 'super_admin' | 'admin')}
-                                    className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-xs focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none font-medium bg-neutral-50/10"
+                                    onChange={(e) =>
+                                        setRole(
+                                            e.target.value as
+                                                | 'super_admin'
+                                                | 'admin',
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     disabled={isSaving}
                                 >
-                                    <option value="admin">Admin Konten Biasa (Mengelola Berita & Bidang)</option>
-                                    <option value="super_admin">Super Admin (Akses Penuh Pengaturan & Pengguna)</option>
+                                    <option value="admin">
+                                        Admin Konten Biasa (Mengelola Berita &
+                                        Bidang)
+                                    </option>
+                                    <option value="super_admin">
+                                        Super Admin (Akses Penuh Pengaturan &
+                                        Pengguna)
+                                    </option>
                                 </select>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-bold text-neutral-700">Kata Sandi (Password) *</label>
+                                <label className="text-sm font-bold text-neutral-700">
+                                    Kata Sandi (Password) *
+                                </label>
                                 <div className="relative">
                                     <input
-                                        type={showPassword ? 'text' : 'password'}
+                                        type={
+                                            showPassword ? 'text' : 'password'
+                                        }
                                         placeholder="Masukkan kata sandi aman..."
                                         value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full border border-neutral-200 rounded-xl pl-4 pr-10 py-3 text-xs focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none font-medium bg-neutral-50/10"
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
+                                        className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 py-3 pr-10 pl-4 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                         required
                                         disabled={isSaving}
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 outline-none"
+                                        onClick={() =>
+                                            setShowPassword(!showPassword)
+                                        }
+                                        className="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-400 outline-none hover:text-neutral-600"
                                     >
-                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        {showPassword ? (
+                                            <EyeOff size={16} />
+                                        ) : (
+                                            <Eye size={16} />
+                                        )}
                                     </button>
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-bold text-neutral-700">Konfirmasi Kata Sandi *</label>
+                                <label className="text-sm font-bold text-neutral-700">
+                                    Konfirmasi Kata Sandi *
+                                </label>
                                 <div className="relative">
                                     <input
-                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        type={
+                                            showConfirmPassword
+                                                ? 'text'
+                                                : 'password'
+                                        }
                                         placeholder="Ulangi kata sandi di atas..."
                                         value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full border border-neutral-200 rounded-xl pl-4 pr-10 py-3 text-xs focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none font-medium bg-neutral-50/10"
+                                        onChange={(e) =>
+                                            setConfirmPassword(e.target.value)
+                                        }
+                                        className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 py-3 pr-10 pl-4 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                         required
                                         disabled={isSaving}
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 outline-none"
+                                        onClick={() =>
+                                            setShowConfirmPassword(
+                                                !showConfirmPassword,
+                                            )
+                                        }
+                                        className="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-400 outline-none hover:text-neutral-600"
                                     >
-                                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        {showConfirmPassword ? (
+                                            <EyeOff size={16} />
+                                        ) : (
+                                            <Eye size={16} />
+                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -307,91 +404,159 @@ export default function UserCreate() {
                         {/* Right Column: Password Strength Indicator Checklist */}
                         <div className="space-y-5 md:col-span-5 md:border-l md:border-neutral-100 md:pl-8">
                             <div className="space-y-2">
-                                <h3 className="text-sm font-bold text-neutral-800">Kekuatan Kata Sandi</h3>
-                                <p className="text-xs font-light text-neutral-500 leading-normal">
-                                    Demi standar keamanan audit portal, sandi wajib memenuhi seluruh kriteria berikut:
+                                <h3 className="text-sm font-bold text-neutral-800">
+                                    Kekuatan Kata Sandi
+                                </h3>
+                                <p className="text-xs leading-normal font-light text-neutral-500">
+                                    Demi standar keamanan audit portal, sandi
+                                    wajib memenuhi seluruh kriteria berikut:
                                 </p>
                             </div>
 
                             {/* Indicator Progress Bar */}
                             <div className="space-y-1.5">
                                 <div className="flex items-center justify-between text-[11px] font-bold uppercase">
-                                    <span className="text-neutral-400">Tingkat Sandi</span>
-                                    <span className={strength.text}>{strength.label}</span>
+                                    <span className="text-neutral-400">
+                                        Tingkat Sandi
+                                    </span>
+                                    <span className={strength.text}>
+                                        {strength.label}
+                                    </span>
                                 </div>
-                                <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                    <div className={cn("h-full transition-all duration-300 rounded-full", strength.color, strength.width)} />
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+                                    <div
+                                        className={cn(
+                                            'h-full rounded-full transition-all duration-300',
+                                            strength.color,
+                                            strength.width,
+                                        )}
+                                    />
                                 </div>
                             </div>
 
                             {/* Criteria Checklist */}
                             <div className="space-y-3 pt-2">
                                 <div className="flex items-center gap-2.5 text-xs font-medium text-neutral-600">
-                                    <div className={cn(
-                                        "size-5 rounded-full flex items-center justify-center border shrink-0 transition-colors",
-                                        criteria.length
-                                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                            : "bg-neutral-50 text-neutral-300 border-neutral-100"
-                                    )}>
-                                        {criteria.length ? <Check size={12} /> : <X size={12} />}
+                                    <div
+                                        className={cn(
+                                            'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors',
+                                            criteria.length
+                                                ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
+                                                : 'border-neutral-100 bg-neutral-50 text-neutral-300',
+                                        )}
+                                    >
+                                        {criteria.length ? (
+                                            <Check size={12} />
+                                        ) : (
+                                            <X size={12} />
+                                        )}
                                     </div>
-                                    <span className={cn(criteria.length && "text-neutral-800 font-semibold")}>
+                                    <span
+                                        className={cn(
+                                            criteria.length &&
+                                                'font-semibold text-neutral-800',
+                                        )}
+                                    >
                                         Minimal 8 Karakter
                                     </span>
                                 </div>
 
                                 <div className="flex items-center gap-2.5 text-xs font-medium text-neutral-600">
-                                    <div className={cn(
-                                        "size-5 rounded-full flex items-center justify-center border shrink-0 transition-colors",
-                                        criteria.hasUpper
-                                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                            : "bg-neutral-50 text-neutral-300 border-neutral-100"
-                                    )}>
-                                        {criteria.hasUpper ? <Check size={12} /> : <X size={12} />}
+                                    <div
+                                        className={cn(
+                                            'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors',
+                                            criteria.hasUpper
+                                                ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
+                                                : 'border-neutral-100 bg-neutral-50 text-neutral-300',
+                                        )}
+                                    >
+                                        {criteria.hasUpper ? (
+                                            <Check size={12} />
+                                        ) : (
+                                            <X size={12} />
+                                        )}
                                     </div>
-                                    <span className={cn(criteria.hasUpper && "text-neutral-800 font-semibold")}>
+                                    <span
+                                        className={cn(
+                                            criteria.hasUpper &&
+                                                'font-semibold text-neutral-800',
+                                        )}
+                                    >
                                         Huruf Besar (A-Z)
                                     </span>
                                 </div>
 
                                 <div className="flex items-center gap-2.5 text-xs font-medium text-neutral-600">
-                                    <div className={cn(
-                                        "size-5 rounded-full flex items-center justify-center border shrink-0 transition-colors",
-                                        criteria.hasLower
-                                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                            : "bg-neutral-50 text-neutral-300 border-neutral-100"
-                                    )}>
-                                        {criteria.hasLower ? <Check size={12} /> : <X size={12} />}
+                                    <div
+                                        className={cn(
+                                            'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors',
+                                            criteria.hasLower
+                                                ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
+                                                : 'border-neutral-100 bg-neutral-50 text-neutral-300',
+                                        )}
+                                    >
+                                        {criteria.hasLower ? (
+                                            <Check size={12} />
+                                        ) : (
+                                            <X size={12} />
+                                        )}
                                     </div>
-                                    <span className={cn(criteria.hasLower && "text-neutral-800 font-semibold")}>
+                                    <span
+                                        className={cn(
+                                            criteria.hasLower &&
+                                                'font-semibold text-neutral-800',
+                                        )}
+                                    >
                                         Huruf Kecil (a-z)
                                     </span>
                                 </div>
 
                                 <div className="flex items-center gap-2.5 text-xs font-medium text-neutral-600">
-                                    <div className={cn(
-                                        "size-5 rounded-full flex items-center justify-center border shrink-0 transition-colors",
-                                        criteria.hasNumber
-                                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                            : "bg-neutral-50 text-neutral-300 border-neutral-100"
-                                    )}>
-                                        {criteria.hasNumber ? <Check size={12} /> : <X size={12} />}
+                                    <div
+                                        className={cn(
+                                            'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors',
+                                            criteria.hasNumber
+                                                ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
+                                                : 'border-neutral-100 bg-neutral-50 text-neutral-300',
+                                        )}
+                                    >
+                                        {criteria.hasNumber ? (
+                                            <Check size={12} />
+                                        ) : (
+                                            <X size={12} />
+                                        )}
                                     </div>
-                                    <span className={cn(criteria.hasNumber && "text-neutral-800 font-semibold")}>
+                                    <span
+                                        className={cn(
+                                            criteria.hasNumber &&
+                                                'font-semibold text-neutral-800',
+                                        )}
+                                    >
                                         Angka Numerik (0-9)
                                     </span>
                                 </div>
 
                                 <div className="flex items-center gap-2.5 text-xs font-medium text-neutral-600">
-                                    <div className={cn(
-                                        "size-5 rounded-full flex items-center justify-center border shrink-0 transition-colors",
-                                        criteria.hasSpecial
-                                            ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                            : "bg-neutral-50 text-neutral-300 border-neutral-100"
-                                    )}>
-                                        {criteria.hasSpecial ? <Check size={12} /> : <X size={12} />}
+                                    <div
+                                        className={cn(
+                                            'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors',
+                                            criteria.hasSpecial
+                                                ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
+                                                : 'border-neutral-100 bg-neutral-50 text-neutral-300',
+                                        )}
+                                    >
+                                        {criteria.hasSpecial ? (
+                                            <Check size={12} />
+                                        ) : (
+                                            <X size={12} />
+                                        )}
                                     </div>
-                                    <span className={cn(criteria.hasSpecial && "text-neutral-800 font-semibold")}>
+                                    <span
+                                        className={cn(
+                                            criteria.hasSpecial &&
+                                                'font-semibold text-neutral-800',
+                                        )}
+                                    >
                                         Karakter Khusus (!@#$%)
                                     </span>
                                 </div>
@@ -399,10 +564,10 @@ export default function UserCreate() {
                         </div>
 
                         {/* Form Submission Actions */}
-                        <div className="col-span-12 mt-6 pt-6 border-t border-neutral-100 flex items-center justify-end gap-3.5">
+                        <div className="col-span-12 mt-6 flex items-center justify-end gap-3.5 border-t border-neutral-100 pt-6">
                             <a
                                 href="/admin/users"
-                                className="rounded-xl border border-neutral-200 bg-white px-5 py-3 text-xs font-bold text-neutral-600 hover:bg-neutral-50 transition-colors outline-none"
+                                className="rounded-xl border border-neutral-200 bg-white px-5 py-3 text-xs font-bold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
                             >
                                 Batal
                             </a>
@@ -410,14 +575,18 @@ export default function UserCreate() {
                                 type="submit"
                                 disabled={isSaving || isLimitReached}
                                 className={cn(
-                                    "rounded-xl px-5 py-3 text-xs font-bold text-white shadow-sm transition-all outline-none flex items-center gap-2",
+                                    'flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold text-white shadow-sm transition-all outline-none',
                                     isSaving || isLimitReached
-                                        ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
-                                        : "bg-[#1B5E20] hover:bg-[#145218]"
+                                        ? 'cursor-not-allowed bg-neutral-200 text-neutral-400'
+                                        : 'bg-[#1B5E20] hover:bg-[#145218]',
                                 )}
                             >
                                 <Save size={14} />
-                                <span>{isSaving ? 'Menyimpan...' : 'Simpan Kredensial'}</span>
+                                <span>
+                                    {isSaving
+                                        ? 'Menyimpan...'
+                                        : 'Simpan Kredensial'}
+                                </span>
                             </button>
                         </div>
                     </form>

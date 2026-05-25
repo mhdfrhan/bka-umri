@@ -16,6 +16,7 @@ import {
     Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AdminModal } from '@/components/admin/admin-modal';
 
 // Define the type structure for Bidang
 interface Anggota {
@@ -453,44 +454,45 @@ export default function IndexBidang() {
             </div>
 
             {/* Custom confirmation dialog with smooth transition & bounce */}
-            {isConfirmOpen && bidangToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 p-4 backdrop-blur-xs transition-all">
-                    <div className="w-full max-w-sm animate-in space-y-4 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl duration-200 zoom-in-95 fade-in">
-                        <div className="flex items-center gap-3 text-red-600">
-                            <div className="rounded-xl border border-red-100 bg-red-50 p-2">
-                                <AlertTriangle className="size-5" />
-                            </div>
-                            <h3 className="text-base font-bold text-neutral-800">
-                                Hapus Bidang Organisasi?
-                            </h3>
-                        </div>
+            <AdminModal
+                isOpen={isConfirmOpen && !!bidangToDelete}
+                onClose={() => setIsConfirmOpen(false)}
+                title="Hapus Bidang Organisasi?"
+                icon={
+                    <div className="rounded-xl border border-red-100 bg-red-50 p-2 text-red-600">
+                        <AlertTriangle className="size-5" />
+                    </div>
+                }
+                maxWidth="sm"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm leading-relaxed font-light text-neutral-500">
+                        Apakah Anda yakin ingin menghapus bidang{' '}
+                        <strong className="font-bold text-neutral-800">
+                            "{bidangToDelete?.nama}"
+                        </strong>
+                        ? Seluruh data kepala divisi, data staf anggota, dan CTA
+                        bidang ini akan terhapus permanen dari website.
+                    </p>
 
-                        <p className="text-sm leading-relaxed font-light text-neutral-500">
-                            Apakah Anda yakin ingin menghapus bidang{' '}
-                            <strong className="font-bold text-neutral-800">
-                                "{bidangToDelete.nama}"
-                            </strong>
-                            ? Seluruh data kepala divisi, data staf anggota, dan
-                            CTA bidang ini akan terhapus permanen dari website.
-                        </p>
-
-                        <div className="flex items-center justify-end gap-2 border-t border-neutral-100 pt-3">
-                            <button
-                                onClick={() => setIsConfirmOpen(false)}
-                                className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-600 outline-none hover:bg-neutral-50"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={handleConfirmDelete}
-                                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-red-700"
-                            >
-                                Ya, Hapus Bidang
-                            </button>
-                        </div>
+                    <div className="flex items-center justify-end gap-2 border-t border-neutral-100 pt-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsConfirmOpen(false)}
+                            className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-600 outline-none hover:bg-neutral-50"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleConfirmDelete}
+                            className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-red-700"
+                        >
+                            Ya, Hapus Bidang
+                        </button>
                     </div>
                 </div>
-            )}
+            </AdminModal>
         </>
     );
 }

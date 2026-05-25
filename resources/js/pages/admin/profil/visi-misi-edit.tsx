@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import { Compass, Target, Plus, Trash2, ArrowUp, ArrowDown, Save, ExternalLink } from 'lucide-react';
+import {
+    Compass,
+    Target,
+    Plus,
+    Trash2,
+    ArrowUp,
+    ArrowDown,
+    Save,
+    ExternalLink,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MisiItem {
@@ -9,34 +18,35 @@ interface MisiItem {
     urutan: number;
 }
 
-const DEFAULT_VISI = 'Menjadi penyelenggara administrasi keuangan dan pengelolaan aset yang unggul, terpercaya, transparan, dan akuntabel berbasis digitalisasi layanan demi mendukung Universitas Muhammadiyah Riau yang cerdas, inovatif, dan berkemajuan pada tahun 2028.';
+const DEFAULT_VISI =
+    'Menjadi penyelenggara administrasi keuangan dan pengelolaan aset yang unggul, terpercaya, transparan, dan akuntabel berbasis digitalisasi layanan demi mendukung Universitas Muhammadiyah Riau yang cerdas, inovatif, dan berkemajuan pada tahun 2028.';
 
 const DEFAULT_MISI: MisiItem[] = [
     {
         id: 1,
         isi: 'Menyelenggarakan sistem perencanaan, penganggaran, dan pengendalian keuangan yang efisien, transparan, dan akuntabel.',
-        urutan: 1
+        urutan: 1,
     },
     {
         id: 2,
         isi: 'Mengembangkan digitalisasi administrasi layanan keuangan terintegrasi guna memberikan kemudahan pelayanan terbaik bagi seluruh mahasiswa dan civitas akademika.',
-        urutan: 2
+        urutan: 2,
     },
     {
         id: 3,
         isi: 'Melaksanakan penataan, pembukuan, dan pelaporan sarana, prasarana, serta aset fisik universitas secara profesional dan akurat.',
-        urutan: 3
+        urutan: 3,
     },
     {
         id: 4,
         isi: 'Mengoptimalkan pemanfaatan dan produktivitas aset fisik maupun finansial kampus untuk keberlangsungan finansial universitas yang mandiri.',
-        urutan: 4
+        urutan: 4,
     },
     {
         id: 5,
         isi: 'Membina kualitas sumber daya manusia pengelola keuangan dan logistik yang berintegritas tinggi, kompeten, dan memegang teguh nilai-nilai Al-Islam Kemuhammadiyahan.',
-        urutan: 5
-    }
+        urutan: 5,
+    },
 ];
 
 export default function EditVisiMisi() {
@@ -68,11 +78,14 @@ export default function EditVisiMisi() {
             toast.warning('Maksimum 10 poin misi diperbolehkan!');
             return;
         }
-        const nextId = misiList.length > 0 ? Math.max(...misiList.map(m => m.id)) + 1 : 1;
+        const nextId =
+            misiList.length > 0
+                ? Math.max(...misiList.map((m) => m.id)) + 1
+                : 1;
         const newMisi: MisiItem = {
             id: nextId,
             isi: '',
-            urutan: misiList.length + 1
+            urutan: misiList.length + 1,
         };
         setMisiList([...misiList, newMisi]);
     };
@@ -83,16 +96,20 @@ export default function EditVisiMisi() {
             toast.warning('Minimal harus terdapat 1 poin misi!');
             return;
         }
-        const updated = misiList.filter(m => m.id !== id).map((m, idx) => ({
-            ...m,
-            urutan: idx + 1
-        }));
+        const updated = misiList
+            .filter((m) => m.id !== id)
+            .map((m, idx) => ({
+                ...m,
+                urutan: idx + 1,
+            }));
         setMisiList(updated);
     };
 
     // Handle change text mission
     const handleChangeMisi = (id: number, text: string) => {
-        const updated = misiList.map(m => m.id === id ? { ...m, isi: text } : m);
+        const updated = misiList.map((m) =>
+            m.id === id ? { ...m, isi: text } : m,
+        );
         setMisiList(updated);
     };
 
@@ -103,7 +120,7 @@ export default function EditVisiMisi() {
         const temp = items[index];
         items[index] = items[index - 1];
         items[index - 1] = temp;
-        
+
         const updated = items.map((m, idx) => ({ ...m, urutan: idx + 1 }));
         setMisiList(updated);
     };
@@ -127,9 +144,11 @@ export default function EditVisiMisi() {
             toast.error('Visi organisasi tidak boleh kosong!');
             return;
         }
-        const hasEmptyMisi = misiList.some(m => !m.isi.trim());
+        const hasEmptyMisi = misiList.some((m) => !m.isi.trim());
         if (hasEmptyMisi) {
-            toast.error('Terdapat poin misi yang masih kosong! Harap isi atau hapus poin tersebut.');
+            toast.error(
+                'Terdapat poin misi yang masih kosong! Harap isi atau hapus poin tersebut.',
+            );
             return;
         }
 
@@ -137,7 +156,7 @@ export default function EditVisiMisi() {
         try {
             const dataToSave = {
                 visi: visi.trim(),
-                misiItems: misiList
+                misiItems: misiList,
             };
             localStorage.setItem('bka_visi_misi', JSON.stringify(dataToSave));
             toast.success('Visi & Misi BKA berhasil disimpan secara lokal!');
@@ -161,7 +180,9 @@ export default function EditVisiMisi() {
                             Kelola Visi & Misi Organisasi
                         </h1>
                         <p className="mt-1 text-sm leading-relaxed font-normal text-neutral-500">
-                            Rumuskan visi jangka panjang dan misi strategis penunjang pelayanan administrasi keuangan serta sarana prasarana.
+                            Rumuskan visi jangka panjang dan misi strategis
+                            penunjang pelayanan administrasi keuangan serta
+                            sarana prasarana.
                         </p>
                     </div>
 
@@ -179,32 +200,57 @@ export default function EditVisiMisi() {
                 </div>
 
                 {/* Form Shell with CSS Grid for perfect layout alignment */}
-                <form onSubmit={handleSave} className="grid w-full grid-cols-1 gap-8 items-start lg:grid-cols-[28%_1fr]">
-                    
+                <form
+                    onSubmit={handleSave}
+                    className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[28%_1fr]"
+                >
                     {/* Left Column Information */}
                     <div className="space-y-4 rounded-2xl border border-neutral-200/60 bg-neutral-50/50 p-6">
-                        <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-800">Panduan Rumusan</h2>
-                        
-                        <div className="space-y-3.5 text-xs text-neutral-600 leading-relaxed">
+                        <h2 className="text-sm font-bold tracking-wider text-emerald-800 uppercase">
+                            Panduan Rumusan
+                        </h2>
+
+                        <div className="space-y-3.5 text-xs leading-relaxed text-neutral-600">
                             <div className="flex gap-2">
-                                <span className="text-emerald-600 font-bold">1.</span>
-                                <span><strong>Visi:</strong> Harus merepresentasikan cita-cita besar BKA UMRI hingga target tahun pencapaian tertentu (e.g. 2028).</span>
+                                <span className="font-bold text-emerald-600">
+                                    1.
+                                </span>
+                                <span>
+                                    <strong>Visi:</strong> Harus
+                                    merepresentasikan cita-cita besar BKA UMRI
+                                    hingga target tahun pencapaian tertentu
+                                    (e.g. 2028).
+                                </span>
                             </div>
                             <div className="flex gap-2">
-                                <span className="text-emerald-600 font-bold">2.</span>
-                                <span><strong>Misi:</strong> Terdiri atas 1–10 langkah konkret. Disusun terurut sesuai skala implementasi pengerjaan.</span>
+                                <span className="font-bold text-emerald-600">
+                                    2.
+                                </span>
+                                <span>
+                                    <strong>Misi:</strong> Terdiri atas 1–10
+                                    langkah konkret. Disusun terurut sesuai
+                                    skala implementasi pengerjaan.
+                                </span>
                             </div>
                             <div className="flex gap-2">
-                                <span className="text-emerald-600 font-bold">3.</span>
-                                <span>Gunakan tombol panah (<ArrowUp className="inline size-3" /> / <ArrowDown className="inline size-3" />) untuk merubah prioritas urutan misi dengan mudah.</span>
+                                <span className="font-bold text-emerald-600">
+                                    3.
+                                </span>
+                                <span>
+                                    Gunakan tombol panah (
+                                    <ArrowUp className="inline size-3" /> /{' '}
+                                    <ArrowDown className="inline size-3" />)
+                                    untuk merubah prioritas urutan misi dengan
+                                    mudah.
+                                </span>
                             </div>
                         </div>
 
-                        <div className="pt-4 border-t border-neutral-200">
+                        <div className="border-t border-neutral-200 pt-4">
                             <button
                                 type="submit"
                                 disabled={isSaving}
-                                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
                             >
                                 <Save className="size-4.5" />
                                 {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -214,18 +260,23 @@ export default function EditVisiMisi() {
 
                     {/* Right Column Form Inputs */}
                     <div className="space-y-6">
-                        
                         {/* Visi Card */}
-                        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8 space-y-4">
-                            <div className="border-b border-neutral-100 pb-3 flex items-center gap-2">
+                        <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
+                            <div className="flex items-center gap-2 border-b border-neutral-100 pb-3">
                                 <Compass className="size-5 text-emerald-600" />
-                                <h3 className="text-base font-bold text-neutral-800 tracking-tight">Pernyataan Visi BKA</h3>
+                                <h3 className="text-base font-bold tracking-tight text-neutral-800">
+                                    Pernyataan Visi BKA
+                                </h3>
                             </div>
 
                             <div className="space-y-1.5">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-semibold text-neutral-700">Teks Visi Utama</label>
-                                    <span className={`text-xs ${visi.length > 450 ? 'text-red-500 font-semibold' : 'text-neutral-400'}`}>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-semibold text-neutral-700">
+                                        Teks Visi Utama
+                                    </label>
+                                    <span
+                                        className={`text-xs ${visi.length > 450 ? 'font-semibold text-red-500' : 'text-neutral-400'}`}
+                                    >
                                         {visi.length} / 500 karakter
                                     </span>
                                 </div>
@@ -241,16 +292,18 @@ export default function EditVisiMisi() {
                         </div>
 
                         {/* Misi Card */}
-                        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8 space-y-4">
-                            <div className="border-b border-neutral-100 pb-3 flex items-center justify-between">
+                        <div className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
+                            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                                 <div className="flex items-center gap-2">
                                     <Target className="size-5 text-emerald-600" />
-                                    <h3 className="text-base font-bold text-neutral-800 tracking-tight">Daftar Poin Misi BKA ({misiList.length})</h3>
+                                    <h3 className="text-base font-bold tracking-tight text-neutral-800">
+                                        Daftar Poin Misi BKA ({misiList.length})
+                                    </h3>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={handleAddMisi}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all text-xs font-bold"
+                                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition-all hover:bg-emerald-100"
                                 >
                                     <Plus className="size-3.5" />
                                     Tambah Poin
@@ -261,7 +314,10 @@ export default function EditVisiMisi() {
                                 {misiList
                                     .sort((a, b) => a.urutan - b.urutan)
                                     .map((misi, index) => (
-                                        <div key={misi.id} className="flex items-center gap-3 bg-neutral-50/60 p-3 rounded-xl border border-neutral-200/60 transition-all hover:bg-neutral-50">
+                                        <div
+                                            key={misi.id}
+                                            className="flex items-center gap-3 rounded-xl border border-neutral-200/60 bg-neutral-50/60 p-3 transition-all hover:bg-neutral-50"
+                                        >
                                             {/* Order indicator */}
                                             <span className="flex size-7 items-center justify-center rounded-full bg-emerald-100/70 text-sm font-extrabold text-emerald-800">
                                                 {index + 1}
@@ -273,37 +329,53 @@ export default function EditVisiMisi() {
                                                     type="text"
                                                     maxLength={200}
                                                     value={misi.isi}
-                                                    onChange={(e) => handleChangeMisi(misi.id, e.target.value)}
+                                                    onChange={(e) =>
+                                                        handleChangeMisi(
+                                                            misi.id,
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     placeholder="Tulis poin pernyataan misi..."
-                                                    className="w-full border-none bg-transparent py-1 text-sm font-medium text-neutral-800 focus:outline-none focus:ring-0"
+                                                    className="w-full border-none bg-transparent py-1 text-sm font-medium text-neutral-800 focus:ring-0 focus:outline-none"
                                                 />
                                             </div>
 
                                             {/* Sorting & Deleting controls */}
-                                            <div className="flex items-center gap-1.5 shrink-0">
+                                            <div className="flex shrink-0 items-center gap-1.5">
                                                 <button
                                                     type="button"
                                                     disabled={index === 0}
-                                                    onClick={() => handleMoveUp(index)}
-                                                    className="p-1 rounded hover:bg-neutral-200 text-neutral-500 disabled:opacity-30 disabled:hover:bg-transparent"
+                                                    onClick={() =>
+                                                        handleMoveUp(index)
+                                                    }
+                                                    className="rounded p-1 text-neutral-500 hover:bg-neutral-200 disabled:opacity-30 disabled:hover:bg-transparent"
                                                     title="Pindahkan ke atas"
                                                 >
                                                     <ArrowUp className="size-4" />
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    disabled={index === misiList.length - 1}
-                                                    onClick={() => handleMoveDown(index)}
-                                                    className="p-1 rounded hover:bg-neutral-200 text-neutral-500 disabled:opacity-30 disabled:hover:bg-transparent"
+                                                    disabled={
+                                                        index ===
+                                                        misiList.length - 1
+                                                    }
+                                                    onClick={() =>
+                                                        handleMoveDown(index)
+                                                    }
+                                                    className="rounded p-1 text-neutral-500 hover:bg-neutral-200 disabled:opacity-30 disabled:hover:bg-transparent"
                                                     title="Pindahkan ke bawah"
                                                 >
                                                     <ArrowDown className="size-4" />
                                                 </button>
-                                                <div className="h-4 w-[1px] bg-neutral-200 mx-0.5" />
+                                                <div className="mx-0.5 h-4 w-[1px] bg-neutral-200" />
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleRemoveMisi(misi.id)}
-                                                    className="p-1 rounded hover:bg-red-50 text-red-600"
+                                                    onClick={() =>
+                                                        handleRemoveMisi(
+                                                            misi.id,
+                                                        )
+                                                    }
+                                                    className="rounded p-1 text-red-600 hover:bg-red-50"
                                                     title="Hapus"
                                                 >
                                                     <Trash2 className="size-4" />
@@ -313,9 +385,11 @@ export default function EditVisiMisi() {
                                     ))}
 
                                 {misiList.length === 0 && (
-                                    <div className="text-center py-8 border border-dashed border-neutral-200 rounded-xl">
-                                        <Target className="mx-auto mb-2 size-8 text-neutral-300 animate-pulse" />
-                                        <p className="text-sm font-semibold text-neutral-600">Poin Misi Kosong</p>
+                                    <div className="rounded-xl border border-dashed border-neutral-200 py-8 text-center">
+                                        <Target className="mx-auto mb-2 size-8 animate-pulse text-neutral-300" />
+                                        <p className="text-sm font-semibold text-neutral-600">
+                                            Poin Misi Kosong
+                                        </p>
                                         <button
                                             type="button"
                                             onClick={handleAddMisi}
@@ -327,7 +401,6 @@ export default function EditVisiMisi() {
                                 )}
                             </div>
                         </div>
-
                     </div>
                 </form>
             </div>

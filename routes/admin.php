@@ -39,7 +39,7 @@ Route::middleware(['auth', 'verified', 'check_active', 'admin'])
         Route::inertia('/dokumentasi/create', 'admin/dokumentasi/create')->name('admin.dokumentasi.create');
         Route::inertia('/dokumentasi/{id}/edit', 'admin/dokumentasi/edit')->name('admin.dokumentasi.edit');
 
-        // Kelola Aset Media (Tambahan)
+        // Kelola Aset Media 
         Route::inertia('/aset', 'admin/aset/index')->name('admin.aset.index');
 
         // Kelola Dokumen Penting / Lampiran

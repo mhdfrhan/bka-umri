@@ -32,6 +32,7 @@ interface AlbumDetail {
     slug: string;
     deskripsi?: string;
     tanggal_kegiatan: string;
+    kategori?: string;
     fotos: (string | PhotoItem)[];
 }
 
@@ -47,7 +48,7 @@ export default function DokumentasiShow() {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const segments = window.location.pathname.split('/');
-            const slug = segments[segments.length - 1]; // last segment
+            const slug = segments[segments.length - 1];
 
             const saved = localStorage.getItem('bka_albums');
             if (saved) {
@@ -55,15 +56,22 @@ export default function DokumentasiShow() {
                     const parsed = JSON.parse(saved);
                     const found = parsed.find((a: any) => a.slug === slug);
                     if (found) {
-                        // Map the admin keys to the public component keys
                         setAlbum({
                             judul: found.title || found.judul,
                             slug: found.slug,
                             deskripsi: found.description || found.deskripsi,
-                            tanggal_kegiatan: found.date || found.tanggal_kegiatan,
-                            fotos: found.photos 
-                                ? found.photos.map((p: any) => ({ url: p.url, caption: p.caption || '' }))
-                                : (found.fotos || [])
+                            tanggal_kegiatan:
+                                found.date || found.tanggal_kegiatan,
+                            kategori:
+                                found.category ||
+                                found.kategori ||
+                                'Tanpa Kategori',
+                            fotos: found.photos
+                                ? found.photos.map((p: any) => ({
+                                      url: p.url,
+                                      caption: p.caption || '',
+                                  }))
+                                : found.fotos || [],
                         });
                     }
                 } catch {
@@ -106,15 +114,19 @@ export default function DokumentasiShow() {
     if (!album) {
         return (
             <div className="flex min-h-[400px] flex-col items-center justify-center bg-white pt-24 text-neutral-500">
-                <p className="text-lg font-bold">Album kegiatan tidak ditemukan!</p>
-                <Link href="/dokumentasi" className="mt-4 text-[#1B5E20] hover:underline font-semibold font-bold">
+                <p className="text-lg font-bold">
+                    Album kegiatan tidak ditemukan!
+                </p>
+                <Link
+                    href="/dokumentasi"
+                    className="mt-4 font-semibold text-[#1B5E20] hover:underline"
+                >
                     Kembali ke Galeri
                 </Link>
             </div>
         );
     }
 
-    // ─── Format photos for Lightbox structure ───
     const slides = (album.fotos || [])
         .map((photo, idx) => {
             if (typeof photo === 'string') {
@@ -127,10 +139,8 @@ export default function DokumentasiShow() {
 
             return {
                 src: photo.url || '',
-                alt:
-                    photo.caption || `${album.judul} - Foto ${idx + 1}`,
-                title:
-                    photo.caption || `${album.judul} - Foto ${idx + 1}`,
+                alt: photo.caption || `${album.judul} - Foto ${idx + 1}`,
+                title: photo.caption || `${album.judul} - Foto ${idx + 1}`,
             };
         })
         .filter((slide) => !!slide.src);
@@ -146,9 +156,7 @@ export default function DokumentasiShow() {
 
     return (
         <>
-            <Head
-                title={`${album.judul} - Galeri Dokumentasi BKA UMRI`}
-            >
+            <Head title={`${album.judul} - Galeri Dokumentasi BKA UMRI`}>
                 <meta
                     name="description"
                     content={
@@ -158,7 +166,6 @@ export default function DokumentasiShow() {
                 />
             </Head>
 
-            {/* Back Button & Breadcrumbs Container */}
             <div className="border-b border-[#F1F3F1] bg-white py-4">
                 <div className="bka-container flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Link
@@ -174,7 +181,6 @@ export default function DokumentasiShow() {
                 </div>
             </div>
 
-            {/* Main Header / Banner Info */}
             <section className="bg-white py-12 md:py-16">
                 <div className="bka-container">
                     <div className="mx-auto max-w-[900px]">
@@ -185,6 +191,15 @@ export default function DokumentasiShow() {
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F5E9] px-3.5 py-1 text-xs font-bold text-[#1B5E20]">
                                 <Camera size={13} />
                                 <span>{slides.length} Dokumentasi</span>
+                            </span>
+                            <span
+                                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold text-white shadow-xs ${
+                                    album.kategori === 'Aset'
+                                        ? 'bg-[#C8A000]'
+                                        : 'bg-[#1B5E20]'
+                                }`}
+                            >
+                                <span>{album.kategori}</span>
                             </span>
                             <span className="flex items-center gap-1.5 text-xs font-semibold text-[#5C6B73]">
                                 <Calendar
@@ -215,7 +230,6 @@ export default function DokumentasiShow() {
                             </p>
                         )}
 
-                        {/* Share buttons */}
                         <div
                             ref={descRef}
                             className="bka-reveal flex flex-wrap items-center gap-3 border-t border-[#F1F3F1] pt-6"
@@ -250,7 +264,6 @@ export default function DokumentasiShow() {
                 </div>
             </section>
 
-            {/* Photos Grid Section */}
             <section className="min-h-[300px] flex-1 bg-[#F7F9F7] py-12 md:py-16">
                 <div className="bka-container">
                     {slides.length > 0 ? (
@@ -265,7 +278,6 @@ export default function DokumentasiShow() {
                                         onClick={() => setLightboxIndex(idx)}
                                         className={`bka-reveal bka-stagger-${(idx % 6) + 1} group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border border-[#DDE5DD] bg-white shadow-sm transition-all duration-300 hover:shadow-md`}
                                     >
-                                        {/* Image */}
                                         <img
                                             src={photo.src}
                                             alt={photo.alt}
@@ -273,7 +285,6 @@ export default function DokumentasiShow() {
                                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
 
-                                        {/* Premium Hover Dark Overlay with Zoom Icon */}
                                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0D3B11]/70 p-4 opacity-0 transition-all duration-300 group-hover:opacity-100">
                                             <div className="flex h-11 w-11 translate-y-3 transform items-center justify-center rounded-full bg-[#C8A000] text-white shadow-lg transition-transform duration-300 group-hover:translate-y-0">
                                                 <ZoomIn size={20} />
@@ -288,7 +299,6 @@ export default function DokumentasiShow() {
                                 ))}
                             </div>
 
-                            {/* Lightbox Module */}
                             <Lightbox
                                 index={lightboxIndex}
                                 open={lightboxIndex >= 0}
@@ -302,7 +312,6 @@ export default function DokumentasiShow() {
                             />
                         </>
                     ) : (
-                        /* Empty State if photos is empty */
                         <div className="mx-auto flex max-w-md flex-col items-center justify-center rounded-3xl border border-[#DDE5DD] bg-white px-6 py-20 text-center">
                             <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F5E9] text-[#1B5E20]">
                                 <Camera size={24} />

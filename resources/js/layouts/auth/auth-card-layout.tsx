@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/card';
 import { home } from '@/routes/public';
 
-
 export default function AuthCardLayout({
     children,
     title,

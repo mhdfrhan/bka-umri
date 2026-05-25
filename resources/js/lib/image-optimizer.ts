@@ -15,7 +15,7 @@ export interface OptimizedFileResult {
 export function optimizeFile(
     file: File,
     maxWidth = 800,
-    quality = 0.7
+    quality = 0.7,
 ): Promise<OptimizedFileResult> {
     const extension = file.name.split('.').pop()?.toLowerCase() || '';
     const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
@@ -51,7 +51,11 @@ export function optimizeFile(
 
                     // Output to WebP
                     const base64 = canvas.toDataURL('image/webp', quality);
-                    const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+                    const padding = base64.endsWith('==')
+                        ? 2
+                        : base64.endsWith('=')
+                          ? 1
+                          : 0;
                     const size = Math.round((base64.length * 3) / 4 - padding);
 
                     resolve({
@@ -60,7 +64,7 @@ export function optimizeFile(
                         originalSize: file.size,
                         name: file.name,
                         type: 'image',
-                        extension: 'webp'
+                        extension: 'webp',
                     });
                 };
                 img.onerror = (err) => reject(err);
@@ -80,7 +84,7 @@ export function optimizeFile(
                     originalSize: file.size,
                     name: file.name,
                     type: 'file',
-                    extension
+                    extension,
                 });
             };
             reader.onerror = (err) => reject(err);

@@ -23,9 +23,10 @@ interface AlbumItem {
     tanggal_kegiatan: string;
     jumlah_foto: number;
     deskripsi?: string;
+    kategori?: string;
 }
 
-const dummyAlbums: AlbumItem[] = [
+const dummyAlbums = [
     {
         judul: 'Peluncuran Portal Keuangan Terintegrasi BKA UMRI',
         slug: 'peluncuran-portal-keuangan-bka',
@@ -33,6 +34,7 @@ const dummyAlbums: AlbumItem[] = [
             'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
         tanggal_kegiatan: '2026-05-20',
         jumlah_foto: 12,
+        category: 'Keuangan',
         deskripsi:
             'Dokumentasi resmi acara peluncuran portal pembayaran SPP baru terintegrasi virtual account bank syariah.',
     },
@@ -43,6 +45,7 @@ const dummyAlbums: AlbumItem[] = [
             'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
         tanggal_kegiatan: '2026-05-15',
         jumlah_foto: 8,
+        category: 'Aset',
         deskripsi:
             'Sinergi pencatatan sarana prasarana fisik guna meraih akreditasi kampus unggul tingkat nasional.',
     },
@@ -53,6 +56,7 @@ const dummyAlbums: AlbumItem[] = [
             'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=600&q=80',
         tanggal_kegiatan: '2026-05-10',
         jumlah_foto: 15,
+        category: 'Keuangan',
         deskripsi:
             'Penandatanganan dokumen kerja sama kemitraan strategis pembayaran uang kuliah tunggal mahasiswa.',
     },
@@ -63,6 +67,7 @@ const dummyAlbums: AlbumItem[] = [
             'https://images.unsplash.com/photo-1531496730074-83b638c0a7ac?w=600&q=80',
         tanggal_kegiatan: '2026-04-20',
         jumlah_foto: 6,
+        category: 'Keuangan',
         deskripsi:
             'Peningkatan kompetensi staf administrasi keuangan dalam pengoperasian modul modul ERP terbaru.',
     },
@@ -73,6 +78,7 @@ const dummyAlbums: AlbumItem[] = [
             'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&q=80',
         tanggal_kegiatan: '2026-04-05',
         jumlah_foto: 20,
+        category: 'Keuangan',
         deskripsi:
             'Pemberian santunan dan paket kebutuhan pokok kepada panti asuhan muhammadiyah binaan UMRI.',
     },
@@ -83,6 +89,7 @@ const dummyAlbums: AlbumItem[] = [
             'https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80',
         tanggal_kegiatan: '2026-03-12',
         jumlah_foto: 10,
+        category: 'Keuangan',
         deskripsi:
             'Rapat kerja seluruh jajaran biro keuangan guna menyusun anggaran operasional tahun akademik baru.',
     },
@@ -97,12 +104,30 @@ const dummyPagination = [
 export default function DokumentasiIndex() {
     const [searchQuery, setSearchQuery] = useState('');
     const [albumList, setAlbumList] = useState<any[]>([]);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [activeCategory, setActiveCategory] = useState('Semua');
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const filterRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
     useEffect(() => {
+        const savedCats = localStorage.getItem('bka_dokumentasi_categories');
+        let loadedCats = ['Keuangan', 'Aset'];
+        if (savedCats) {
+            try {
+                loadedCats = JSON.parse(savedCats);
+            } catch {
+                // ignore
+            }
+        } else {
+            localStorage.setItem(
+                'bka_dokumentasi_categories',
+                JSON.stringify(loadedCats),
+            );
+        }
+        setCategories(loadedCats);
+
         const saved = localStorage.getItem('bka_albums');
         if (saved) {
             try {
@@ -111,7 +136,6 @@ export default function DokumentasiIndex() {
                 setAlbumList([]);
             }
         } else {
-            // Seed defaults mapped to admin schema
             const seeded = dummyAlbums.map((a, index) => ({
                 id: index + 1,
                 title: a.judul,
@@ -119,34 +143,41 @@ export default function DokumentasiIndex() {
                 description: a.deskripsi,
                 date: a.tanggal_kegiatan,
                 coverUrl: a.cover_url,
+                category: a.category,
                 photos: Array.from({ length: a.jumlah_foto }).map((_, i) => ({
                     id: String(i + 1),
                     url: a.cover_url,
-                    order: i + 1
-                }))
+                    order: i + 1,
+                })),
             }));
             localStorage.setItem('bka_albums', JSON.stringify(seeded));
             setAlbumList(seeded);
         }
     }, []);
 
-    // Map keys to match public UI
-    const mappedAlbums: AlbumItem[] = albumList.map((a: any) => ({
-        judul: a.title || a.judul,
-        slug: a.slug,
-        cover_url: a.coverUrl || a.cover_url,
-        tanggal_kegiatan: a.date || a.tanggal_kegiatan,
-        jumlah_foto: a.photos ? a.photos.length : (a.jumlah_foto || 0),
-        deskripsi: a.description || a.deskripsi
-    }));
+    const mappedAlbums: AlbumItem[] = (albumList || [])
+        .filter((a) => a && (a.title || a.judul))
+        .map((a: any) => ({
+            judul: a.title || a.judul || 'Tanpa Judul',
+            slug: a.slug || '',
+            cover_url: a.coverUrl || a.cover_url || '',
+            tanggal_kegiatan: a.date || a.tanggal_kegiatan || '',
+            jumlah_foto: a.photos ? a.photos.length : a.jumlah_foto || 0,
+            deskripsi: a.description || a.deskripsi || '',
+            kategori: a.category || a.kategori || 'Tanpa Kategori',
+        }));
 
-    const filteredAlbums = mappedAlbums.filter(
-        (album) =>
+    const filteredAlbums = mappedAlbums.filter((album) => {
+        if (!album) return false;
+        const matchesSearch =
             album.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (album.deskripsi || '')
                 .toLowerCase()
-                .includes(searchQuery.toLowerCase()),
-    );
+                .includes(searchQuery.toLowerCase());
+        const matchesCategory =
+            activeCategory === 'Semua' || album.kategori === activeCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
@@ -162,17 +193,18 @@ export default function DokumentasiIndex() {
                 />
             </Head>
 
-            {/* Page Hero */}
             <PageHero
                 title="Galeri Dokumentasi"
                 description="Arsip visual dan kumpulan dokumentasi berbagai agenda serta kegiatan resmi Biro Keuangan & Aset UMRI."
             >
                 <div ref={heroRef} className="bka-reveal">
-                    <Breadcrumbs breadcrumbs={breadcrumbItems} />
+                    <Breadcrumbs
+                        breadcrumbs={breadcrumbItems}
+                        variant="public"
+                    />
                 </div>
             </PageHero>
 
-            {/* Search Bar Section */}
             <section className="border-b border-[#E8F5E9] bg-white py-8">
                 <div className="bka-container">
                     <div
@@ -189,7 +221,6 @@ export default function DokumentasiIndex() {
                             </p>
                         </div>
 
-                        {/* Premium Search Input */}
                         <div className="relative w-full sm:max-w-xs">
                             <input
                                 type="text"
@@ -204,10 +235,35 @@ export default function DokumentasiIndex() {
                             />
                         </div>
                     </div>
+
+                    <div className="mt-6 flex flex-wrap gap-2 border-t border-[#F1F3F1] pt-5">
+                        <button
+                            onClick={() => setActiveCategory('Semua')}
+                            className={`rounded-full px-4 py-1.5 text-xs font-extrabold transition-all ${
+                                activeCategory === 'Semua'
+                                    ? 'bg-[#1B5E20] text-white shadow-xs'
+                                    : 'border border-[#DDE5DD] bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#E8F5E9] hover:text-[#1B5E20]'
+                            }`}
+                        >
+                            Semua
+                        </button>
+                        {categories.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setActiveCategory(cat)}
+                                className={`rounded-full px-4 py-1.5 text-xs font-extrabold transition-all ${
+                                    activeCategory === cat
+                                        ? 'bg-[#1B5E20] text-white shadow-xs'
+                                        : 'border border-[#DDE5DD] bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#E8F5E9] hover:text-[#1B5E20]'
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </section>
 
-            {/* Albums Grid Section */}
             <section className="min-h-[400px] flex-1 bg-[#F7F9F7] py-12 md:py-16">
                 <div className="bka-container">
                     {filteredAlbums.length > 0 ? (
@@ -221,7 +277,6 @@ export default function DokumentasiIndex() {
                                         key={album.slug}
                                         className={`bka-reveal bka-stagger-${(idx % 6) + 1} group flex h-full flex-col overflow-hidden rounded-2xl border border-[#DDE5DD] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md`}
                                     >
-                                        {/* Cover Image Container */}
                                         <Link
                                             href={`/dokumentasi/${album.slug}`}
                                             className="relative block aspect-video overflow-hidden bg-emerald-50"
@@ -235,7 +290,6 @@ export default function DokumentasiIndex() {
                                                 }}
                                                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
-                                            {/* Photo Count Badge */}
                                             <div className="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-lg bg-[#1A1A1A]/70 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-xs">
                                                 <Images
                                                     size={13}
@@ -245,11 +299,18 @@ export default function DokumentasiIndex() {
                                                     {album.jumlah_foto} Foto
                                                 </span>
                                             </div>
+                                            <div
+                                                className={`absolute top-3 left-3 rounded-lg px-2.5 py-1 text-[10px] font-extrabold text-white shadow-xs backdrop-blur-xs ${
+                                                    album.kategori === 'Aset'
+                                                        ? 'bg-[#C8A000]'
+                                                        : 'bg-[#1B5E20]'
+                                                }`}
+                                            >
+                                                {album.kategori}
+                                            </div>
                                         </Link>
 
-                                        {/* Text Contents */}
                                         <div className="flex flex-1 flex-col p-5">
-                                            {/* Date Info */}
                                             <div className="mb-2.5 flex items-center gap-2 text-xs font-medium text-[#5C6B73]">
                                                 <Calendar
                                                     size={13}
@@ -262,7 +323,6 @@ export default function DokumentasiIndex() {
                                                 </span>
                                             </div>
 
-                                            {/* Title */}
                                             <h3 className="mb-2 line-clamp-2 text-[15px] leading-snug font-bold text-[#1A1A1A] hover:text-[#1B5E20]">
                                                 <Link
                                                     href={`/dokumentasi/${album.slug}`}
@@ -271,14 +331,12 @@ export default function DokumentasiIndex() {
                                                 </Link>
                                             </h3>
 
-                                            {/* Excerpt */}
                                             {album.deskripsi && (
                                                 <p className="mb-4 line-clamp-2 text-[13px] leading-relaxed text-[#5C6B73]">
                                                     {album.deskripsi}
                                                 </p>
                                             )}
 
-                                            {/* Action Link */}
                                             <div className="mt-auto border-t border-[#F1F3F1] pt-3">
                                                 <Link
                                                     href={`/dokumentasi/${album.slug}`}
@@ -298,14 +356,12 @@ export default function DokumentasiIndex() {
                                 ))}
                             </div>
 
-                            {/* Pagination */}
                             <div className="mt-12 flex justify-center">
                                 <Pagination links={dummyPagination} />
                             </div>
                         </>
                     ) : (
-                        /* Beautiful Premium Empty State */
-                        <div className="mx-auto flex max-w-xl flex-col items-center justify-center rounded-3xl border border-[#DDE5DD] bg-white px-6 py-20 text-center shadow-xs">
+                        <div className="mx-auto flex max-w-xl flex-col items-center justify-center px-6 py-20 text-center text-[#5C6B73]">
                             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F5E9] text-[#1B5E20]">
                                 <ImageIcon size={28} />
                             </div>
@@ -314,15 +370,17 @@ export default function DokumentasiIndex() {
                             </h3>
                             <p className="mb-6 max-w-sm text-sm leading-relaxed text-[#5C6B73]">
                                 Kami tidak dapat menemukan album kegiatan dengan
-                                kata kunci pencarian Anda. Silakan coba kata
-                                kunci lain.
+                                kata kunci atau kategori yang Anda pilih.
                             </p>
-                            {searchQuery && (
+                            {(searchQuery || activeCategory !== 'Semua') && (
                                 <button
-                                    onClick={() => setSearchQuery('')}
+                                    onClick={() => {
+                                        setSearchQuery('');
+                                        setActiveCategory('Semua');
+                                    }}
                                     className="rounded-xl bg-[#1B5E20] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#145218]"
                                 >
-                                    Reset Pencarian
+                                    Reset Filter & Pencarian
                                 </button>
                             )}
                         </div>

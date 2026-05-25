@@ -15,7 +15,7 @@ import {
     Image as ImageIcon,
     ArrowUp,
     ArrowDown,
-    Upload
+    Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
@@ -28,23 +28,29 @@ export default function EditBidang() {
     >('info');
 
     // Modals & Upload State
-    const [assetPickerTarget, setAssetPickerTarget] = useState<'banner' | 'kepala' | null>(null);
-    const [uploadTarget, setUploadTarget] = useState<'banner' | 'kepala' | null>(null);
+    const [assetPickerTarget, setAssetPickerTarget] = useState<
+        'banner' | 'kepala' | null
+    >(null);
+    const [uploadTarget, setUploadTarget] = useState<
+        'banner' | 'kepala' | null
+    >(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-    const handleFileChange = (target: 'banner' | 'kepala') => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const handleFileChange =
+        (target: 'banner' | 'kepala') =>
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-        if (file.size > 10 * 1024 * 1024) {
-            toast.error('File gambar melebihi batas 10MB!');
-            return;
-        }
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('File gambar melebihi batas 10MB!');
+                return;
+            }
 
-        setSelectedFile(file);
-        setUploadTarget(target);
-        e.target.value = '';
-    };
+            setSelectedFile(file);
+            setUploadTarget(target);
+            e.target.value = '';
+        };
 
     const handleSelectAsset = (url: string) => {
         if (assetPickerTarget === 'banner') {
@@ -315,7 +321,7 @@ export default function EditBidang() {
                 </div>
 
                 {/* Form Shell */}
-                <div className="grid w-full grid-cols-1 gap-8 items-start lg:grid-cols-[28%_1fr]">
+                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[28%_1fr]">
                     {/* Multi-Tab Navigation Panel */}
                     <div className="flex w-full shrink-0 scrollbar-none flex-row gap-1.5 overflow-x-auto pb-2 select-none lg:w-full lg:flex-col lg:pb-0">
                         <button
@@ -324,7 +330,7 @@ export default function EditBidang() {
                             className={`flex w-full shrink-0 items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-semibold tracking-wide whitespace-nowrap transition-all outline-none ${
                                 activeTab === 'info'
                                     ? 'rounded-l-none rounded-r-xl border-l-[3px] border-emerald-600 bg-emerald-50 pl-3 text-emerald-800 shadow-xs'
-                                     : 'text-neutral-500 hover:bg-neutral-100/70 hover:text-neutral-900'
+                                    : 'text-neutral-500 hover:bg-neutral-100/70 hover:text-neutral-900'
                             }`}
                         >
                             <Sliders className="size-4.5 shrink-0" />
@@ -480,25 +486,33 @@ export default function EditBidang() {
 
                                 {/* Banner Gambar */}
                                 <div className="space-y-1.5">
-                                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                                        <label className="text-sm font-bold text-neutral-700">Gambar Banner Latar (Rasio 16:9)</label>
+                                    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                                        <label className="text-sm font-bold text-neutral-700">
+                                            Gambar Banner Latar (Rasio 16:9)
+                                        </label>
                                         <div className="flex gap-2">
                                             <button
                                                 type="button"
-                                                onClick={() => setAssetPickerTarget('banner')}
-                                                className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-600 hover:bg-neutral-50 hover:text-emerald-700 shadow-xs"
+                                                onClick={() =>
+                                                    setAssetPickerTarget(
+                                                        'banner',
+                                                    )
+                                                }
+                                                className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-600 shadow-xs hover:bg-neutral-50 hover:text-emerald-700"
                                             >
                                                 <ImageIcon className="size-3" />
                                                 Pilih dari Aset
                                             </button>
-                                            <label className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs cursor-pointer">
+                                            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700">
                                                 <Upload className="size-3" />
                                                 Unggah Langsung
                                                 <input
                                                     type="file"
                                                     accept="image/*"
                                                     className="hidden"
-                                                    onChange={handleFileChange('banner')}
+                                                    onChange={handleFileChange(
+                                                        'banner',
+                                                    )}
                                                 />
                                             </label>
                                         </div>
@@ -506,12 +520,14 @@ export default function EditBidang() {
                                     <input
                                         type="text"
                                         value={bannerUrl}
-                                        onChange={(e) => setBannerUrl(e.target.value)}
+                                        onChange={(e) =>
+                                            setBannerUrl(e.target.value)
+                                        }
                                         placeholder="Contoh: https://images.unsplash.com/... atau dari unggahan"
-                                        className="w-full text-sm p-3 border border-neutral-200 rounded-xl focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all font-mono text-neutral-600 bg-white"
+                                        className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     />
                                     {bannerUrl.trim() && (
-                                        <div className="mt-2 size-24 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-55 bg-neutral-50 select-none">
+                                        <div className="bg-neutral-55 mt-2 size-24 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 select-none">
                                             <img
                                                 src={bannerUrl}
                                                 alt="Preview Banner"
@@ -592,25 +608,34 @@ export default function EditBidang() {
                                 <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-12">
                                     {/* Foto URL input */}
                                     <div className="space-y-1.5 md:col-span-9">
-                                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                                            <label className="text-sm font-bold text-neutral-700">Foto Profil Kepala (Rasio 3:4 atau 1:1)</label>
+                                        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                                            <label className="text-sm font-bold text-neutral-700">
+                                                Foto Profil Kepala (Rasio 3:4
+                                                atau 1:1)
+                                            </label>
                                             <div className="flex gap-2">
                                                 <button
                                                     type="button"
-                                                    onClick={() => setAssetPickerTarget('kepala')}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-600 hover:bg-neutral-50 hover:text-emerald-700 shadow-xs"
+                                                    onClick={() =>
+                                                        setAssetPickerTarget(
+                                                            'kepala',
+                                                        )
+                                                    }
+                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-600 shadow-xs hover:bg-neutral-50 hover:text-emerald-700"
                                                 >
                                                     <ImageIcon className="size-3" />
                                                     Pilih dari Aset
                                                 </button>
-                                                <label className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs cursor-pointer">
+                                                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700">
                                                     <Upload className="size-3" />
                                                     Unggah Langsung
                                                     <input
                                                         type="file"
                                                         accept="image/*"
                                                         className="hidden"
-                                                        onChange={handleFileChange('kepala')}
+                                                        onChange={handleFileChange(
+                                                            'kepala',
+                                                        )}
                                                     />
                                                 </label>
                                             </div>
@@ -618,14 +643,16 @@ export default function EditBidang() {
                                         <input
                                             type="text"
                                             value={kepalaFoto}
-                                            onChange={(e) => setKepalaFoto(e.target.value)}
+                                            onChange={(e) =>
+                                                setKepalaFoto(e.target.value)
+                                            }
                                             placeholder="Contoh: https://images.unsplash.com/... atau dari unggahan"
                                             className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                         />
                                     </div>
 
                                     {/* Foto Preview */}
-                                    <div className="flex justify-center md:col-span-3 self-end">
+                                    <div className="flex justify-center self-end md:col-span-3">
                                         <div className="size-24 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 shadow-inner select-none">
                                             <img
                                                 src={kepalaFoto}
@@ -961,10 +988,14 @@ export default function EditBidang() {
                 onConfirm={(result) => {
                     if (uploadTarget === 'banner') {
                         setBannerUrl(result.base64);
-                        toast.success('Gambar banner berhasil diunggah & dioptimasi!');
+                        toast.success(
+                            'Gambar banner berhasil diunggah & dioptimasi!',
+                        );
                     } else if (uploadTarget === 'kepala') {
                         setKepalaFoto(result.base64);
-                        toast.success('Foto kepala divisi berhasil diunggah & dioptimasi!');
+                        toast.success(
+                            'Foto kepala divisi berhasil diunggah & dioptimasi!',
+                        );
                     }
                     setSelectedFile(null);
                     setUploadTarget(null);

@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Facebook, Linkedin, Twitter, User } from 'lucide-react';
+import {
+    ArrowLeft,
+    Calendar,
+    Facebook,
+    Linkedin,
+    Twitter,
+    User,
+} from 'lucide-react';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 
 // ─── Dummy Data fallback ───
 const dummyArticle = {
     slug: 'bka-luncurkan-sistem-keuangan-baru-2026',
-    thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
+    thumbnail:
+        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
     category: 'Layanan',
     title: 'BKA UMRI Luncurkan Portal Keuangan Terintegrasi untuk Mahasiswa',
     date: '2026-05-20',
@@ -31,16 +39,21 @@ const dummyArticle = {
         <p>Tim IT UMRI memastikan bahwa portal ini telah dilengkapi dengan sistem keamanan enkripsi terkini untuk melindungi data pribadi dan riwayat transaksi mahasiswa. Sistem ini akan mulai diimplementasikan secara penuh pada masa registrasi semester ganjil tahun akademik 2026/2027.</p>
         
         <p>Biga mahasiswa yang mengalami kendala teknis saat mengakses portal, BKA telah menyediakan layanan *helpdesk* terpadu yang dapat dihubungi melalui email resmi maupun *hotline* WhatsApp yang beroperasi pada jam kerja.</p>
-    `
+    `,
 };
 
 const formatDateIndo = (dateStr: string) => {
     if (!dateStr) return '';
-    if (dateStr.includes(' ') && isNaN(Number(dateStr.split(' ')[0]))) return dateStr; // already formatted like "20 Mei 2026"
+    if (dateStr.includes(' ') && isNaN(Number(dateStr.split(' ')[0])))
+        return dateStr; // already formatted like "20 Mei 2026"
     try {
         const dateObj = new Date(dateStr);
         if (isNaN(dateObj.getTime())) return dateStr;
-        const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+        const options: Intl.DateTimeFormatOptions = {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        };
         return dateObj.toLocaleDateString('id-ID', options);
     } catch {
         return dateStr;
@@ -69,7 +82,7 @@ export default function BeritaShow() {
                             title: item.title,
                             date: item.date,
                             author: item.author || 'Admin BKA',
-                            content: item.content
+                            content: item.content,
                         });
                     }
                 } catch {
@@ -82,23 +95,27 @@ export default function BeritaShow() {
     return (
         <>
             <Head title={`${article.title} - BKA UMRI`}>
-                <meta name="description" content="Detail berita Biro Keuangan dan Aset Universitas Muhammadiyah Riau." />
+                <meta
+                    name="description"
+                    content="Detail berita Biro Keuangan dan Aset Universitas Muhammadiyah Riau."
+                />
             </Head>
 
             {/* Article Header / Hero */}
             <section className="relative pt-28 pb-16 md:pt-36 md:pb-24">
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0">
-                    <img 
-                        src={article.thumbnail} 
-                        alt="" 
-                        aria-hidden="true" 
+                    <img
+                        src={article.thumbnail}
+                        alt=""
+                        aria-hidden="true"
                         className="h-full w-full object-cover"
                     />
-                    <div 
+                    <div
                         className="absolute inset-0"
                         style={{
-                            background: 'linear-gradient(to bottom, rgba(13, 59, 17, 0.85) 0%, rgba(10, 40, 14, 0.95) 100%)'
+                            background:
+                                'linear-gradient(to bottom, rgba(13, 59, 17, 0.85) 0%, rgba(10, 40, 14, 0.95) 100%)',
                         }}
                     />
                 </div>
@@ -107,14 +124,14 @@ export default function BeritaShow() {
                     <div className="mx-auto max-w-[800px] text-center">
                         {/* Category Badge */}
                         <div className="mb-6">
-                            <span className="inline-block rounded-full bg-[#C8A000] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#1A1A1A] shadow-md">
+                            <span className="inline-block rounded-full bg-[#C8A000] px-4 py-1.5 text-xs font-bold tracking-widest text-[#1A1A1A] uppercase shadow-md">
                                 {article.category}
                             </span>
                         </div>
-                        
+
                         {/* Title */}
-                        <h1 
-                            className="mb-8 font-bold leading-tight text-white"
+                        <h1
+                            className="mb-8 leading-tight font-bold text-white"
                             style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}
                         >
                             {article.title}
@@ -123,7 +140,10 @@ export default function BeritaShow() {
                         {/* Meta Data */}
                         <div className="flex flex-wrap items-center justify-center gap-6 text-[14px] font-medium text-white/80">
                             <div className="flex items-center gap-2">
-                                <Calendar size={16} className="text-[#C8A000]" />
+                                <Calendar
+                                    size={16}
+                                    className="text-[#C8A000]"
+                                />
                                 <span>{formatDateIndo(article.date)}</span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -138,12 +158,16 @@ export default function BeritaShow() {
             {/* Main Content Area */}
             <section className="bg-white py-12 md:py-20">
                 <div className="bka-container">
-                    <div ref={articleRef} className="bka-reveal mx-auto max-w-[760px]">
-                        
+                    <div
+                        ref={articleRef}
+                        className="bka-reveal mx-auto max-w-[760px]"
+                    >
                         {/* Prose Content */}
-                        <div 
-                            className="prose prose-lg prose-[#5C6B73] max-w-none prose-headings:text-[#1A1A1A] prose-headings:font-bold prose-h3:text-2xl prose-a:text-[#1B5E20] prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-img:shadow-md prose-blockquote:border-l-[#C8A000] prose-blockquote:bg-[#F7F9F7] prose-blockquote:px-6 prose-blockquote:py-3 prose-blockquote:font-medium prose-blockquote:italic prose-blockquote:text-[#1B5E20]"
-                            dangerouslySetInnerHTML={{ __html: article.content }}
+                        <div
+                            className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-2xl prose-a:text-[#1B5E20] prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-[#C8A000] prose-blockquote:bg-[#F7F9F7] prose-blockquote:px-6 prose-blockquote:py-3 prose-blockquote:font-medium prose-blockquote:text-[#1B5E20] prose-blockquote:italic prose-img:rounded-2xl prose-img:shadow-md"
+                            dangerouslySetInnerHTML={{
+                                __html: article.content,
+                            }}
                         />
 
                         {/* Share & Back Area */}
@@ -160,21 +184,31 @@ export default function BeritaShow() {
                             </Link>
 
                             <div className="flex items-center gap-4">
-                                <span className="text-sm font-semibold text-[#1A1A1A]">Bagikan:</span>
+                                <span className="text-sm font-semibold text-[#1A1A1A]">
+                                    Bagikan:
+                                </span>
                                 <div className="flex items-center gap-2">
-                                    <button aria-label="Share on Facebook" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white">
+                                    <button
+                                        aria-label="Share on Facebook"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                    >
                                         <Facebook size={16} />
                                     </button>
-                                    <button aria-label="Share on Twitter" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white">
+                                    <button
+                                        aria-label="Share on Twitter"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                    >
                                         <Twitter size={16} />
                                     </button>
-                                    <button aria-label="Share on LinkedIn" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white">
+                                    <button
+                                        aria-label="Share on LinkedIn"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                    >
                                         <Linkedin size={16} />
                                     </button>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </section>

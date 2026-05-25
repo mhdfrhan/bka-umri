@@ -53,7 +53,9 @@ const dummyKategoriLampirans: KategoriLampiran[] = [
 
 export default function LampiranIndex({ kategoriLampirans }: LampiranProps) {
     const [searchQuery, setSearchQuery] = useState('');
-    const [realCategories, setRealCategories] = useState<KategoriLampiran[]>([]);
+    const [realCategories, setRealCategories] = useState<KategoriLampiran[]>(
+        [],
+    );
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const filterRef = useScrollReveal<HTMLDivElement>();
@@ -67,10 +69,14 @@ export default function LampiranIndex({ kategoriLampirans }: LampiranProps) {
                 const parsedCats = JSON.parse(savedCategories);
                 let parsedFiles = [];
                 if (savedFiles) {
-                    try { parsedFiles = JSON.parse(savedFiles); } catch {}
+                    try {
+                        parsedFiles = JSON.parse(savedFiles);
+                    } catch {}
                 }
                 const enriched = parsedCats.map((cat: any) => {
-                    const count = parsedFiles.filter((f: any) => f.kategori_id === cat.id).length;
+                    const count = parsedFiles.filter(
+                        (f: any) => f.kategori_id === cat.id,
+                    ).length;
                     return {
                         nama: cat.nama,
                         slug: cat.slug,
@@ -86,12 +92,15 @@ export default function LampiranIndex({ kategoriLampirans }: LampiranProps) {
     }, []);
 
     // Safe fallback handling for dynamic vs mock data
-    const isUsingRealData = realCategories.length > 0 || !!(
-        kategoriLampirans && kategoriLampirans.length > 0
-    );
-    const resolvedKategori = realCategories.length > 0
-        ? realCategories
-        : (isUsingRealData ? (kategoriLampirans || []) : dummyKategoriLampirans);
+    const isUsingRealData =
+        realCategories.length > 0 ||
+        !!(kategoriLampirans && kategoriLampirans.length > 0);
+    const resolvedKategori =
+        realCategories.length > 0
+            ? realCategories
+            : isUsingRealData
+              ? kategoriLampirans || []
+              : dummyKategoriLampirans;
 
     // Filter categories based on search input for highly interactive preview
     const filteredKategori = resolvedKategori.filter(
@@ -120,7 +129,10 @@ export default function LampiranIndex({ kategoriLampirans }: LampiranProps) {
                 description="Pusat unduhan berkas resmi, formulir kemahasiswaan, standar operasional (SOP), dan regulasi keuangan BKA UMRI."
             >
                 <div ref={heroRef} className="bka-reveal">
-                    <Breadcrumbs breadcrumbs={breadcrumbItems} />
+                    <Breadcrumbs
+                        breadcrumbs={breadcrumbItems}
+                        variant="public"
+                    />
                 </div>
             </PageHero>
 

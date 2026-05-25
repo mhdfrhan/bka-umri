@@ -1,13 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
-    ChevronRight,
     Facebook,
     Instagram,
     Linkedin,
     Twitter,
 } from 'lucide-react';
-import { useScrollReveal, useScrollRevealChildren } from '@/hooks/use-scroll-reveal';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import {
+    useScrollReveal,
+    useScrollRevealChildren,
+} from '@/hooks/use-scroll-reveal';
 
 interface SocialMedia {
     platform: 'facebook' | 'twitter' | 'instagram' | 'linkedin';
@@ -109,21 +112,28 @@ const dummyAset: BidangShowProps['bidang'] = {
 // Temporary: resolve dummy data from slug
 function getDummyBidang(slug: string): BidangShowProps['bidang'] {
     if (slug === 'administrasi-dan-pengadaan-aset') {
-return dummyAset;
-}
+        return dummyAset;
+    }
 
     return dummyKeuangan;
 }
 
 export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
     // Use prop data if available, else fallback to dummy
-    const bidang = bidangProp ?? getDummyBidang('administrasi-keuangan-dan-profit');
+    const bidang =
+        bidangProp ?? getDummyBidang('administrasi-keuangan-dan-profit');
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const descRef = useScrollReveal<HTMLDivElement>();
     const strukturRef = useScrollReveal<HTMLDivElement>();
-    const anggotaRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal-scale');
+    const anggotaRef =
+        useScrollRevealChildren<HTMLDivElement>('.bka-reveal-scale');
     const ctaRef = useScrollReveal<HTMLDivElement>();
+
+    const breadcrumbItems = [
+        { title: 'Beranda', href: '/' },
+        { title: bidang.nama, href: `/bidang/${bidang.slug}` },
+    ];
 
     return (
         <>
@@ -154,18 +164,20 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                     }}
                 />
 
-                <div ref={heroRef} className="bka-reveal bka-container relative z-[2] py-16 text-center">
+                <div
+                    ref={heroRef}
+                    className="bka-reveal bka-container relative z-[2] py-16 text-center"
+                >
                     {/* Breadcrumb */}
-                    <nav aria-label="Breadcrumb" className="mb-6 flex items-center justify-center gap-1.5 text-sm text-white/60">
-                        <Link href="/" className="transition-colors hover:text-white/90">
-                            Beranda
-                        </Link>
-                        <ChevronRight size={14} />
-                        <span className="text-[#C8A000]">{bidang.nama}</span>
-                    </nav>
+                    <div className="mb-6 flex justify-center">
+                        <Breadcrumbs
+                            breadcrumbs={breadcrumbItems}
+                            variant="public"
+                        />
+                    </div>
 
                     <h1
-                        className="mx-auto max-w-[720px] font-bold leading-[1.2] text-white"
+                        className="mx-auto max-w-[720px] leading-[1.2] font-bold text-white"
                         style={{ fontSize: 'clamp(24px, 4vw, 40px)' }}
                     >
                         {bidang.nama}
@@ -177,7 +189,10 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
             {/* Deskripsi */}
             <section className="bka-section bg-white">
                 <div className="bka-container">
-                    <div ref={descRef} className="bka-reveal mx-auto max-w-[780px]">
+                    <div
+                        ref={descRef}
+                        className="bka-reveal mx-auto max-w-[780px]"
+                    >
                         <p className="text-center text-[17px] leading-[1.9] text-[#5C6B73]">
                             {bidang.deskripsiLengkap}
                         </p>
@@ -191,12 +206,14 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                     <div className="bka-container">
                         <div ref={strukturRef} className="bka-reveal">
                             <div className="mb-10 text-center">
-                                <span className="mb-3 inline-block rounded-full bg-[#E8F5E9] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[#1B5E20]">
+                                <span className="mb-3 inline-block rounded-full bg-[#E8F5E9] px-3 py-1 text-[11px] font-bold tracking-[0.1em] text-[#1B5E20] uppercase">
                                     Struktur
                                 </span>
                                 <h2
-                                    className="font-bold leading-[1.2] text-[#1A1A1A]"
-                                    style={{ fontSize: 'clamp(22px, 3.5vw, 28px)' }}
+                                    className="leading-[1.2] font-bold text-[#1A1A1A]"
+                                    style={{
+                                        fontSize: 'clamp(22px, 3.5vw, 28px)',
+                                    }}
                                 >
                                     Kepala Bagian
                                 </h2>
@@ -209,9 +226,10 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                                     <div className="relative mx-auto w-full max-w-[240px]">
                                         <div
                                             aria-hidden="true"
-                                            className="absolute -top-3 -left-3 right-3 bottom-3 z-0 rounded-2xl"
+                                            className="absolute -top-3 right-3 bottom-3 -left-3 z-0 rounded-2xl"
                                             style={{
-                                                background: 'linear-gradient(135deg, #1B5E20, #2E7D46)',
+                                                background:
+                                                    'linear-gradient(135deg, #1B5E20, #2E7D46)',
                                             }}
                                         />
                                         <div className="relative z-[1] aspect-[3/4] overflow-hidden rounded-2xl shadow-lg">
@@ -220,7 +238,9 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                                                 alt={`Foto ${bidang.kepalaBagian.nama}`}
                                                 className="h-full w-full object-cover object-[center_top]"
                                                 onError={(e) => {
-                                                    (e.currentTarget as HTMLImageElement).src =
+                                                    (
+                                                        e.currentTarget as HTMLImageElement
+                                                    ).src =
                                                         'https://placehold.co/240x320/E8F5E9/1B5E20?text=Foto';
                                                 }}
                                             />
@@ -238,29 +258,45 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
 
                                         {bidang.kepalaBagian.deskripsiTugas && (
                                             <p className="mb-5 text-[15px] leading-[1.8] text-[#5C6B73]">
-                                                {bidang.kepalaBagian.deskripsiTugas}
+                                                {
+                                                    bidang.kepalaBagian
+                                                        .deskripsiTugas
+                                                }
                                             </p>
                                         )}
 
                                         {/* Social media */}
                                         {bidang.kepalaBagian.socialMedia &&
-                                            bidang.kepalaBagian.socialMedia.length > 0 && (
+                                            bidang.kepalaBagian.socialMedia
+                                                .length > 0 && (
                                                 <div className="flex items-center gap-3">
                                                     {bidang.kepalaBagian.socialMedia.map(
                                                         (sm) => {
                                                             const Icon =
-                                                                socialIcons[sm.platform];
+                                                                socialIcons[
+                                                                    sm.platform
+                                                                ];
 
                                                             return (
                                                                 <a
-                                                                    key={sm.platform}
-                                                                    href={sm.url}
+                                                                    key={
+                                                                        sm.platform
+                                                                    }
+                                                                    href={
+                                                                        sm.url
+                                                                    }
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    aria-label={sm.platform}
+                                                                    aria-label={
+                                                                        sm.platform
+                                                                    }
                                                                     className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E8F5E9] text-[#1B5E20] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1B5E20] hover:text-white hover:shadow-md"
                                                                 >
-                                                                    <Icon size={16} />
+                                                                    <Icon
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
                                                                 </a>
                                                             );
                                                         },
@@ -320,7 +356,8 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                 <section
                     className="relative overflow-hidden"
                     style={{
-                        background: 'linear-gradient(135deg, #144317 0%, #1B5E20 50%, #206825 100%)',
+                        background:
+                            'linear-gradient(135deg, #144317 0%, #1B5E20 50%, #206825 100%)',
                     }}
                 >
                     <div
@@ -332,9 +369,12 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                             backgroundSize: '20px 20px',
                         }}
                     />
-                    <div ref={ctaRef} className="bka-reveal bka-container relative z-[1] py-16 text-center md:py-20">
+                    <div
+                        ref={ctaRef}
+                        className="bka-reveal bka-container relative z-[1] py-16 text-center md:py-20"
+                    >
                         <h2
-                            className="mx-auto mb-3 max-w-[540px] font-bold leading-[1.3] text-white"
+                            className="mx-auto mb-3 max-w-[540px] leading-[1.3] font-bold text-white"
                             style={{ fontSize: 'clamp(20px, 3.5vw, 28px)' }}
                         >
                             {bidang.cta.heading}

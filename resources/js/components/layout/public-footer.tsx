@@ -49,51 +49,66 @@ export default function PublicFooter() {
     return (
         <footer
             id="public-footer"
+            className="bka-noise-overlay relative overflow-hidden"
             style={{
-                backgroundColor: '#1B5E20',
+                backgroundColor: '#081D09',
                 color: '#ffffff',
             }}
         >
-            <div
-                style={{
-                    height: '4px',
-                    background:
-                        'linear-gradient(90deg, #C8A000 0%, #E8C840 50%, #C8A000 100%)',
-                }}
-            />
+            {/* Top CTA Row */}
+            <div className="border-b border-white/10 py-12">
+                <div className="bka-container flex flex-col items-center justify-between gap-8 md:flex-row">
+                    <div>
+                        <h2 className="mb-2 font-sans text-xl font-extrabold tracking-tight text-white uppercase lg:text-2xl">
+                            Butuh bantuan administrasi keuangan atau aset?
+                        </h2>
+                        <p className="max-w-[620px] text-[14.5px] leading-relaxed font-normal text-white/75">
+                            Tim staf Biro Keuangan & Aset UMRI siap sedia
+                            mempermudah setiap kebutuhan layanan transaksi dan
+                            logistik fisik Anda.
+                        </p>
+                    </div>
+                    <a
+                        href="/kontak"
+                        className="rounded-full bg-[#C8A000] px-8 py-4 text-sm font-bold tracking-wider whitespace-nowrap text-white uppercase transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#E8C840] hover:shadow-[0_8px_30px_rgba(200,160,0,0.35)]"
+                    >
+                        Hubungi Kami
+                    </a>
+                </div>
+            </div>
 
             <div
                 className="bka-container"
-                style={{ paddingTop: '56px', paddingBottom: '40px' }}
+                style={{ paddingTop: '80px', paddingBottom: '60px' }}
             >
-                <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
                     <div style={{ gridColumn: 'span 1' }}>
                         <Link href="/" aria-label="BKA UMRI">
                             <img
                                 src="/assets/logo-bka.png"
                                 alt="Logo BKA UMRI"
                                 style={{
-                                    height: '48px',
+                                    height: '56px',
                                     width: 'auto',
-                                    marginBottom: '16px',
+                                    marginBottom: '20px',
                                     filter: 'brightness(0) invert(1)',
-                                    opacity: 0.9,
+                                    opacity: 0.95,
                                 }}
                             />
                         </Link>
                         <p
                             style={{
                                 fontSize: '14px',
-                                lineHeight: '1.7',
+                                lineHeight: '1.75',
                                 color: 'rgba(255,255,255,0.75)',
-                                marginBottom: '20px',
+                                marginBottom: '24px',
                             }}
                         >
                             Biro Keuangan & Aset Universitas Muhammadiyah Riau.
                             Melayani pengelolaan keuangan dan aset dengan
                             profesional, transparan, dan akuntabel.
                         </p>
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div style={{ display: 'flex', gap: '12px' }}>
                             {socialLinks.map(({ icon: Icon, href, label }) => (
                                 <a
                                     key={label}
@@ -105,14 +120,14 @@ export default function PublicFooter() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        width: '36px',
-                                        height: '36px',
-                                        borderRadius: '8px',
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '12px',
                                         backgroundColor:
-                                            'rgba(255,255,255,0.12)',
+                                            'rgba(255,255,255,0.1)',
                                         color: '#ffffff',
                                         transition:
-                                            'background-color 150ms ease-out, transform 150ms ease-out',
+                                            'background-color 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out',
                                         textDecoration: 'none',
                                     }}
                                     onMouseEnter={(e) => {
@@ -121,19 +136,26 @@ export default function PublicFooter() {
                                         ).style.backgroundColor = '#C8A000';
                                         (
                                             e.currentTarget as HTMLElement
-                                        ).style.transform = 'translateY(-2px)';
+                                        ).style.transform = 'translateY(-3px)';
+                                        (
+                                            e.currentTarget as HTMLElement
+                                        ).style.boxShadow =
+                                            '0 6px 15px rgba(200,160,0,0.3)';
                                     }}
                                     onMouseLeave={(e) => {
                                         (
                                             e.currentTarget as HTMLElement
                                         ).style.backgroundColor =
-                                            'rgba(255,255,255,0.12)';
+                                            'rgba(255,255,255,0.1)';
                                         (
                                             e.currentTarget as HTMLElement
                                         ).style.transform = 'translateY(0)';
+                                        (
+                                            e.currentTarget as HTMLElement
+                                        ).style.boxShadow = 'none';
                                     }}
                                 >
-                                    <Icon size={16} />
+                                    <Icon size={18} />
                                 </a>
                             ))}
                         </div>
