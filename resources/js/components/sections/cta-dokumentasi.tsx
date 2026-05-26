@@ -1,7 +1,7 @@
 import { Camera, Images, X, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
-import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 import { AdminModal } from '@/components/admin/admin-modal';
+import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 
 const defaultImages = [
     {

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import {
     Shield,
     ShieldAlert,
@@ -31,10 +30,11 @@ import {
     WifiOff,
     AlertCircle,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import type { Auth } from '@/types';
-import { cn } from '@/lib/utils';
 import { formatDate, formatRelativeDate } from '@/lib/format-date';
+import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
 interface LoginLog {
     id: number;
@@ -59,182 +59,39 @@ interface ActiveSession {
     isCurrent: boolean;
 }
 
-const INITIAL_LOGIN_LOGS: LoginLog[] = [
-    {
-        id: 1,
-        time: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-        username: 'superadmin@bka.umri.ac.id',
-        ipAddress: '180.242.234.12',
-        browser: 'Chrome 122.0',
-        platform: 'Windows 11',
-        location: 'Pekanbaru, Indonesia',
-        status: 'sukses',
-    },
-    {
-        id: 2,
-        time: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-        username: 'admin.keuangan@bka.umri.ac.id',
-        ipAddress: '36.85.120.44',
-        browser: 'Firefox 123.0',
-        platform: 'macOS Sonoma',
-        location: 'Jakarta, Indonesia',
-        status: 'sukses',
-    },
-    {
-        id: 3,
-        time: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-        username: 'admin.hacker@bka.umri.ac.id',
-        ipAddress: '198.51.100.75',
-        browser: 'Python-requests/2.31',
-        platform: 'Linux x86_64',
-        location: 'Frankfurt, Jerman',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-    {
-        id: 4,
-        time: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
-        username: 'superadmin@bka.umri.ac.id',
-        ipAddress: '180.242.234.12',
-        browser: 'Chrome 122.0',
-        platform: 'Windows 11',
-        location: 'Pekanbaru, Indonesia',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-    {
-        id: 5,
-        time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        username: 'admin.keuangan@bka.umri.ac.id',
-        ipAddress: '110.138.89.200',
-        browser: 'Safari 17.2',
-        platform: 'iOS 17',
-        location: 'Padang, Indonesia',
-        status: 'sukses',
-    },
-    {
-        id: 6,
-        time: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-        username: 'root',
-        ipAddress: '203.0.113.120',
-        browser: 'Go-http-client/1.1',
-        platform: 'Linux x86_64',
-        location: 'Seoul, Korea Selatan',
-        status: 'gagal',
-        reason: 'Nama pengguna tidak terdaftar',
-    },
-    // Seed failed attempts for automated brute force demo (e.g. 182.253.140.8)
-    {
-        id: 11,
-        time: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-        username: 'superadmin',
-        ipAddress: '182.253.140.8',
-        browser: 'Hydra/9.5',
-        platform: 'Linux x86_64',
-        location: 'Surabaya, Indonesia',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-    {
-        id: 12,
-        time: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        username: 'admin',
-        ipAddress: '182.253.140.8',
-        browser: 'Hydra/9.5',
-        platform: 'Linux x86_64',
-        location: 'Surabaya, Indonesia',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-    {
-        id: 13,
-        time: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
-        username: 'bka_admin',
-        ipAddress: '182.253.140.8',
-        browser: 'Hydra/9.5',
-        platform: 'Linux x86_64',
-        location: 'Surabaya, Indonesia',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-    {
-        id: 14,
-        time: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
-        username: 'keuangan',
-        ipAddress: '182.253.140.8',
-        browser: 'Hydra/9.5',
-        platform: 'Linux x86_64',
-        location: 'Surabaya, Indonesia',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-    {
-        id: 15,
-        time: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
-        username: 'dosen_admin',
-        ipAddress: '182.253.140.8',
-        browser: 'Hydra/9.5',
-        platform: 'Linux x86_64',
-        location: 'Surabaya, Indonesia',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-    {
-        id: 16,
-        time: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
-        username: 'rektor',
-        ipAddress: '182.253.140.8',
-        browser: 'Hydra/9.5',
-        platform: 'Linux x86_64',
-        location: 'Surabaya, Indonesia',
-        status: 'gagal',
-        reason: 'Kata sandi tidak cocok',
-    },
-];
+// Props for SecurityAudit component initialized from database props
+interface SecurityAuditProps {
+    dbLogs?: LoginLog[];
+    dbSessions?: ActiveSession[];
+    dbBlacklistedIps?: string[];
+}
 
-const INITIAL_SESSIONS: ActiveSession[] = [
-    {
-        id: 'sess-1',
-        ipAddress: '180.242.234.12',
-        browser: 'Chrome 122.0',
-        platform: 'Windows 11',
-        location: 'Pekanbaru, Indonesia (Sesi Anda)',
-        loginTime: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-        lastActive: new Date().toISOString(),
-        isCurrent: true,
-    },
-    {
-        id: 'sess-2',
-        ipAddress: '36.85.120.44',
-        browser: 'Firefox 123.0',
-        platform: 'macOS Sonoma',
-        location: 'Jakarta, Indonesia',
-        loginTime: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-        lastActive: new Date(Date.now() - 1 * 60 * 1000).toISOString(),
-        isCurrent: false,
-    },
-    {
-        id: 'sess-3',
-        ipAddress: '110.138.89.200',
-        browser: 'Safari 17.2',
-        platform: 'iOS 17',
-        location: 'Padang, Indonesia',
-        loginTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        lastActive: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-        isCurrent: false,
-    },
-];
-
-export default function SecurityAuditIndex() {
+export default function SecurityAuditIndex({
+    dbLogs = [],
+    dbSessions = [],
+    dbBlacklistedIps = [],
+}: SecurityAuditProps) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUser = auth.user;
     const isSuperAdmin = currentUser?.roles?.includes('super_admin');
 
-    const [logs, setLogs] = useState<LoginLog[]>([]);
-    const [sessions, setSessions] = useState<ActiveSession[]>([]);
-    const [blacklistedIps, setBlacklistedIps] = useState<string[]>([
-        '198.51.100.75',
-    ]);
+    const [logs, setLogs] = useState<LoginLog[]>(dbLogs);
+    const [sessions, setSessions] = useState<ActiveSession[]>(dbSessions);
+    const [blacklistedIps, setBlacklistedIps] =
+        useState<string[]>(dbBlacklistedIps);
+
+    // Sync state when Inertia props reload
+    useEffect(() => {
+        setLogs(dbLogs);
+    }, [dbLogs]);
+
+    useEffect(() => {
+        setSessions(dbSessions);
+    }, [dbSessions]);
+
+    useEffect(() => {
+        setBlacklistedIps(dbBlacklistedIps);
+    }, [dbBlacklistedIps]);
 
     // Filters & pagination
     const [searchQuery, setSearchQuery] = useState('');
@@ -251,82 +108,8 @@ export default function SecurityAuditIndex() {
         useState<ActiveSession | null>(null);
     const [isSimulatingBruteForce, setIsSimulatingBruteForce] = useState(false);
 
-    // Initialize data on mount
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const savedLogs = localStorage.getItem('bka_security_login_logs');
-            const savedSessions = localStorage.getItem('bka_active_sessions');
-            const savedBlacklist = localStorage.getItem('bka_blacklisted_ips');
-
-            if (savedLogs) {
-                try {
-                    setLogs(JSON.parse(savedLogs));
-                } catch {
-                    setLogs(INITIAL_LOGIN_LOGS);
-                }
-            } else {
-                setLogs(INITIAL_LOGIN_LOGS);
-                localStorage.setItem(
-                    'bka_security_login_logs',
-                    JSON.stringify(INITIAL_LOGIN_LOGS),
-                );
-            }
-
-            if (savedSessions) {
-                try {
-                    setSessions(JSON.parse(savedSessions));
-                } catch {
-                    setSessions(INITIAL_SESSIONS);
-                }
-            } else {
-                setSessions(INITIAL_SESSIONS);
-                localStorage.setItem(
-                    'bka_active_sessions',
-                    JSON.stringify(INITIAL_SESSIONS),
-                );
-            }
-
-            if (savedBlacklist) {
-                try {
-                    setBlacklistedIps(JSON.parse(savedBlacklist));
-                } catch {
-                    setBlacklistedIps(['198.51.100.75']);
-                }
-            } else {
-                localStorage.setItem(
-                    'bka_blacklisted_ips',
-                    JSON.stringify(['198.51.100.75']),
-                );
-            }
-        }
-    }, []);
-
-    const saveLogs = (updatedLogs: LoginLog[]) => {
-        setLogs(updatedLogs);
-        localStorage.setItem(
-            'bka_security_login_logs',
-            JSON.stringify(updatedLogs),
-        );
-    };
-
-    const saveSessions = (updatedSessions: ActiveSession[]) => {
-        setSessions(updatedSessions);
-        localStorage.setItem(
-            'bka_active_sessions',
-            JSON.stringify(updatedSessions),
-        );
-    };
-
-    const saveBlacklist = (updatedList: string[]) => {
-        setBlacklistedIps(updatedList);
-        localStorage.setItem(
-            'bka_blacklisted_ips',
-            JSON.stringify(updatedList),
-        );
-    };
-
     // ─── BRUTE FORCE DETECTION ENGINE ───
-    // Groups failures in the last 10 minutes by IP. If count > 5, returns the flagged IPs.
+    // Groups failures in the last 10 minutes by IP. If count >= 5, returns the flagged IPs.
     const detectBruteForceIps = () => {
         const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
         const recentFailures = logs.filter(
@@ -341,10 +124,11 @@ export default function SecurityAuditIndex() {
                 (ipFailureCounts[log.ipAddress] || 0) + 1;
         });
 
-        // Filter where count > 5
+        // Filter where count >= 5
         const bruteForceIps = Object.keys(ipFailureCounts).filter(
             (ip) => ipFailureCounts[ip] >= 5,
         );
+
         return bruteForceIps.map((ip) => ({
             ip,
             attempts: ipFailureCounts[ip],
@@ -358,52 +142,78 @@ export default function SecurityAuditIndex() {
 
     // ─── ACTIONS ───
     const handleClearLogs = () => {
-        saveLogs([]);
-        setClearConfirmOpen(false);
-        toast.success('Seluruh data rekapitulasi login berhasil dikosongkan.');
+        router.delete('/admin/security-audit/logs', {
+            onSuccess: () => {
+                setClearConfirmOpen(false);
+                toast.success(
+                    'Seluruh data rekapitulasi login berhasil dikosongkan.',
+                );
+            },
+            onError: () => {
+                toast.error('Gagal mengosongkan log audit.');
+            },
+        });
     };
 
     const handleResetAll = () => {
-        saveLogs(INITIAL_LOGIN_LOGS);
-        saveSessions(INITIAL_SESSIONS);
-        saveBlacklist(['198.51.100.75']);
-        toast.success('Sistem audit keamanan diset ulang ke data awal.');
+        router.reload({
+            onSuccess: () => {
+                toast.success(
+                    'Data audit keamanan berhasil diperbarui dari server.',
+                );
+            },
+        });
     };
 
     const handleForceLogout = () => {
-        if (!sessionToTerminate) return;
+        if (!sessionToTerminate) {
+            return;
+        }
 
-        const updated = sessions.filter((s) => s.id !== sessionToTerminate.id);
-        saveSessions(updated);
-
-        // Log this action to system logs (Simulated integration)
-        toast.success(
-            `Sesi dengan IP ${sessionToTerminate.ipAddress} (${sessionToTerminate.platform}) berhasil diputus paksa.`,
+        router.delete(
+            `/admin/security-audit/sessions/${sessionToTerminate.id}`,
+            {
+                onSuccess: () => {
+                    toast.success(
+                        `Sesi dengan IP ${sessionToTerminate.ipAddress} (${sessionToTerminate.platform}) berhasil diputus paksa.`,
+                    );
+                    setSessionToTerminate(null);
+                },
+                onError: () => {
+                    toast.error('Gagal memutus sesi masuk.');
+                },
+            },
         );
-        setSessionToTerminate(null);
     };
 
     const handleToggleBlacklist = (ip: string) => {
-        let updated: string[];
-        if (blacklistedIps.includes(ip)) {
-            updated = blacklistedIps.filter((item) => item !== ip);
-            toast.success(
-                `IP Address ${ip} berhasil dihapus dari daftar blokir.`,
-            );
-        } else {
-            updated = [...blacklistedIps, ip];
-            toast.success(
-                `IP Address ${ip} berhasil dimasukkan ke daftar blokir sistem.`,
-            );
-        }
-        saveBlacklist(updated);
+        router.post(
+            '/admin/security-audit/blacklist',
+            { ip },
+            {
+                onSuccess: () => {
+                    const wasBlacklisted = blacklistedIps.includes(ip);
+                    if (wasBlacklisted) {
+                        toast.success(
+                            `IP Address ${ip} berhasil dihapus dari daftar blokir.`,
+                        );
+                    } else {
+                        toast.success(
+                            `IP Address ${ip} berhasil dimasukkan ke daftar blokir sistem.`,
+                        );
+                    }
+                },
+                onError: () => {
+                    toast.error('Gagal memperbarui status blokir IP.');
+                },
+            },
+        );
     };
 
     // ─── SIMULATION TOOL ───
-    // Generates a mock brute-force attack from a new IP
-    const handleSimulateBruteForce = () => {
+    // Generates real failed login requests to populate logs and test brute force detection
+    const handleSimulateBruteForce = async () => {
         setIsSimulatingBruteForce(true);
-        const attackIp = '103.111.45.19';
         const usernames = [
             'admin',
             'superadmin',
@@ -412,39 +222,51 @@ export default function SecurityAuditIndex() {
             'root',
             'user',
         ];
-        const simulatedAttempts: LoginLog[] = [];
 
-        // Generate 6 failed logs separated by seconds
+        // Send 6 failed login attempts asynchronously
         for (let i = 0; i < 6; i++) {
-            simulatedAttempts.push({
-                id: Date.now() + i,
-                time: new Date(Date.now() - (6 - i) * 1000).toISOString(),
-                username: usernames[i % usernames.length] + '@bka.umri.ac.id',
-                ipAddress: attackIp,
-                browser: 'Hydra/9.5 Attack Agent',
-                platform: 'Linux x86_64',
-                location: 'Bandung, Indonesia',
-                status: 'gagal',
-                reason: 'Brute force attack simulation',
-            });
+            try {
+                await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN':
+                            (
+                                document.querySelector(
+                                    'meta[name="csrf-token"]',
+                                ) as HTMLMetaElement
+                            )?.content || '',
+                    },
+                    body: JSON.stringify({
+                        email:
+                            usernames[i % usernames.length] + '@bka.umri.ac.id',
+                        password: 'wrong_password_simulated_' + Math.random(),
+                    }),
+                });
+            } catch (e) {
+                // Ignore failed fetches
+            }
         }
 
         setTimeout(() => {
-            saveLogs([...simulatedAttempts, ...logs]);
-            setIsSimulatingBruteForce(false);
-            toast.warning(
-                `Sistem mendeteksi 6 upaya login gagal berurutan dari IP ${attackIp}! Menampilkan lencana merah peringatan.`,
-                {
-                    duration: 5000,
+            router.reload({
+                onSuccess: () => {
+                    setIsSimulatingBruteForce(false);
+                    toast.warning(
+                        `Simulasi brute-force selesai! 6 kegagalan login berturut-turut berhasil dikirim dan dicatat ke database.`,
+                        { duration: 5000 },
+                    );
                 },
-            );
-        }, 1500);
+            });
+        }, 1200);
     };
 
     // ─── EXPORTERS ───
     const exportCSV = () => {
         if (logs.length === 0) {
             toast.error('Tidak ada data rekapitulasi login untuk diekspor.');
+
             return;
         }
 
@@ -493,8 +315,10 @@ export default function SecurityAuditIndex() {
     const exportJSON = () => {
         if (logs.length === 0) {
             toast.error('Tidak ada data rekapitulasi login untuk diekspor.');
+
             return;
         }
+
         const jsonContent =
             'data:text/json;charset=utf-8,' +
             encodeURIComponent(JSON.stringify(logs, null, 2));

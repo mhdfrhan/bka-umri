@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Newspaper,
     Search,
@@ -12,8 +11,8 @@ import {
     Eye,
     AlertCircle,
     X,
-    HelpCircle,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface NewsItem {
@@ -29,66 +28,21 @@ interface NewsItem {
     status: 'draf' | 'terpublikasi' | 'diarsipkan';
 }
 
-const DEFAULT_CATEGORIES = [
-    'Kegiatan',
-    'Layanan',
-    'Mitra',
-    'Prestasi',
-    'Aturan',
-];
+interface CategoryItem {
+    id: number;
+    nama: string;
+    slug: string;
+}
 
-const INITIAL_NEWS: NewsItem[] = [
-    {
-        id: 1,
-        slug: 'bka-luncurkan-sistem-keuangan-baru-2026',
-        thumbnail:
-            'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
-        category: 'Layanan',
-        title: 'BKA UMRI Luncurkan Portal Keuangan Terintegrasi untuk Mahasiswa',
-        excerpt:
-            'Mulai semester ganjil ini, seluruh layanan administrasi keuangan dan pembayaran kuliah diintegrasikan dalam satu sistem online untuk mempermudah civitas akademika.',
-        content:
-            '<p>Universitas Muhammadiyah Riau (UMRI) melalui Biro Keuangan dan Aset (BKA) secara resmi meluncurkan Portal Keuangan Terintegrasi. Inovasi ini ditujukan khusus untuk mempermudah proses administrasi keuangan dan pembayaran biaya kuliah bagi seluruh mahasiswa aktif.</p>',
-        date: '2026-05-20',
-        author: 'Admin BKA',
-        status: 'terpublikasi',
-    },
-    {
-        id: 2,
-        slug: 'workshop-pengelolaan-aset-muhammadiyah',
-        thumbnail:
-            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
-        category: 'Kegiatan',
-        title: 'Workshop Sinergi & Optimalisasi Aset Kampus bersama Wilayah Muhammadiyah',
-        excerpt:
-            'Biro Keuangan dan Aset UMRI menggelar workshop intensif membahas standarisasi pencatatan dan optimalisasi sarana fisik guna mencapai predikat kampus unggul.',
-        content:
-            '<p>Biro Keuangan dan Aset UMRI menggelar workshop intensif membahas standarisasi pencatatan dan optimalisasi sarana fisik guna mencapai predikat kampus unggul.</p>',
-        date: '2026-05-15',
-        author: 'Humas UMRI',
-        status: 'terpublikasi',
-    },
-    {
-        id: 3,
-        slug: 'sosialisasi-pembayaran-mitra-perbankan',
-        thumbnail:
-            'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&q=80',
-        category: 'Mitra',
-        title: 'Perluas Akses, UMRI Jalin Kerja Kerja Sama dengan 4 Bank Rekanan Baru',
-        excerpt:
-            'Kini mahasiswa dapat melakukan pembayaran SPP dan uang pembangunan melalui jaringan ATM, M-Banking, maupun teller di empat bank mitra resmi nasional.',
-        content:
-            '<p>Kini mahasiswa dapat melakukan pembayaran SPP dan uang pembangunan melalui jaringan ATM, M-Banking, maupun teller di empat bank mitra resmi nasional.</p>',
-        date: '2026-05-10',
-        author: 'Bagian Keuangan',
-        status: 'terpublikasi',
-    },
-];
+interface BeritaIndexProps {
+    beritas: NewsItem[];
+    categories: CategoryItem[];
+}
 
-export default function BeritaIndex() {
-    const [news, setNews] = useState<NewsItem[]>([]);
-    const [categories, setCategories] = useState<string[]>([]);
-
+export default function BeritaIndex({
+    beritas = [],
+    categories = [],
+}: BeritaIndexProps) {
     // Filters State
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('Semua');
@@ -105,38 +59,8 @@ export default function BeritaIndex() {
     // Delete confirmation modal
     const [deletingNewsId, setDeletingNewsId] = useState<number | null>(null);
 
-    // Load dynamic data from local storage
-    useEffect(() => {
-        const savedNews = localStorage.getItem('bka_berita');
-        if (savedNews) {
-            try {
-                setNews(JSON.parse(savedNews));
-            } catch (e) {
-                setNews(INITIAL_NEWS);
-            }
-        } else {
-            setNews(INITIAL_NEWS);
-            localStorage.setItem('bka_berita', JSON.stringify(INITIAL_NEWS));
-        }
-
-        const savedCategories = localStorage.getItem('bka_categories');
-        if (savedCategories) {
-            try {
-                setCategories(JSON.parse(savedCategories));
-            } catch (e) {
-                setCategories(DEFAULT_CATEGORIES);
-            }
-        } else {
-            setCategories(DEFAULT_CATEGORIES);
-            localStorage.setItem(
-                'bka_categories',
-                JSON.stringify(DEFAULT_CATEGORIES),
-            );
-        }
-    }, []);
-
-    // Filter Logic
-    const filteredNews = news.filter((item) => {
+    // Filter Logic (Client-side for premium responsive UX)
+    const filteredNews = beritas.filter((item) => {
         const matchesSearch = item.title
             .toLowerCase()
             .includes(searchQuery.toLowerCase());
@@ -144,6 +68,7 @@ export default function BeritaIndex() {
             filterCategory === 'Semua' || item.category === filterCategory;
         const matchesStatus =
             filterStatus === 'Semua' || item.status === filterStatus;
+
         return matchesSearch && matchesCategory && matchesStatus;
     });
 
@@ -157,52 +82,75 @@ export default function BeritaIndex() {
     const handleAddCategory = (e: React.FormEvent) => {
         e.preventDefault();
         const trimmed = newCategoryName.trim();
-        if (!trimmed) return;
 
-        if (categories.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
+        if (!trimmed) {
+            return;
+        }
+
+        if (
+            categories.some(
+                (c) => c.nama.toLowerCase() === trimmed.toLowerCase(),
+            )
+        ) {
             toast.error('Kategori tersebut sudah terdaftar!');
             return;
         }
 
-        const updated = [...categories, trimmed];
-        setCategories(updated);
-        localStorage.setItem('bka_categories', JSON.stringify(updated));
-        setNewCategoryName('');
-        toast.success(`Kategori "${trimmed}" berhasil ditambahkan!`);
+        router.post(
+            '/admin/berita/kategori',
+            { nama: trimmed },
+            {
+                onSuccess: () => {
+                    setNewCategoryName('');
+                    toast.success(
+                        `Kategori "${trimmed}" berhasil ditambahkan!`,
+                    );
+                },
+                onError: (errors) => {
+                    if (errors.nama) {
+                        toast.error(errors.nama);
+                    } else {
+                        toast.error('Gagal menambahkan kategori.');
+                    }
+                },
+            },
+        );
     };
 
-    // Handle delete category with orphan handler
-    const handleDeleteCategory = (catToDelete: string) => {
-        const updatedCategories = categories.filter((c) => c !== catToDelete);
-        setCategories(updatedCategories);
-        localStorage.setItem(
-            'bka_categories',
-            JSON.stringify(updatedCategories),
-        );
-
-        // Orphan updates: Set news belonging to this category to Uncategorized (Tanpa Kategori)
-        const updatedNews = news.map((item) =>
-            item.category === catToDelete
-                ? { ...item, category: 'Tanpa Kategori' }
-                : item,
-        );
-        setNews(updatedNews);
-        localStorage.setItem('bka_berita', JSON.stringify(updatedNews));
-
-        toast.success(
-            `Kategori "${catToDelete}" dihapus. Berita terkait dialihkan ke "Tanpa Kategori".`,
-        );
+    // Handle delete category
+    const handleDeleteCategory = (catId: number) => {
+        const catObj = categories.find((c) => c.id === catId);
+        router.delete(`/admin/berita/kategori/${catId}`, {
+            onSuccess: () => {
+                toast.success(
+                    `Kategori "${catObj?.nama}" dihapus. Berita terkait dialihkan ke "Tanpa Kategori".`,
+                );
+            },
+            onError: () => {
+                toast.error('Gagal menghapus kategori.');
+            },
+        });
     };
 
     // Handle delete news
     const confirmDeleteNews = () => {
-        if (deletingNewsId === null) return;
-        const targetNews = news.find((n) => n.id === deletingNewsId);
-        const updated = news.filter((n) => n.id !== deletingNewsId);
-        setNews(updated);
-        localStorage.setItem('bka_berita', JSON.stringify(updated));
-        setDeletingNewsId(null);
-        toast.success(`Berita "${targetNews?.title}" berhasil dihapus.`);
+        if (deletingNewsId === null) {
+            return;
+        }
+
+        const targetNews = beritas.find((n) => n.id === deletingNewsId);
+        router.delete(`/admin/berita/${deletingNewsId}`, {
+            onSuccess: () => {
+                setDeletingNewsId(null);
+                toast.success(
+                    `Berita "${targetNews?.title}" berhasil dihapus.`,
+                );
+            },
+            onError: () => {
+                setDeletingNewsId(null);
+                toast.error('Gagal menghapus berita.');
+            },
+        });
     };
 
     return (
@@ -287,8 +235,8 @@ export default function BeritaIndex() {
                             >
                                 <option value="Semua">Semua Kategori</option>
                                 {categories.map((c) => (
-                                    <option key={c} value={c}>
-                                        {c}
+                                    <option key={c.id} value={c.nama}>
+                                        {c.nama}
                                     </option>
                                 ))}
                                 <option value="Tanpa Kategori">
@@ -618,16 +566,16 @@ export default function BeritaIndex() {
                             </label>
                             {categories.map((cat) => (
                                 <div
-                                    key={cat}
+                                    key={cat.id}
                                     className="flex items-center justify-between rounded-xl border border-neutral-200/50 bg-neutral-50 px-3.5 py-2"
                                 >
                                     <span className="text-sm font-semibold text-neutral-800">
-                                        {cat}
+                                        {cat.nama}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            handleDeleteCategory(cat)
+                                            handleDeleteCategory(cat.id)
                                         }
                                         className="rounded-lg p-1 text-red-500 hover:bg-red-50"
                                         title="Hapus Kategori"
@@ -671,7 +619,7 @@ export default function BeritaIndex() {
                             Apakah Anda yakin ingin menghapus artikel berita "
                             <strong>
                                 {
-                                    news.find((n) => n.id === deletingNewsId)
+                                    beritas.find((n) => n.id === deletingNewsId)
                                         ?.title
                                 }
                             </strong>

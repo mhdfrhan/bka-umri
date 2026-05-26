@@ -1,25 +1,36 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\ProfilController;
+use App\Http\Controllers\Public\BidangController;
+use App\Http\Controllers\Public\BeritaController;
+use App\Http\Controllers\Public\PengumumanController;
+use App\Http\Controllers\Public\DokumentasiController;
+use App\Http\Controllers\Public\LampiranController;
+use App\Http\Controllers\Public\KontakController;
 
 // ──────────────────────────────────────────────────────────────
 // Route Publik — Tanpa Auth
 // ──────────────────────────────────────────────────────────────
-Route::inertia('/', 'public/home')->name('public.home');
-Route::inertia('/profil/tentang-kami', 'public/profil/tentang')->name('public.profil.tentang');
-Route::inertia('/profil/visi-misi', 'public/profil/visi-misi')->name('public.profil.visi-misi');
-Route::inertia('/profil/struktur-organisasi', 'public/profil/struktur')->name('public.profil.struktur');
+Route::get('/', [HomeController::class, 'index'])->name('public.home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/profil/tentang-kami', [ProfilController::class, 'tentang'])->name('public.profil.tentang');
+Route::get('/profil/visi-misi', [ProfilController::class, 'visiMisi'])->name('public.profil.visi-misi');
+Route::get('/profil/struktur-organisasi', [ProfilController::class, 'struktur'])->name('public.profil.struktur');
 
-Route::inertia('/bidang/{slug}', 'public/bidang/show')->name('public.bidang.show');
-Route::inertia('/berita', 'public/berita/index')->name('public.berita.index');
-Route::inertia('/berita/{slug}', 'public/berita/show')->name('public.berita.show');
-Route::inertia('/pengumuman', 'public/pengumuman/index')->name('public.pengumuman.index');
-Route::inertia('/pengumuman/{slug}', 'public/pengumuman/show')->name('public.pengumuman.show');
-Route::inertia('/dokumentasi', 'public/dokumentasi/index')->name('public.dokumentasi.index');
-Route::inertia('/dokumentasi/{slug}', 'public/dokumentasi/show')->name('public.dokumentasi.show');
-Route::inertia('/lampiran', 'public/lampiran/index')->name('public.lampiran.index');
-Route::inertia('/lampiran/{slug}', 'public/lampiran/kategori')->name('public.lampiran.kategori');
-Route::inertia('/kontak', 'public/kontak/index')->name('public.kontak.index');
+Route::get('/bidang/{slug}', [BidangController::class, 'show'])->name('public.bidang.show');
+Route::get('/berita', [BeritaController::class, 'index'])->name('public.berita.index');
+Route::get('/berita/{slug}', [BeritaController::class, 'show'])->name('public.berita.show');
+Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('public.pengumuman.index');
+Route::get('/pengumuman/{slug}', [PengumumanController::class, 'show'])->name('public.pengumuman.show');
+Route::get('/dokumentasi', [DokumentasiController::class, 'index'])->name('public.dokumentasi.index');
+Route::get('/dokumentasi/{slug}', [DokumentasiController::class, 'show'])->name('public.dokumentasi.show');
+Route::get('/lampiran', [LampiranController::class, 'index'])->name('public.lampiran.index');
+Route::get('/lampiran/download/{id}', [LampiranController::class, 'download'])->name('public.lampiran.download')->middleware('throttle:download');
+Route::get('/lampiran/{slug}', [LampiranController::class, 'show'])->name('public.lampiran.kategori');
+Route::get('/kontak', [KontakController::class, 'index'])->name('public.kontak.index');
+Route::post('/kontak', [KontakController::class, 'store'])->name('public.kontak.store')->middleware('throttle:kontak');
 
 // Pemeliharaan Sistem / Maintenance Page (503)
 Route::inertia('/maintenance', 'error/generic', ['status' => 503])->name('public.maintenance');

@@ -219,13 +219,9 @@ const getFileColorClasses = (filename: string | undefined | null) => {
     }
 };
 
-export default function KategoriLampiranShow({ kategori, berkas }: Props) {
+export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
     const { url } = usePage();
     const [searchQuery, setSearchQuery] = useState('');
-    const [localKategori, setLocalKategori] = useState<KategoriDetail | null>(
-        null,
-    );
-    const [localBerkas, setLocalBerkas] = useState<BerkasItem[] | null>(null);
 
     const headerRef = useScrollReveal<HTMLDivElement>();
     const descRef = useScrollReveal<HTMLDivElement>();
@@ -237,36 +233,6 @@ export default function KategoriLampiranShow({ kategori, berkas }: Props) {
     const currentSlug =
         pathSegments[pathSegments.length - 1] || 'peraturan-dan-kebijakan';
 
-    useEffect(() => {
-        const savedCategories = localStorage.getItem('bka_kategori_lampiran');
-        const savedFiles = localStorage.getItem('bka_berkas_lampiran');
-        if (savedCategories) {
-            try {
-                const parsedCats = JSON.parse(savedCategories);
-                const matchedCat = parsedCats.find(
-                    (c: any) => c.slug === currentSlug,
-                );
-                if (matchedCat) {
-                    setLocalKategori({
-                        nama: matchedCat.nama,
-                        slug: matchedCat.slug,
-                        deskripsi: matchedCat.deskripsi || '',
-                    });
-
-                    if (savedFiles) {
-                        try {
-                            const parsedFiles = JSON.parse(savedFiles);
-                            const matchedFiles = parsedFiles.filter(
-                                (f: any) => f.kategori_id === matchedCat.id,
-                            );
-                            setLocalBerkas(matchedFiles);
-                        } catch {}
-                    }
-                }
-            } catch {}
-        }
-    }, [currentSlug]);
-
     const defaultKategori: KategoriDetail = {
         nama: 'Peraturan & Kebijakan',
         slug: 'peraturan-dan-kebijakan',
@@ -274,32 +240,31 @@ export default function KategoriLampiranShow({ kategori, berkas }: Props) {
             'Kumpulan Surat Keputusan Rektor, Peraturan Pemerintah, dan Ketetapan Persyarikatan Muhammadiyah tentang tata kelola keuangan kampus.',
     };
 
-    const resolvedKategori: KategoriDetail = localKategori ||
-        kategori || {
-            nama:
-                currentSlug === 'formulir-kemahasiswaan'
-                    ? 'Formulir Kemahasiswaan'
-                    : currentSlug === 'panduan-dan-sop-pelayanan'
-                      ? 'Panduan & SOP Pelayanan'
-                      : currentSlug === 'rencana-dan-laporan-anggaran'
-                        ? 'Rencana & Laporan Anggaran'
-                        : defaultKategori.nama,
-            slug: currentSlug,
-            deskripsi:
-                currentSlug === 'formulir-kemahasiswaan'
-                    ? 'Formulir pengajuan dispensasi pembayaran kuliah, template proposal pengajuan dana, dan berkas Surat Pertanggungjawaban (SPJ) kegiatan.'
-                    : currentSlug === 'panduan-dan-sop-pelayanan'
-                      ? 'Standar Operasional Prosedur (SOP) pencairan anggaran unit, alur pengajuan dana, dan buku panduan tata cara pembayaran Virtual Account.'
-                      : currentSlug === 'rencana-dan-laporan-anggaran'
-                        ? 'Sosialisasi Rencana Kerja & Anggaran Tahunan (RKAT), kebijakan pagu dana operasional fakultas, serta laporan pertanggungjawaban tahunan.'
-                        : defaultKategori.deskripsi,
-        };
+    const resolvedKategori: KategoriDetail = kategori || {
+        nama:
+            currentSlug === 'formulir-kemahasiswaan'
+                ? 'Formulir Kemahasiswaan'
+                : currentSlug === 'panduan-dan-sop-pelayanan'
+                  ? 'Panduan & SOP Pelayanan'
+                  : currentSlug === 'rencana-dan-laporan-anggaran'
+                    ? 'Rencana & Laporan Anggaran'
+                    : defaultKategori.nama,
+        slug: currentSlug,
+        deskripsi:
+            currentSlug === 'formulir-kemahasiswaan'
+                ? 'Formulir pengajuan dispensasi pembayaran kuliah, template proposal pengajuan dana, dan berkas Surat Pertanggungjawaban (SPJ) kegiatan.'
+                : currentSlug === 'panduan-dan-sop-pelayanan'
+                  ? 'Standar Operasional Prosedur (SOP) pencairan anggaran unit, alur pengajuan dana, dan buku panduan tata cara pembayaran Virtual Account.'
+                  : currentSlug === 'rencana-dan-laporan-anggaran'
+                    ? 'Sosialisasi Rencana Kerja & Anggaran Tahunan (RKAT), kebijakan pagu dana operasional fakultas, serta laporan pertanggungjawaban tahunan.'
+                    : defaultKategori.deskripsi,
+    };
 
     const resolvedBerkas: BerkasItem[] =
-        localBerkas ||
-        berkas ||
-        mockCategoryFiles[currentSlug] ||
-        mockCategoryFiles['peraturan-dan-kebijakan'];
+        berkas.length > 0
+            ? berkas
+            : mockCategoryFiles[currentSlug] ||
+              mockCategoryFiles['peraturan-dan-kebijakan'];
 
     // Local search filter based on query search
     const filteredBerkas = resolvedBerkas.filter(

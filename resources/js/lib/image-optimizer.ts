@@ -42,8 +42,10 @@ export function optimizeFile(
                     canvas.height = height;
 
                     const ctx = canvas.getContext('2d');
+
                     if (!ctx) {
                         reject(new Error('Canvas 2D context not available'));
+
                         return;
                     }
 

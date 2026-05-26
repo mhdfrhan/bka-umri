@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Briefcase,
     Plus,
@@ -15,6 +14,7 @@ import {
     AlertTriangle,
     Eye,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { AdminModal } from '@/components/admin/admin-modal';
 
@@ -104,42 +104,34 @@ const DEFAULT_BIDANGS: BidangItem[] = [
     },
 ];
 
-export default function IndexBidang() {
-    const [bidangs, setBidangs] = useState<BidangItem[]>([]);
+interface IndexBidangProps {
+    bidangs: BidangItem[];
+}
+
+export default function IndexBidang({
+    bidangs: initialBidangs,
+}: IndexBidangProps) {
+    const [bidangs, setBidangs] = useState<BidangItem[]>(initialBidangs);
     const [searchQuery, setSearchQuery] = useState('');
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [bidangToDelete, setBidangToDelete] = useState<BidangItem | null>(
         null,
     );
 
-    // Synchronize with LocalStorage for fully interactive mock operations across pages
+    // Sync state with prop updates from server
     useEffect(() => {
-        const stored = localStorage.getItem('bka_bidangs');
-        if (stored) {
-            try {
-                setBidangs(JSON.parse(stored));
-            } catch (e) {
-                setBidangs(DEFAULT_BIDANGS);
-            }
-        } else {
-            localStorage.setItem(
-                'bka_bidangs',
-                JSON.stringify(DEFAULT_BIDANGS),
-            );
-            setBidangs(DEFAULT_BIDANGS);
-        }
-    }, []);
+        setBidangs(initialBidangs);
+    }, [initialBidangs]);
 
-    // Save helpers
-    const saveToLocalStorage = (updated: BidangItem[]) => {
-        setBidangs(updated);
-        localStorage.setItem('bka_bidangs', JSON.stringify(updated));
-    };
-
-    // Reordering functionality
+    // Reordering functionality via backend POST route
     const handleMove = (index: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === bidangs.length - 1) return;
+        if (direction === 'up' && index === 0) {
+            return;
+        }
+
+        if (direction === 'down' && index === bidangs.length - 1) {
+            return;
+        }
 
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
         const newBidangs = [...bidangs];
@@ -155,9 +147,24 @@ export default function IndexBidang() {
             urutan: idx + 1,
         }));
 
-        saveToLocalStorage(updated);
-        toast.success(
-            `Urutan ${temp.nama} berhasil digeser ke ${direction === 'up' ? 'atas' : 'bawah'}!`,
+        setBidangs(updated); // Optimistic UI update
+
+        router.post(
+            '/admin/bidang/reorder',
+            {
+                ids: updated.map((b) => parseInt(b.id)),
+            },
+            {
+                onSuccess: () => {
+                    toast.success(
+                        `Urutan ${temp.nama} berhasil digeser ke ${direction === 'up' ? 'atas' : 'bawah'}!`,
+                    );
+                },
+                onError: () => {
+                    toast.error('Gagal memperbarui urutan bidang.');
+                    setBidangs(initialBidangs);
+                },
+            },
         );
     };
 
@@ -167,21 +174,24 @@ export default function IndexBidang() {
         setIsConfirmOpen(true);
     };
 
-    // Confirm deletion
+    // Confirm deletion via backend DELETE route
     const handleConfirmDelete = () => {
-        if (!bidangToDelete) return;
-        const filtered = bidangs
-            .filter((b) => b.id !== bidangToDelete.id)
-            .map((item, idx) => ({
-                ...item,
-                urutan: idx + 1,
-            }));
-        saveToLocalStorage(filtered);
-        setIsConfirmOpen(false);
-        setBidangToDelete(null);
-        toast.success(
-            `Bidang "${bidangToDelete.nama}" berhasil dihapus dari sistem!`,
-        );
+        if (!bidangToDelete) {
+            return;
+        }
+
+        router.delete(`/admin/bidang/${bidangToDelete.id}`, {
+            onSuccess: () => {
+                setIsConfirmOpen(false);
+                setBidangToDelete(null);
+                toast.success(
+                    `Bidang "${bidangToDelete.nama}" berhasil dihapus dari sistem!`,
+                );
+            },
+            onError: () => {
+                toast.error('Gagal menghapus bidang.');
+            },
+        });
     };
 
     // Filtered lists

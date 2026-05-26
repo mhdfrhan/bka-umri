@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     Briefcase,
@@ -17,6 +16,7 @@ import {
     ArrowDown,
     Upload,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
@@ -40,10 +40,14 @@ export default function CreateBidang() {
         (target: 'banner' | 'kepala') =>
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
-            if (!file) return;
+
+            if (!file) {
+                return;
+            }
 
             if (file.size > 10 * 1024 * 1024) {
                 toast.error('File gambar melebihi batas 10MB!');
+
                 return;
             }
 
@@ -58,6 +62,7 @@ export default function CreateBidang() {
         } else if (assetPickerTarget === 'kepala') {
             setKepalaFoto(url);
         }
+
         setAssetPickerTarget(null);
     };
 
@@ -111,8 +116,10 @@ export default function CreateBidang() {
     const handleAddAnggota = () => {
         if (anggotaList.length >= 20) {
             toast.warning('Maksimal 20 anggota staf divisi tercapai!');
+
             return;
         }
+
         setAnggotaList((prev) => [...prev, { nama: '', jabatan: '' }]);
     };
 
@@ -133,8 +140,13 @@ export default function CreateBidang() {
     };
 
     const handleMoveAnggota = (idx: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && idx === 0) return;
-        if (direction === 'down' && idx === anggotaList.length - 1) return;
+        if (direction === 'up' && idx === 0) {
+            return;
+        }
+
+        if (direction === 'down' && idx === anggotaList.length - 1) {
+            return;
+        }
 
         const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
         const newAnggota = [...anggotaList];
@@ -154,21 +166,28 @@ export default function CreateBidang() {
         if (!nama.trim()) {
             setActiveTab('info');
             toast.error('Nama Bidang wajib diisi!');
+
             return;
         }
+
         if (!slug.trim()) {
             setActiveTab('info');
             toast.error('Slug Bidang wajib diisi!');
+
             return;
         }
+
         if (!deskripsiSingkat.trim()) {
             setActiveTab('info');
             toast.error('Deskripsi Singkat wajib diisi!');
+
             return;
         }
+
         if (!kepalaNama.trim() || !kepalaJabatan.trim()) {
             setActiveTab('kepala');
             toast.error('Nama dan Jabatan Kepala Bagian wajib diisi!');
+
             return;
         }
 
@@ -177,56 +196,35 @@ export default function CreateBidang() {
             (item) => item.nama.trim() && item.jabatan.trim(),
         );
 
-        // Construct new item
-        const stored = localStorage.getItem('bka_bidangs');
-        let bidangsList = [];
-        if (stored) {
-            try {
-                bidangsList = JSON.parse(stored);
-            } catch (err) {
-                bidangsList = [];
-            }
-        }
-
-        // Check if slug is unique
-        const isSlugTaken = bidangsList.some((b: any) => b.slug === slug);
-        if (isSlugTaken) {
-            setActiveTab('info');
-            toast.error('Slug sudah digunakan! Silakan ganti slug Anda.');
-            return;
-        }
-
-        const newBidang = {
-            id: Date.now().toString(),
-            nama,
-            slug,
-            deskripsiSingkat,
-            deskripsiLengkap,
-            urutan: bidangsList.length + 1,
-            kepalaBagian: {
-                nama: kepalaNama,
-                jabatan: kepalaJabatan,
-                foto: kepalaFoto,
-                deskripsiTugas: kepalaTugas,
+        // Send data to backend
+        router.post(
+            '/admin/bidang',
+            {
+                nama,
+                slug,
+                deskripsiSingkat,
+                deskripsiLengkap,
+                bannerUrl,
+                kepalaNama,
+                kepalaJabatan,
+                kepalaFoto,
+                kepalaTugas,
+                anggota: cleanedAnggota,
+                ctaHeading,
+                ctaSub,
+                ctaBtnText,
+                ctaBtnUrl,
             },
-            anggota: cleanedAnggota,
-            cta: ctaHeading.trim()
-                ? {
-                      heading: ctaHeading,
-                      subCta: ctaSub,
-                      btnText: ctaBtnText,
-                      btnUrl: ctaBtnUrl,
-                  }
-                : undefined,
-        };
-
-        const updated = [...bidangsList, newBidang];
-        localStorage.setItem('bka_bidangs', JSON.stringify(updated));
-
-        toast.success(`Bidang "${nama}" berhasil didaftarkan!`);
-
-        // Return back using Inertia routing visit
-        router.visit('/admin/bidang');
+            {
+                onSuccess: () => {
+                    toast.success(`Bidang "${nama}" berhasil didaftarkan!`);
+                },
+                onError: (errs) => {
+                    const firstError = Object.values(errs)[0];
+                    toast.error(firstError || 'Gagal menyimpan bidang.');
+                },
+            },
+        );
     };
 
     return (
@@ -255,10 +253,21 @@ export default function CreateBidang() {
                             terstruktur. Isilah data bidang secara komprehensif.
                         </p>
                     </div>
+                    {/* Header Save Button */}
+                    <div className="flex shrink-0 items-center gap-2">
+                        <button
+                            type="submit"
+                            form="bidang-form"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all outline-none hover:bg-emerald-700 active:scale-95"
+                        >
+                            <Check className="size-4" />
+                            Simpan Bidang
+                        </button>
+                    </div>
                 </div>
 
                 {/* Form Shell */}
-                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[28%_1fr]">
+                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[20%_1fr]">
                     {/* Multi-Tab Navigation Panel */}
                     <div className="flex w-full shrink-0 scrollbar-none flex-row gap-1.5 overflow-x-auto pb-2 select-none lg:w-full lg:flex-col lg:pb-0">
                         <button
@@ -312,10 +321,23 @@ export default function CreateBidang() {
                             <Megaphone className="size-4.5 shrink-0" />
                             <span>4. Call to Action (CTA)</span>
                         </button>
+
+                        {/* Save Button Sidebar (Desktop) */}
+                        <div className="hidden lg:mt-6 lg:block">
+                            <button
+                                type="submit"
+                                form="bidang-form"
+                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all outline-none hover:bg-emerald-700 active:scale-95"
+                            >
+                                <Check className="size-4" />
+                                Simpan Bidang
+                            </button>
+                        </div>
                     </div>
 
                     {/* Active Form Content */}
                     <form
+                        id="bidang-form"
                         onSubmit={handleSubmit}
                         className="w-full min-w-0 space-y-6"
                     >
@@ -934,6 +956,7 @@ export default function CreateBidang() {
                             'Foto kepala divisi berhasil diunggah & dioptimasi!',
                         );
                     }
+
                     setSelectedFile(null);
                     setUploadTarget(null);
                 }}

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Images,
     Plus,
@@ -10,6 +9,7 @@ import {
     AlertCircle,
     FolderOpen,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { AdminModal } from '@/components/admin/admin-modal';
 
@@ -73,99 +73,91 @@ const INITIAL_ALBUMS: AlbumItem[] = [
     },
 ];
 
-export default function DokumentasiIndex() {
-    const [albums, setAlbums] = useState<AlbumItem[]>([]);
-    const [categories, setCategories] = useState<string[]>([]);
+interface KategoriItem {
+    id: number;
+    nama: string;
+}
+
+interface DokumentasiIndexProps {
+    albums: AlbumItem[];
+    categories: string[];
+    categoriesWithId: KategoriItem[];
+}
+
+export default function DokumentasiIndex({
+    albums = [],
+    categories = [],
+    categoriesWithId = [],
+}: DokumentasiIndexProps) {
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
 
-    useEffect(() => {
-        const savedCats = localStorage.getItem('bka_dokumentasi_categories');
-        let loadedCats = ['Keuangan', 'Aset'];
-        if (savedCats) {
-            try {
-                loadedCats = JSON.parse(savedCats);
-            } catch {
-                loadedCats = ['Keuangan', 'Aset'];
-            }
-        } else {
-            localStorage.setItem(
-                'bka_dokumentasi_categories',
-                JSON.stringify(loadedCats),
-            );
-        }
-        setCategories(loadedCats);
-
-        const saved = localStorage.getItem('bka_albums');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                const updated = parsed.map((a: any) => ({
-                    ...a,
-                    category: a.category || 'Tanpa Kategori',
-                }));
-                setAlbums(updated);
-            } catch {
-                setAlbums(INITIAL_ALBUMS);
-            }
-        } else {
-            setAlbums(INITIAL_ALBUMS);
-            localStorage.setItem('bka_albums', JSON.stringify(INITIAL_ALBUMS));
-        }
-    }, []);
-
-    const saveAlbums = (updated: AlbumItem[]) => {
-        setAlbums(updated);
-        localStorage.setItem('bka_albums', JSON.stringify(updated));
-    };
-
     const handleConfirmDelete = () => {
-        if (deletingId === null) return;
-        const target = albums.find((a) => a.id === deletingId);
-        const updated = albums.filter((a) => a.id !== deletingId);
-        saveAlbums(updated);
-        setDeletingId(null);
-        toast.success(`Album "${target?.title}" berhasil dihapus.`);
+        if (deletingId === null) {
+            return;
+        }
+
+        router.delete(`/admin/dokumentasi/${deletingId}`, {
+            onSuccess: () => {
+                setDeletingId(null);
+                toast.success('Album kegiatan berhasil dihapus.');
+            },
+            onError: () => {
+                toast.error('Gagal menghapus album.');
+            },
+        });
     };
 
     const handleAddCategory = (e: React.FormEvent) => {
         e.preventDefault();
         const trimmed = newCategoryName.trim();
-        if (!trimmed) return;
+
+        if (!trimmed) {
+            return;
+        }
 
         if (categories.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
             toast.error('Kategori tersebut sudah terdaftar!');
             return;
         }
 
-        const updated = [...categories, trimmed];
-        setCategories(updated);
-        localStorage.setItem(
-            'bka_dokumentasi_categories',
-            JSON.stringify(updated),
+        router.post(
+            '/admin/dokumentasi/kategori',
+            { nama: trimmed },
+            {
+                onSuccess: () => {
+                    setNewCategoryName('');
+                    toast.success(
+                        `Kategori "${trimmed}" berhasil ditambahkan!`,
+                    );
+                },
+                onError: (errors: any) => {
+                    if (errors.nama) {
+                        toast.error(errors.nama);
+                    } else {
+                        toast.error('Gagal menambahkan kategori.');
+                    }
+                },
+            },
         );
-        setNewCategoryName('');
-        toast.success(`Kategori "${trimmed}" berhasil ditambahkan!`);
     };
 
     const handleDeleteCategory = (catToDelete: string) => {
-        const updatedCategories = categories.filter((c) => c !== catToDelete);
-        setCategories(updatedCategories);
-        localStorage.setItem(
-            'bka_dokumentasi_categories',
-            JSON.stringify(updatedCategories),
-        );
+        const catObj = categoriesWithId.find((c) => c.nama === catToDelete);
+        if (!catObj) {
+            toast.error('Kategori tidak ditemukan.');
+            return;
+        }
 
-        const updatedAlbums = albums.map((item) =>
-            item.category === catToDelete
-                ? { ...item, category: 'Tanpa Kategori' }
-                : item,
-        );
-        saveAlbums(updatedAlbums);
-        toast.success(
-            `Kategori "${catToDelete}" dihapus. Album terkait dialihkan ke "Tanpa Kategori".`,
-        );
+        router.delete(`/admin/dokumentasi/kategori/${catObj.id}`, {
+            onSuccess: () => {
+                toast.success(`Kategori "${catToDelete}" berhasil dihapus.`);
+            },
+            onError: () => {
+                toast.error('Gagal menghapus kategori.');
+            },
+        });
     };
 
     return (

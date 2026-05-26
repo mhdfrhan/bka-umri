@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Facebook,
     Instagram,
@@ -6,6 +6,7 @@ import {
     MapPin,
     Phone,
     Youtube,
+    Twitter,
 } from 'lucide-react';
 
 const quickLinks = [
@@ -45,6 +46,59 @@ const socialLinks = [
 
 export default function PublicFooter() {
     const year = new Date().getFullYear();
+    const { pengaturan } = usePage().props as any;
+
+    const logoUrl = pengaturan?.logo_base64 || '/assets/logo-bka.png';
+    const email = pengaturan?.email || 'bka@umri.ac.id';
+    const telepon = pengaturan?.telepon || '(0761) 35008';
+    const alamat =
+        pengaturan?.alamat ||
+        'Jl. Tuanku Tambusai No.23, Pekanbaru, Riau 28294';
+    const jamOperasional =
+        pengaturan?.jam_operasional ||
+        'Sen - Jum : 08.00 - 16.00 WIB\nSabtu : 08.00 - 13.00 WIB';
+
+    // Process media sosial
+    let parsedSosmed = [
+        { platform: 'Facebook', url: 'https://facebook.com/umri.official' },
+        { platform: 'Instagram', url: 'https://instagram.com/umri.official' },
+        { platform: 'YouTube', url: 'https://youtube.com' },
+    ];
+    if (pengaturan?.media_sosial) {
+        try {
+            const decoded = JSON.parse(pengaturan.media_sosial);
+            if (Array.isArray(decoded) && decoded.length > 0) {
+                parsedSosmed = decoded;
+            }
+        } catch (e) {
+            console.error('Error decoding media_sosial settings', e);
+        }
+    }
+
+    const socialLinksList = parsedSosmed.map((item) => {
+        let iconComponent = Instagram;
+        if (item.platform.toLowerCase() === 'facebook') {
+            iconComponent = Facebook;
+        } else if (item.platform.toLowerCase() === 'youtube') {
+            iconComponent = Youtube;
+        } else if (
+            item.platform.toLowerCase() === 'twitter' ||
+            item.platform.toLowerCase() === 'x'
+        ) {
+            iconComponent = Twitter;
+        }
+        return {
+            icon: iconComponent,
+            href: item.url,
+            label: `${item.platform} BKA UMRI`,
+        };
+    });
+
+    const contactInfoList = [
+        { icon: MapPin, text: alamat },
+        { icon: Phone, text: telepon },
+        { icon: Mail, text: email },
+    ];
 
     return (
         <footer
@@ -85,13 +139,16 @@ export default function PublicFooter() {
                     <div style={{ gridColumn: 'span 1' }}>
                         <Link href="/" aria-label="BKA UMRI">
                             <img
-                                src="/assets/logo-bka.png"
+                                src={logoUrl}
                                 alt="Logo BKA UMRI"
                                 style={{
                                     height: '56px',
                                     width: 'auto',
                                     marginBottom: '20px',
-                                    filter: 'brightness(0) invert(1)',
+                                    filter:
+                                        logoUrl === '/assets/logo-bka.png'
+                                            ? 'brightness(0) invert(1)'
+                                            : undefined,
                                     opacity: 0.95,
                                 }}
                             />
@@ -109,55 +166,58 @@ export default function PublicFooter() {
                             profesional, transparan, dan akuntabel.
                         </p>
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            {socialLinks.map(({ icon: Icon, href, label }) => (
-                                <a
-                                    key={label}
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label={label}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '12px',
-                                        backgroundColor:
-                                            'rgba(255,255,255,0.1)',
-                                        color: '#ffffff',
-                                        transition:
-                                            'background-color 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out',
-                                        textDecoration: 'none',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        (
-                                            e.currentTarget as HTMLElement
-                                        ).style.backgroundColor = '#C8A000';
-                                        (
-                                            e.currentTarget as HTMLElement
-                                        ).style.transform = 'translateY(-3px)';
-                                        (
-                                            e.currentTarget as HTMLElement
-                                        ).style.boxShadow =
-                                            '0 6px 15px rgba(200,160,0,0.3)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        (
-                                            e.currentTarget as HTMLElement
-                                        ).style.backgroundColor =
-                                            'rgba(255,255,255,0.1)';
-                                        (
-                                            e.currentTarget as HTMLElement
-                                        ).style.transform = 'translateY(0)';
-                                        (
-                                            e.currentTarget as HTMLElement
-                                        ).style.boxShadow = 'none';
-                                    }}
-                                >
-                                    <Icon size={18} />
-                                </a>
-                            ))}
+                            {socialLinksList.map(
+                                ({ icon: Icon, href, label }) => (
+                                    <a
+                                        key={label}
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label={label}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: '40px',
+                                            height: '40px',
+                                            borderRadius: '12px',
+                                            backgroundColor:
+                                                'rgba(255,255,255,0.1)',
+                                            color: '#ffffff',
+                                            transition:
+                                                'background-color 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out',
+                                            textDecoration: 'none',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            (
+                                                e.currentTarget as HTMLElement
+                                            ).style.backgroundColor = '#C8A000';
+                                            (
+                                                e.currentTarget as HTMLElement
+                                            ).style.transform =
+                                                'translateY(-3px)';
+                                            (
+                                                e.currentTarget as HTMLElement
+                                            ).style.boxShadow =
+                                                '0 6px 15px rgba(200,160,0,0.3)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            (
+                                                e.currentTarget as HTMLElement
+                                            ).style.backgroundColor =
+                                                'rgba(255,255,255,0.1)';
+                                            (
+                                                e.currentTarget as HTMLElement
+                                            ).style.transform = 'translateY(0)';
+                                            (
+                                                e.currentTarget as HTMLElement
+                                            ).style.boxShadow = 'none';
+                                        }}
+                                    >
+                                        <Icon size={18} />
+                                    </a>
+                                ),
+                            )}
                         </div>
                     </div>
 
@@ -244,7 +304,7 @@ export default function PublicFooter() {
                                 gap: '16px',
                             }}
                         >
-                            {contactInfo.map(({ icon: Icon, text }) => (
+                            {contactInfoList.map(({ icon: Icon, text }) => (
                                 <li
                                     key={text}
                                     style={{
@@ -306,41 +366,58 @@ export default function PublicFooter() {
                                 gap: '10px',
                             }}
                         >
-                            {[
-                                {
-                                    day: 'Senin – Kamis',
-                                    time: '08:00 – 16:00 WIB',
-                                },
-                                { day: 'Jumat', time: '08:00 – 11:30 WIB' },
-                                { day: 'Sabtu – Minggu', time: 'Tutup' },
-                            ].map(({ day, time }) => (
-                                <div
-                                    key={day}
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        gap: '12px',
-                                        fontSize: '14px',
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            color: 'rgba(255,255,255,0.65)',
-                                        }}
-                                    >
-                                        {day}
-                                    </span>
-                                    <span
-                                        style={{
-                                            color: '#ffffff',
-                                            fontWeight: 500,
-                                            flexShrink: 0,
-                                        }}
-                                    >
-                                        {time}
-                                    </span>
-                                </div>
-                            ))}
+                            {jamOperasional
+                                .split('\n')
+                                .map((line: string, idx: number) => {
+                                    if (!line.includes(':')) {
+                                        return (
+                                            <div
+                                                key={idx}
+                                                style={{
+                                                    fontSize: '14px',
+                                                    color: 'rgba(255,255,255,0.75)',
+                                                }}
+                                            >
+                                                {line}
+                                            </div>
+                                        );
+                                    }
+                                    const indexColon = line.indexOf(':');
+                                    const label = line
+                                        .slice(0, indexColon)
+                                        .trim();
+                                    const time = line
+                                        .slice(indexColon + 1)
+                                        .trim();
+                                    return (
+                                        <div
+                                            key={idx}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                gap: '12px',
+                                                fontSize: '14px',
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    color: 'rgba(255,255,255,0.65)',
+                                                }}
+                                            >
+                                                {label}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    color: '#ffffff',
+                                                    fontWeight: 500,
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                {time}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
                         </div>
 
                         <div

@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import {
     Cpu,
     Database,
@@ -29,10 +28,11 @@ import {
     Shield,
     Lock,
 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import type { Auth } from '@/types';
-import { cn } from '@/lib/utils';
 import { logActivity } from '@/lib/logger';
+import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
 // ─── TYPES ───
 interface ErrorLog {
@@ -112,7 +112,30 @@ const SLOW_QUERIES: SlowQuery[] = [
     },
 ];
 
-export default function PerformanceMonitoring() {
+interface PerformanceMonitoringProps {
+    initialDbStats?: {
+        beritaRows: number;
+        beritaSize: string;
+        pengumumanRows: number;
+        pengumumanSize: string;
+        logsRows: number;
+        logsSize: string;
+        pesanRows: number;
+        pesanSize: string;
+        totalSize: string;
+    };
+    initialServerMetrics?: {
+        cpu: number;
+        ram: number;
+        qps: number;
+        timestamp: string;
+    };
+}
+
+export default function PerformanceMonitoring({
+    initialDbStats,
+    initialServerMetrics,
+}: PerformanceMonitoringProps) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const isSuperAdmin = auth.user?.roles?.includes('super_admin');
 
@@ -120,31 +143,31 @@ export default function PerformanceMonitoring() {
         'monitoring' | 'operations' | 'errors'
     >('monitoring');
 
-    // Real-time ticking metrics state
-    const [cpuHistory, setCpuHistory] = useState<number[]>([
-        22, 28, 25, 30, 26, 21, 29, 32, 24, 27,
-    ]);
-    const [ramHistory, setRamHistory] = useState<number[]>([
-        57, 57.2, 57.5, 57.3, 57.6, 57.4, 57.8, 58, 57.9, 58.1,
-    ]);
-    const [qpsHistory, setQpsHistory] = useState<number[]>([
-        14, 18, 12, 22, 19, 15, 26, 21, 16, 20,
-    ]);
+    // Real-time ticking metrics state initialized with real server data
+    const [cpuHistory, setCpuHistory] = useState<number[]>(
+        Array(10).fill(initialServerMetrics?.cpu ?? 22),
+    );
+    const [ramHistory, setRamHistory] = useState<number[]>(
+        Array(10).fill(initialServerMetrics?.ram ?? 57),
+    );
+    const [qpsHistory, setQpsHistory] = useState<number[]>(
+        Array(10).fill(initialServerMetrics?.qps ?? 14),
+    );
 
     // Active spike simulation toggler
     const [isSpikeActive, setIsSpikeActive] = useState(false);
 
-    // Database dynamic metrics
+    // Database dynamic metrics initialized with real server data
     const [dbStats, setDbStats] = useState({
-        beritaRows: 0,
-        beritaSize: '0 KB',
-        pengumumanRows: 0,
-        pengumumanSize: '0 KB',
-        logsRows: 0,
-        logsSize: '0 KB',
-        pesanRows: 0,
-        pesanSize: '0 KB',
-        totalSize: '0 KB',
+        beritaRows: initialDbStats?.beritaRows ?? 0,
+        beritaSize: initialDbStats?.beritaSize ?? '0 KB',
+        pengumumanRows: initialDbStats?.pengumumanRows ?? 0,
+        pengumumanSize: initialDbStats?.pengumumanSize ?? '0 KB',
+        logsRows: initialDbStats?.logsRows ?? 0,
+        logsSize: initialDbStats?.logsSize ?? '0 KB',
+        pesanRows: initialDbStats?.pesanRows ?? 0,
+        pesanSize: initialDbStats?.pesanSize ?? '0 KB',
+        totalSize: initialDbStats?.totalSize ?? '0 KB',
     });
 
     // Maintenance Mode States
@@ -166,6 +189,9 @@ export default function PerformanceMonitoring() {
         'System Operations panel initialized.',
     ]);
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [activeJob, setActiveJob] = useState<
+        'cleanup' | 'optimize' | 'backup' | null
+    >(null);
     const [optimizeProgress, setOptimizeProgress] = useState(0);
     const terminalEndRef = useRef<HTMLDivElement>(null);
 
@@ -178,6 +204,7 @@ export default function PerformanceMonitoring() {
         if (typeof window !== 'undefined') {
             // Load error list
             const savedErrors = localStorage.getItem('bka_error_logs');
+
             if (savedErrors) {
                 try {
                     setErrors(JSON.parse(savedErrors));
@@ -204,60 +231,35 @@ export default function PerformanceMonitoring() {
                 localStorage.getItem('bka_maintenance_bypass') ||
                 'BKA-SECRET-2026';
             setBypassToken(token);
-
-            // Hydrate dynamic database sizes from localStorage
-            const savedBerita = localStorage.getItem('bka_berita');
-            const countBerita = savedBerita
-                ? JSON.parse(savedBerita).length
-                : 12;
-
-            const savedPengumuman = localStorage.getItem('bka_pengumuman');
-            const countPengumuman = savedPengumuman
-                ? JSON.parse(savedPengumuman).length
-                : 8;
-
-            const savedLogs = localStorage.getItem('bka_activity_logs');
-            const countLogs = savedLogs
-                ? JSON.parse(savedLogs).length
-                : SEEDED_LOGS_COUNT();
-
-            const savedPesan = localStorage.getItem('bka_pesan');
-            const countPesan = savedPesan ? JSON.parse(savedPesan).length : 10;
-
-            // Estimation formulas: Overhead + content length bytes estimate
-            const sizeBeritaKB = Math.round(countBerita * 3.4 + 16);
-            const sizePengumumanKB = Math.round(countPengumuman * 2.8 + 12);
-            const sizeLogsKB = Math.round(countLogs * 0.8 + 8);
-            const sizePesanKB = Math.round(countPesan * 1.5 + 8);
-            const totalKB =
-                sizeBeritaKB +
-                sizePengumumanKB +
-                sizeLogsKB +
-                sizePesanKB +
-                420; // 420KB static metadata/assets overhead
-
-            setDbStats({
-                beritaRows: countBerita,
-                beritaSize: `${sizeBeritaKB} KB`,
-                pengumumanRows: countPengumuman,
-                pengumumanSize: `${sizePengumumanKB} KB`,
-                logsRows: countLogs,
-                logsSize: `${sizeLogsKB} KB`,
-                pesanRows: countPesan,
-                pesanSize: `${sizePesanKB} KB`,
-                totalSize:
-                    totalKB >= 1024
-                        ? `${(totalKB / 1024).toFixed(2)} MB`
-                        : `${totalKB} KB`,
-            });
         }
     }, []);
+
+    // Sync database statistics when server state reloads (e.g. after cleanup)
+    useEffect(() => {
+        if (initialDbStats) {
+            setDbStats({
+                beritaRows: initialDbStats.beritaRows ?? 0,
+                beritaSize: initialDbStats.beritaSize ?? '0 KB',
+                pengumumanRows: initialDbStats.pengumumanRows ?? 0,
+                pengumumanSize: initialDbStats.pengumumanSize ?? '0 KB',
+                logsRows: initialDbStats.logsRows ?? 0,
+                logsSize: initialDbStats.logsSize ?? '0 KB',
+                pesanRows: initialDbStats.pesanRows ?? 0,
+                pesanSize: initialDbStats.pesanSize ?? '0 KB',
+                totalSize: initialDbStats.totalSize ?? '0 KB',
+            });
+        }
+    }, [initialDbStats]);
 
     function SEEDED_LOGS_COUNT() {
         try {
             const saved = localStorage.getItem('bka_activity_logs');
-            if (saved) return JSON.parse(saved).length;
+
+            if (saved) {
+                return JSON.parse(saved).length;
+            }
         } catch {}
+
         return 8;
     }
 
@@ -266,31 +268,67 @@ export default function PerformanceMonitoring() {
         terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [terminalLogs]);
 
-    // Real-time ticking interval simulator (ticks every 2.5 seconds)
+    // Real-time server telemetry polling (every 2.5 seconds)
     useEffect(() => {
-        const timer = setInterval(() => {
-            setCpuHistory((prev) => {
-                const nextVal = isSpikeActive
-                    ? Math.round(85 + Math.random() * 12) // Spikes between 85% and 97%
-                    : Math.round(15 + Math.random() * 20); // Normal between 15% and 35%
-                return [...prev.slice(1), nextVal];
-            });
+        const timer = setInterval(async () => {
+            try {
+                const response = await fetch('/admin/monitoring/api/stats');
+                if (response.ok) {
+                    const data = await response.json();
 
-            setRamHistory((prev) => {
-                const baseRam = isSpikeActive ? 88 : 57.5;
-                const nextVal = parseFloat(
-                    (baseRam + Math.random() * 2.5).toFixed(1),
-                ); // RAM fluctuates slightly
-                return [...prev.slice(1), nextVal];
-            });
+                    setCpuHistory((prev) => {
+                        let val = data.cpu;
+                        if (isSpikeActive) {
+                            val = Math.round(85 + Math.random() * 12);
+                        }
+                        return [...prev.slice(1), val];
+                    });
 
-            setQpsHistory((prev) => {
-                const qpsMultiplier = isSpikeActive ? 6.5 : 1;
-                const nextVal = Math.round(
-                    (10 + Math.random() * 25) * qpsMultiplier,
-                ); // QPS rate spike
-                return [...prev.slice(1), nextVal];
-            });
+                    setRamHistory((prev) => {
+                        let val = data.ram;
+                        if (isSpikeActive) {
+                            val = parseFloat(
+                                (88 + Math.random() * 2.5).toFixed(1),
+                            );
+                        }
+                        return [...prev.slice(1), val];
+                    });
+
+                    setQpsHistory((prev) => {
+                        let val = data.qps;
+                        if (isSpikeActive) {
+                            val = Math.round(val * 6.5);
+                        }
+                        return [...prev.slice(1), val];
+                    });
+                } else {
+                    throw new Error('API issue');
+                }
+            } catch (err) {
+                // Fallback simulation if request fails or offline
+                setCpuHistory((prev) => {
+                    const nextVal = isSpikeActive
+                        ? Math.round(85 + Math.random() * 12)
+                        : Math.round(15 + Math.random() * 20);
+                    return [...prev.slice(1), nextVal];
+                });
+
+                setRamHistory((prev) => {
+                    const baseRam = isSpikeActive ? 88 : 57.5;
+                    const nextVal = parseFloat(
+                        (baseRam + Math.random() * 2.5).toFixed(1),
+                    );
+                    return [...prev.slice(1), nextVal];
+                });
+
+                setQpsHistory((prev) => {
+                    const qpsMultiplier = isSpikeActive ? 6.5 : 1;
+                    const nextVal = Math.round(
+                        (10 + Math.random() * 25) * qpsMultiplier,
+                    );
+                    return [...prev.slice(1), nextVal];
+                });
+            }
         }, 2500);
 
         return () => clearInterval(timer);
@@ -359,7 +397,10 @@ export default function PerformanceMonitoring() {
 
     // Copy bypass URL to clipboard
     const getBypassUrl = () => {
-        if (typeof window === 'undefined') return '';
+        if (typeof window === 'undefined') {
+            return '';
+        }
+
         return `${window.location.protocol}//${window.location.host}/?bypass=${bypassToken}`;
     };
 
@@ -374,10 +415,84 @@ export default function PerformanceMonitoring() {
         });
     };
 
+    // Real system cleanup and cache clearing
+    const handleRunCleanup = async () => {
+        if (isOptimizing) return;
+
+        setIsOptimizing(true);
+        setActiveJob('cleanup');
+        setOptimizeProgress(20);
+
+        setTerminalLogs((prev) => [
+            ...prev,
+            `[${new Date().toLocaleTimeString()}] INFO: Memulai pembersihan berkas sampah & cache sistem...`,
+            `[${new Date().toLocaleTimeString()}] HTTP: Menghubungi endpoint pembersihan sistem...`,
+        ]);
+
+        try {
+            const response = await fetch('/admin/monitoring/cleanup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        (
+                            document.querySelector(
+                                'meta[name="csrf-token"]',
+                            ) as HTMLMetaElement
+                        )?.content || '',
+                },
+            });
+
+            if (!response.ok) throw new Error('Cleanup failed');
+
+            const result = await response.json();
+            setOptimizeProgress(70);
+
+            // Add server logs to terminal logs
+            if (result.logs && Array.isArray(result.logs)) {
+                setTimeout(() => {
+                    router.reload({
+                        only: ['initialDbStats'],
+                        onSuccess: () => {
+                            setTerminalLogs((prev) => [
+                                ...prev,
+                                ...result.logs.map(
+                                    (log: string) =>
+                                        `[${new Date().toLocaleTimeString()}] SERVIS: ${log}`,
+                                ),
+                                `[${new Date().toLocaleTimeString()}] DONE: Pembersihan dan peningkatan performa sistem selesai.`,
+                            ]);
+                            setOptimizeProgress(100);
+                            setIsOptimizing(false);
+                            setActiveJob(null);
+                            toast.success(
+                                'Pembersihan cache & file sampah berhasil diselesaikan!',
+                            );
+                        },
+                    });
+                }, 1000);
+            } else {
+                throw new Error();
+            }
+        } catch (error) {
+            setTerminalLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString()}] WARNING: Gagal menjalankan pembersihan sistem.`,
+            ]);
+            setIsOptimizing(false);
+            setActiveJob(null);
+            toast.error('Gagal menjalankan pembersihan sistem.');
+        }
+    };
+
     // DB Table Optimizer Engine
     const handleRunOptimization = () => {
-        if (isOptimizing) return;
+        if (isOptimizing) {
+            return;
+        }
+
         setIsOptimizing(true);
+        setActiveJob('optimize');
         setOptimizeProgress(5);
 
         setTerminalLogs((prev) => [
@@ -413,7 +528,7 @@ export default function PerformanceMonitoring() {
             setTimeout(
                 () => {
                     setOptimizeProgress(step.p);
-                    let hydLog = step.log
+                    const hydLog = step.log
                         .replace('{berita}', String(dbStats.beritaRows))
                         .replace('{pengumuman}', String(dbStats.pengumumanRows))
                         .replace('{logs}', String(dbStats.logsRows));
@@ -425,6 +540,7 @@ export default function PerformanceMonitoring() {
 
                     if (step.p === 100) {
                         setIsOptimizing(false);
+                        setActiveJob(null);
                         toast.success(
                             'Optimasi basis data selesai! Seluruh tabel berjalan dalam status optimal.',
                         );
@@ -442,8 +558,12 @@ export default function PerformanceMonitoring() {
 
     // Sequential DB Backup Generator
     const handleRunBackup = () => {
-        if (isOptimizing) return;
+        if (isOptimizing) {
+            return;
+        }
+
         setIsOptimizing(true);
+        setActiveJob('backup');
         setOptimizeProgress(5);
 
         setTerminalLogs((prev) => [
@@ -483,7 +603,7 @@ export default function PerformanceMonitoring() {
             setTimeout(
                 () => {
                     setOptimizeProgress(step.p);
-                    let hydLog = step.log
+                    const hydLog = step.log
                         .replace('{berita}', String(dbStats.beritaRows))
                         .replace('{pengumuman}', String(dbStats.pengumumanRows))
                         .replace('{logs}', String(dbStats.logsRows))
@@ -496,6 +616,7 @@ export default function PerformanceMonitoring() {
 
                     if (step.p === 100) {
                         setIsOptimizing(false);
+                        setActiveJob(null);
                         toast.success(
                             'Pencadangan basis data berhasil! File SQL.GZ otomatis diunduh.',
                         );
@@ -563,11 +684,13 @@ export default function PerformanceMonitoring() {
         height: number,
     ) => {
         const stepX = width / (data.length - 1);
+
         return data
             .map((val, idx) => {
                 const x = idx * stepX;
                 const percentage = (val - min) / (max - min || 1);
                 const y = height - (percentage * (height - 12) + 6);
+
                 return `${x},${y}`;
             })
             .join(' ');
@@ -1354,6 +1477,30 @@ export default function PerformanceMonitoring() {
                                     <div className="flex flex-wrap items-center gap-2 select-none">
                                         <button
                                             type="button"
+                                            onClick={handleRunCleanup}
+                                            disabled={isOptimizing}
+                                            className={cn(
+                                                'inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg border px-3.5 py-1.5 text-[10px] font-bold shadow-2xs transition-all outline-none',
+                                                isOptimizing
+                                                    ? 'cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400'
+                                                    : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50',
+                                            )}
+                                        >
+                                            <Trash2
+                                                size={10}
+                                                className={
+                                                    isOptimizing &&
+                                                    activeJob === 'cleanup'
+                                                        ? 'text-red-650 animate-spin'
+                                                        : 'text-neutral-500'
+                                                }
+                                            />
+                                            <span>
+                                                Bersihkan Sampah & Cache
+                                            </span>
+                                        </button>
+                                        <button
+                                            type="button"
                                             onClick={handleRunOptimization}
                                             disabled={isOptimizing}
                                             className={cn(
@@ -1366,7 +1513,8 @@ export default function PerformanceMonitoring() {
                                             <RefreshCw
                                                 size={10}
                                                 className={
-                                                    isOptimizing
+                                                    isOptimizing &&
+                                                    activeJob === 'optimize'
                                                         ? 'animate-spin'
                                                         : ''
                                                 }
@@ -1396,19 +1544,28 @@ export default function PerformanceMonitoring() {
                                 <div className="relative max-h-[170px] min-h-[150px] flex-1 space-y-1 overflow-y-auto rounded-xl border border-neutral-800 bg-neutral-900 p-3.5 font-mono text-[10.5px] text-emerald-400 shadow-inner select-all">
                                     {terminalLogs.map((log, i) => {
                                         let color = 'text-emerald-400';
-                                        if (log.includes('SQL:'))
+
+                                        if (log.includes('SQL:')) {
                                             color = 'text-blue-400';
-                                        if (log.includes('INFO:'))
+                                        }
+
+                                        if (log.includes('INFO:')) {
                                             color = 'text-yellow-300';
-                                        if (log.includes('WARNING:'))
+                                        }
+
+                                        if (log.includes('WARNING:')) {
                                             color = 'text-red-400 font-bold';
+                                        }
+
                                         if (
                                             log.includes('DONE') ||
                                             log.includes('OPTIMAL') ||
                                             log.includes('selesai 100%')
-                                        )
+                                        ) {
                                             color =
                                                 'text-emerald-300 font-bold';
+                                        }
+
                                         return (
                                             <p key={i} className={color}>
                                                 {log}
@@ -1474,6 +1631,7 @@ export default function PerformanceMonitoring() {
                             {errors.length > 0 ? (
                                 errors.map((err) => {
                                     const isExpanded = expandedError === err.id;
+
                                     return (
                                         <div
                                             key={err.id}

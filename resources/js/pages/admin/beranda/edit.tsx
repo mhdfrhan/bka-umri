@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     Home,
     Sliders,
@@ -23,11 +22,12 @@ import {
     Upload,
     Image as ImageIcon,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { AdminModal } from '@/components/admin/admin-modal';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
-import { AdminModal } from '@/components/admin/admin-modal';
+import { cn } from '@/lib/utils';
 
 // Curated list of Lucide icons for statistics and services dropdowns
 const CURATED_ICONS = [
@@ -42,7 +42,72 @@ const CURATED_ICONS = [
     { name: 'Coins', label: 'Keuangan / Koin' },
 ];
 
-export default function EditBeranda() {
+interface Banner {
+    id: number;
+    title: string;
+    desc: string;
+    btnText: string;
+    btnUrl: string;
+    imgUrl: string;
+    active: boolean;
+    urutan: number;
+}
+
+interface KepalaBiro {
+    nama: string;
+    jabatan: string;
+    periode: string;
+    sambutan: string;
+    fotoUrl: string;
+}
+
+interface StatItem {
+    id: number;
+    angka: string;
+    label: string;
+    icon: string;
+    urutan: number;
+}
+
+interface LayananItem {
+    id: number;
+    title: string;
+    desc: string;
+    icon: string;
+    urutan: number;
+}
+
+interface LayananSection {
+    judul: string;
+    desc: string;
+    youtubeUrl: string;
+}
+
+interface Props {
+    banners: Banner[];
+    kepalaBiro: KepalaBiro;
+    stats: StatItem[];
+    layananSection: LayananSection;
+    layananItems: LayananItem[];
+}
+
+export default function EditBeranda({
+    banners: initialBanners = [],
+    kepalaBiro: initialKepalaBiro = {
+        nama: '',
+        jabatan: '',
+        periode: '',
+        sambutan: '',
+        fotoUrl: '',
+    },
+    stats: initialStats = [],
+    layananSection: initialLayananSection = {
+        judul: '',
+        desc: '',
+        youtubeUrl: '',
+    },
+    layananItems: initialLayananItems = [],
+}: Props) {
     // Current Active Tab State
     const [activeTab, setActiveTab] = useState<
         'banners' | 'kepalaBiro' | 'stats' | 'services'
@@ -63,6 +128,7 @@ export default function EditBeranda() {
         } else if (assetPickerTarget === 'kepalaBiro') {
             setKepalaBiro((prev) => ({ ...prev, fotoUrl: url }));
         }
+
         setAssetPickerTarget(null);
     };
 
@@ -75,10 +141,14 @@ export default function EditBeranda() {
 
     const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
 
         if (file.size > 10 * 1024 * 1024) {
             toast.error('File gambar melebihi batas 10MB!');
+
             return;
         }
 
@@ -98,10 +168,14 @@ export default function EditBeranda() {
 
     const handleKbFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
 
         if (file.size > 10 * 1024 * 1024) {
             toast.error('File gambar melebihi batas 10MB!');
+
             return;
         }
 
@@ -118,26 +192,11 @@ export default function EditBeranda() {
     // ────────────────────────────────────────────────────────
     // 1. BANNER/SLIDER STATE & ACTIONS
     // ────────────────────────────────────────────────────────
-    const [banners, setBanners] = useState([
-        {
-            id: 1,
-            title: 'Portal Informasi BKA UMRI Resmi',
-            desc: 'Selamat datang di Biro Kelembagaan & Aset Universitas Muhammadiyah Riau. Mengelola aset keilmuan dan sarana secara transparan.',
-            btnText: 'Pelajari Selengkapnya',
-            btnUrl: 'https://umri.ac.id',
-            imgUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800',
-            active: true,
-        },
-        {
-            id: 2,
-            title: 'Layanan Pengadaan Aset Digital Baru',
-            desc: 'Kami mendigitalisasi proses pengajuan sarana prasarana demi efisiensi birokrasi dan akuntabilitas universitas.',
-            btnText: 'Ajukan Sekarang',
-            btnUrl: '/admin/settings',
-            imgUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=800',
-            active: true,
-        },
-    ]);
+    const [banners, setBanners] = useState(initialBanners);
+
+    useEffect(() => {
+        setBanners(initialBanners);
+    }, [initialBanners]);
 
     const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
     const [editingBannerId, setEditingBannerId] = useState<number | null>(null);
@@ -153,8 +212,10 @@ export default function EditBeranda() {
     const handleOpenAddBanner = () => {
         if (banners.length >= 5) {
             toast.warning('Batas maksimum 5 slide aktif tercapai!');
+
             return;
         }
+
         setEditingBannerId(null);
         setBannerForm({
             title: '',
@@ -169,7 +230,11 @@ export default function EditBeranda() {
 
     const handleOpenEditBanner = (id: number) => {
         const item = banners.find((b) => b.id === id);
-        if (!item) return;
+
+        if (!item) {
+            return;
+        }
+
         setEditingBannerId(id);
         setBannerForm({ ...item });
         setIsBannerModalOpen(true);
@@ -177,97 +242,147 @@ export default function EditBeranda() {
 
     const handleSaveBanner = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!bannerForm.title.trim() || !bannerForm.desc.trim()) {
             toast.error('Judul dan Deskripsi wajib diisi!');
+
             return;
         }
 
         if (editingBannerId !== null) {
-            // Update
-            setBanners((prev) =>
-                prev.map((b) =>
-                    b.id === editingBannerId
-                        ? { ...bannerForm, id: editingBannerId }
-                        : b,
-                ),
+            router.put(
+                `/admin/beranda/banners/${editingBannerId}`,
+                bannerForm,
+                {
+                    onSuccess: () => {
+                        toast.success('Slide Banner berhasil diperbarui!');
+                        setIsBannerModalOpen(false);
+                    },
+                    onError: (err: any) => {
+                        toast.error(
+                            (Object.values(err)[0] as string) ||
+                                'Gagal memperbarui slide banner.',
+                        );
+                    },
+                },
             );
-            toast.success('Slide Banner berhasil diperbarui!');
         } else {
-            // Create
-            setBanners((prev) => [...prev, { ...bannerForm, id: Date.now() }]);
-            toast.success('Slide Banner baru ditambahkan!');
+            router.post('/admin/beranda/banners', bannerForm, {
+                onSuccess: () => {
+                    toast.success('Slide Banner baru ditambahkan!');
+                    setIsBannerModalOpen(false);
+                },
+                onError: (err: any) => {
+                    toast.error(
+                        (Object.values(err)[0] as string) ||
+                            'Gagal menambahkan slide banner.',
+                    );
+                },
+            });
         }
-        setIsBannerModalOpen(false);
     };
 
     const handleDeleteBanner = (id: number) => {
-        setBanners((prev) => prev.filter((b) => b.id !== id));
-        toast.success('Slide Banner berhasil dihapus!');
+        if (confirm('Apakah Anda yakin ingin menghapus slide banner ini?')) {
+            router.delete(`/admin/beranda/banners/${id}`, {
+                onSuccess: () => {
+                    toast.success('Slide Banner berhasil dihapus!');
+                },
+                onError: () => {
+                    toast.error('Gagal menghapus slide banner.');
+                },
+            });
+        }
     };
 
     const handleToggleBannerStatus = (id: number) => {
-        setBanners((prev) =>
-            prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b)),
+        router.patch(
+            `/admin/beranda/banners/${id}/toggle`,
+            {},
+            {
+                onSuccess: () => {
+                    toast.info('Status slide berhasil diubah!');
+                },
+                onError: () => {
+                    toast.error('Gagal mengubah status slide.');
+                },
+            },
         );
-        toast.info('Status slide berhasil diubah!');
     };
 
     const handleMoveBanner = (index: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === banners.length - 1) return;
+        if (direction === 'up' && index === 0) {
+            return;
+        }
+
+        if (direction === 'down' && index === banners.length - 1) {
+            return;
+        }
 
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
         const newBanners = [...banners];
         const temp = newBanners[index];
         newBanners[index] = newBanners[targetIndex];
         newBanners[targetIndex] = temp;
-        setBanners(newBanners);
-        toast.success('Urutan slide berhasil diubah!');
+
+        const ids = newBanners.map((b) => b.id);
+
+        router.post(
+            '/admin/beranda/banners/reorder',
+            { ids },
+            {
+                onSuccess: () => {
+                    toast.success('Urutan slide berhasil diubah!');
+                },
+                onError: () => {
+                    toast.error('Gagal memperbarui urutan slide.');
+                },
+            },
+        );
     };
 
     // ────────────────────────────────────────────────────────
-    // 2. KEPALA BIRO STATE
+    // 2. KEPALA BIRO STATE & SYNC
     // ────────────────────────────────────────────────────────
-    const [kepalaBiro, setKepalaBiro] = useState({
-        nama: 'Rahmawita, S.E',
-        jabatan: 'Kepala Biro Keuangan & Aset UMRI',
-        periode: 'Periode 2024 - 2028',
-        sambutan:
-            "Assalamu'alaikum Warahmatullahi Wabarakatuh. Selamat datang di portal resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau (UMRI). Biro ini berkomitmen untuk menyelenggarakan administrasi keuangan dan pengelolaan aset yang transparan, akuntabel, dan berorientasi pada pelayanan prima. Melalui website ini, kami berharap civitas akademika UMRI dan masyarakat luas dapat mengakses informasi serta layanan administrasi keuangan secara cepat, akurat, dan efisien. Kami terus berinovasi mengintegrasikan sistem digital demi kemudahan kita bersama. Terima kasih atas kepercayaan dan kerjasama Anda semua. Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
-        fotoUrl:
-            'https://smart.umri.ac.id/application/modules/personalia/assets/uploads/foto/f405f-rahmawita-se.jpg',
-    });
+    const [kepalaBiro, setKepalaBiro] = useState(initialKepalaBiro);
+
+    useEffect(() => {
+        setKepalaBiro(initialKepalaBiro);
+    }, [initialKepalaBiro]);
 
     const handleSaveKepalaBiro = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success('Profil & Sambutan Kepala Biro berhasil disimpan!');
+        router.put('/admin/beranda/kepala-biro', kepalaBiro as any, {
+            onSuccess: () => {
+                toast.success(
+                    'Profil & Sambutan Kepala Biro berhasil disimpan!',
+                );
+            },
+            onError: (err: any) => {
+                toast.error(
+                    (Object.values(err)[0] as string) ||
+                        'Gagal menyimpan profil Kepala Biro.',
+                );
+            },
+        });
     };
 
     // ────────────────────────────────────────────────────────
     // 3. STATISTIK KELEMBAGAAN STATE & ACTIONS
     // ────────────────────────────────────────────────────────
-    const [stats, setStats] = useState([
-        { id: 1, angka: '12', label: 'Berita Terbit', icon: 'FileText' },
-        { id: 2, angka: '8', label: 'Pengumuman Penting', icon: 'Megaphone' },
-        {
-            id: 3,
-            angka: '24',
-            label: 'Program Studi Terverifikasi',
-            icon: 'Award',
-        },
-        {
-            id: 4,
-            angka: '150+',
-            label: 'Total Aset Terdata',
-            icon: 'Building2',
-        },
-    ]);
+    const [stats, setStats] = useState(initialStats);
+
+    useEffect(() => {
+        setStats(initialStats);
+    }, [initialStats]);
 
     const handleAddStat = () => {
         if (stats.length >= 4) {
             toast.warning('Batas maksimum 4 statistik kelembagaan tercapai!');
+
             return;
         }
+
         setStats((prev) => [
             ...prev,
             {
@@ -275,6 +390,7 @@ export default function EditBeranda() {
                 angka: '0',
                 label: 'Statistik Baru',
                 icon: 'Award',
+                urutan: stats.length + 1,
             },
         ]);
         toast.success('Statistik baru ditambahkan! Silakan sesuaikan.');
@@ -295,35 +411,51 @@ export default function EditBeranda() {
         );
     };
 
+    const handleSaveStatistik = () => {
+        const statsPayload = stats.map((s, idx) => ({
+            ...s,
+            id: String(s.id).length > 10 ? null : s.id,
+            urutan: idx + 1,
+        }));
+
+        router.put(
+            '/admin/beranda/statistik',
+            { stats: statsPayload },
+            {
+                onSuccess: () => {
+                    toast.success('Statistik kelembagaan berhasil diperbarui!');
+                },
+                onError: (err: any) => {
+                    toast.error(
+                        (Object.values(err)[0] as string) ||
+                            'Gagal menyimpan statistik kelembagaan.',
+                    );
+                },
+            },
+        );
+    };
+
     // ────────────────────────────────────────────────────────
     // 4. LAYANAN BKA STATE & ACTIONS
     // ────────────────────────────────────────────────────────
-    const [layananSection, setLayananSection] = useState({
-        judul: 'Layanan Biro Kelembagaan & Aset',
-        desc: 'Kami menghadirkan serangkaian sistem terintegrasi demi kenyamanan operasional seluruh sivitas akademika UMRI.',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    });
+    const [layananSection, setLayananSection] = useState(initialLayananSection);
+    const [layananItems, setLayananItems] = useState(initialLayananItems);
 
-    const [layananItems, setLayananItems] = useState([
-        {
-            id: 1,
-            title: 'Pengajuan Sertifikasi Dosen',
-            desc: 'Sistem pengarsipan portofolio kelembagaan bagi dosen tetap.',
-            icon: 'FileText',
-        },
-        {
-            id: 2,
-            title: 'Inventarisasi Aset Ruangan',
-            desc: 'Pemantauan berkala sarana perkuliahan di seluruh fakultas.',
-            icon: 'Building2',
-        },
-    ]);
+    useEffect(() => {
+        setLayananSection(initialLayananSection);
+    }, [initialLayananSection]);
+
+    useEffect(() => {
+        setLayananItems(initialLayananItems);
+    }, [initialLayananItems]);
 
     const handleAddLayanan = () => {
         if (layananItems.length >= 6) {
             toast.warning('Batas maksimum 6 item layanan tercapai!');
+
             return;
         }
+
         setLayananItems((prev) => [
             ...prev,
             {
@@ -331,6 +463,7 @@ export default function EditBeranda() {
                 title: 'Layanan Baru',
                 desc: 'Deskripsi singkat mengenai layanan kelembagaan baru.',
                 icon: 'Settings2',
+                urutan: layananItems.length + 1,
             },
         ]);
         toast.success('Item layanan baru ditambahkan!');
@@ -353,7 +486,35 @@ export default function EditBeranda() {
 
     const handleSaveLayanan = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success('Pengaturan Layanan BKA berhasil disimpan!');
+
+        const itemsPayload = layananItems.map((item, idx) => ({
+            id: String(item.id).length > 10 ? null : item.id,
+            title: item.title,
+            desc: item.desc,
+            icon: item.icon,
+            urutan: idx + 1,
+        }));
+
+        router.put(
+            '/admin/beranda/layanan',
+            {
+                judul: layananSection.judul,
+                desc: layananSection.desc,
+                youtubeUrl: layananSection.youtubeUrl,
+                items: itemsPayload,
+            },
+            {
+                onSuccess: () => {
+                    toast.success('Pengaturan Layanan BKA berhasil disimpan!');
+                },
+                onError: (err: any) => {
+                    toast.error(
+                        (Object.values(err)[0] as string) ||
+                            'Gagal menyimpan pengaturan layanan.',
+                    );
+                },
+            },
+        );
     };
 
     return (
@@ -377,7 +538,7 @@ export default function EditBeranda() {
                 </div>
 
                 {/* Glassmorphic Tabs Shell */}
-                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[30%_1fr]">
+                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[20%_1fr]">
                     {/* Tab Navigation Pane */}
                     <div className="flex w-full shrink-0 scrollbar-none flex-row gap-1.5 overflow-x-auto pb-2 select-none lg:w-full lg:flex-col lg:pb-0">
                         <button
@@ -978,6 +1139,19 @@ export default function EditBeranda() {
                                             atas untuk menambahkan maksimal 4
                                             indikator data utama.
                                         </p>
+                                    </div>
+                                )}
+
+                                {stats.length > 0 && (
+                                    <div className="flex items-center justify-end border-t border-neutral-100 pt-4">
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveStatistik}
+                                            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-md transition-all outline-none hover:bg-emerald-700 active:scale-95"
+                                        >
+                                            <Check className="size-4.5" />
+                                            Simpan Perubahan Statistik
+                                        </button>
                                     </div>
                                 )}
                             </div>

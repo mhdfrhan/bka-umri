@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage, useForm } from '@inertiajs/react';
 import {
     Users,
     UserPlus,
@@ -14,42 +13,35 @@ import {
     AlertCircle,
     Save,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import type { Auth } from '@/types';
-import { cn } from '@/lib/utils';
 import { logActivity } from '@/lib/logger';
+import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
-interface CMSUser {
-    id: string | number;
-    name: string;
-    email: string;
-    role: 'super_admin' | 'admin';
-    is_active: boolean;
-    created_at: string;
-}
-
-export default function UserCreate() {
+export default function UserCreate({ activeCount }: { activeCount: number }) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUser = auth.user;
     const isSuperAdmin = currentUser?.roles?.includes('super_admin');
 
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [role, setRole] = useState<'super_admin' | 'admin'>('admin');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const { data, setData, post, processing, errors } = useForm({
+        name: '',
+        email: '',
+        role: 'admin' as 'super_admin' | 'admin',
+        password: '',
+        password_confirmation: '',
+    });
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
 
     // Password criteria check
     const criteria = {
-        length: password.length >= 8,
-        hasUpper: /[A-Z]/.test(password),
-        hasLower: /[a-z]/.test(password),
-        hasNumber: /[0-9]/.test(password),
-        hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+        length: data.password.length >= 8,
+        hasUpper: /[A-Z]/.test(data.password),
+        hasLower: /[a-z]/.test(data.password),
+        hasNumber: /[0-9]/.test(data.password),
+        hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(data.password),
     };
 
     // Calculate score
@@ -57,27 +49,33 @@ export default function UserCreate() {
 
     // Get strength label & colors
     const getStrengthInfo = () => {
-        if (password.length === 0)
+        if (data.password.length === 0) {
             return {
                 label: 'Kosong',
                 color: 'bg-neutral-200',
                 text: 'text-neutral-400',
                 width: 'w-0',
             };
-        if (score <= 2)
+        }
+
+        if (score <= 2) {
             return {
                 label: 'Lemah',
                 color: 'bg-red-500',
                 text: 'text-red-500',
                 width: 'w-1/3',
             };
-        if (score <= 4)
+        }
+
+        if (score <= 4) {
             return {
                 label: 'Sedang',
                 color: 'bg-amber-500',
                 text: 'text-amber-500',
                 width: 'w-2/3',
             };
+        }
+
         return {
             label: 'Kuat',
             color: 'bg-emerald-500',
@@ -88,24 +86,7 @@ export default function UserCreate() {
 
     const strength = getStrengthInfo();
 
-    // Check capacity limit
-    const [isLimitReached, setIsLimitReached] = useState(false);
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('bka_users');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    const activeCount = parsed.filter(
-                        (u: CMSUser) => u.is_active,
-                    ).length;
-                    if (activeCount >= 10) {
-                        setIsLimitReached(true);
-                    }
-                } catch {}
-            }
-        }
-    }, []);
+    const isLimitReached = activeCount >= 10;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -114,16 +95,19 @@ export default function UserCreate() {
             toast.error(
                 'Batas Akun Aktif Terpenuhi: Tidak dapat menambah administrator baru karena kuota 10 akun aktif telah penuh.',
             );
+
             return;
         }
 
-        if (!name.trim()) {
+        if (!data.name.trim()) {
             toast.error('Nama lengkap wajib diisi!');
+
             return;
         }
 
-        if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+        if (!data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)) {
             toast.error('Format email tidak valid!');
+
             return;
         }
 
@@ -131,58 +115,34 @@ export default function UserCreate() {
             toast.error(
                 'Kata sandi harus memenuhi seluruh kriteria keamanan yang ditetapkan!',
             );
+
             return;
         }
 
-        if (password !== confirmPassword) {
+        if (data.password !== data.password_confirmation) {
             toast.error('Konfirmasi kata sandi tidak cocok!');
+
             return;
         }
 
-        setIsSaving(true);
-
-        try {
-            const saved = localStorage.getItem('bka_users');
-            const list = saved ? JSON.parse(saved) : [];
-
-            // Check if email already exists
-            if (
-                list.some(
-                    (u: CMSUser) =>
-                        u.email.toLowerCase() === email.toLowerCase(),
-                )
-            ) {
-                toast.error('Email sudah terdaftar! Gunakan email lain.');
-                setIsSaving(false);
-                return;
-            }
-
-            const newUser: CMSUser = {
-                id: 'usr-' + Date.now(),
-                name: name.trim(),
-                email: email.trim().toLowerCase(),
-                role,
-                is_active: true, // defaults to active
-                created_at: new Date().toISOString(),
-            };
-
-            const updatedList = [...list, newUser];
-            localStorage.setItem('bka_users', JSON.stringify(updatedList));
-
-            logActivity(
-                'Membuat akun pengguna',
-                `${newUser.name} (${newUser.email}) - Peran: ${newUser.role === 'super_admin' ? 'Super Admin' : 'Admin'}`,
-                'user',
-            );
-
-            toast.success(
-                `Akun administrator "${newUser.name}" berhasil dibuat!`,
-            );
-            router.visit('/admin/users');
-        } catch {
-            toast.error('Gagal menyimpan data administrator.');
-            setIsSaving(false);
-        }
+        post('/admin/users', {
+            onSuccess: () => {
+                logActivity(
+                    'Membuat akun pengguna',
+                    `${data.name.trim()} (${data.email.trim().toLowerCase()}) - Peran: ${data.role === 'super_admin' ? 'Super Admin' : 'Admin'}`,
+                    'user',
+                );
+                toast.success(
+                    `Akun administrator "${data.name.trim()}" berhasil dibuat!`,
+                );
+            },
+            onError: (errors) => {
+                const message =
+                    Object.values(errors)[0] ||
+                    'Gagal menyimpan data administrator.';
+                toast.error(message);
+            },
+        });
     };
 
     // If NOT Super Admin, render beautiful forbidden panel
@@ -274,12 +234,19 @@ export default function UserCreate() {
                                 <input
                                     type="text"
                                     placeholder="Masukkan nama lengkap staff..."
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    value={data.name}
+                                    onChange={(e) =>
+                                        setData('name', e.target.value)
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     required
-                                    disabled={isSaving}
+                                    disabled={processing}
                                 />
+                                {errors.name && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.name}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-1.5">
@@ -289,12 +256,19 @@ export default function UserCreate() {
                                 <input
                                     type="email"
                                     placeholder="contoh: staff@bka.umri.ac.id"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={data.email}
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     required
-                                    disabled={isSaving}
+                                    disabled={processing}
                                 />
+                                {errors.email && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.email}
+                                    </p>
+                                )}
                                 <p className="mt-0.5 text-[10px] leading-normal text-neutral-400">
                                     Disarankan menggunakan domain email resmi
                                     instansi (@bka.umri.ac.id).
@@ -305,27 +279,21 @@ export default function UserCreate() {
                                 <label className="text-sm font-bold text-neutral-700">
                                     Tingkat Hak Akses / Peran *
                                 </label>
-                                <select
-                                    value={role}
-                                    onChange={(e) =>
-                                        setRole(
-                                            e.target.value as
-                                                | 'super_admin'
-                                                | 'admin',
-                                        )
-                                    }
-                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                    disabled={isSaving}
-                                >
-                                    <option value="admin">
-                                        Admin Konten Biasa (Mengelola Berita &
-                                        Bidang)
-                                    </option>
-                                    <option value="super_admin">
-                                        Super Admin (Akses Penuh Pengaturan &
-                                        Pengguna)
-                                    </option>
-                                </select>
+                                <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-100/50 px-4 py-3 text-xs font-medium text-neutral-500">
+                                    <Shield
+                                        size={14}
+                                        className="text-emerald-600"
+                                    />
+                                    <span>
+                                        Admin Konten Biasa (Mengelola Berita,
+                                        Bidang & Lampiran)
+                                    </span>
+                                </div>
+                                <p className="mt-0.5 text-[10px] leading-normal text-neutral-400">
+                                    Peran Super Admin tidak dapat dibuat melalui
+                                    UI demi alasan keamanan (hanya via
+                                    CLI/seeder).
+                                </p>
                             </div>
 
                             <div className="space-y-1.5">
@@ -338,13 +306,13 @@ export default function UserCreate() {
                                             showPassword ? 'text' : 'password'
                                         }
                                         placeholder="Masukkan kata sandi aman..."
-                                        value={password}
+                                        value={data.password}
                                         onChange={(e) =>
-                                            setPassword(e.target.value)
+                                            setData('password', e.target.value)
                                         }
                                         className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 py-3 pr-10 pl-4 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                         required
-                                        disabled={isSaving}
+                                        disabled={processing}
                                     />
                                     <button
                                         type="button"
@@ -360,6 +328,11 @@ export default function UserCreate() {
                                         )}
                                     </button>
                                 </div>
+                                {errors.password && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.password}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-1.5">
@@ -374,13 +347,16 @@ export default function UserCreate() {
                                                 : 'password'
                                         }
                                         placeholder="Ulangi kata sandi di atas..."
-                                        value={confirmPassword}
+                                        value={data.password_confirmation}
                                         onChange={(e) =>
-                                            setConfirmPassword(e.target.value)
+                                            setData(
+                                                'password_confirmation',
+                                                e.target.value,
+                                            )
                                         }
                                         className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 py-3 pr-10 pl-4 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                         required
-                                        disabled={isSaving}
+                                        disabled={processing}
                                     />
                                     <button
                                         type="button"
@@ -398,6 +374,11 @@ export default function UserCreate() {
                                         )}
                                     </button>
                                 </div>
+                                {errors.password_confirmation && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.password_confirmation}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -573,17 +554,17 @@ export default function UserCreate() {
                             </a>
                             <button
                                 type="submit"
-                                disabled={isSaving || isLimitReached}
+                                disabled={processing || isLimitReached}
                                 className={cn(
                                     'flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold text-white shadow-sm transition-all outline-none',
-                                    isSaving || isLimitReached
+                                    processing || isLimitReached
                                         ? 'cursor-not-allowed bg-neutral-200 text-neutral-400'
                                         : 'bg-[#1B5E20] hover:bg-[#145218]',
                                 )}
                             >
                                 <Save size={14} />
                                 <span>
-                                    {isSaving
+                                    {processing
                                         ? 'Menyimpan...'
                                         : 'Simpan Kredensial'}
                                 </span>

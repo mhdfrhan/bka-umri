@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import {
     Settings2,
     Mail,
@@ -20,8 +19,12 @@ import {
     User,
     Calendar,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { formatDate } from '@/lib/format-date';
+import { optimizeFile } from '@/lib/image-optimizer';
+import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
+import { ImageUploadModal } from '@/components/admin/image-upload-modal';
 
 interface MediaSosialItem {
     platform: string;
@@ -39,6 +42,11 @@ interface WebSettings {
     deskripsi_seo: string;
     logo_base64?: string;
     favicon_base64?: string;
+    pemberitahuan_aktif?: string;
+    pemberitahuan_gambar?: string;
+    pemberitahuan_link_url?: string;
+    pemberitahuan_link_teks?: string;
+    pemberitahuan_tombol_teks?: string;
 }
 
 interface InboxMessage {
@@ -67,6 +75,11 @@ const DEFAULT_SETTINGS: WebSettings = {
     nama_website: 'Biro Keuangan & Aset UMRI',
     deskripsi_seo:
         'Portal Resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau - Pelayanan SPP Online, Surat Dispensasi, SOP, dan Informasi Keuangan Kampus.',
+    pemberitahuan_aktif: '0',
+    pemberitahuan_gambar: '',
+    pemberitahuan_link_url: '',
+    pemberitahuan_link_teks: '',
+    pemberitahuan_tombol_teks: '',
 };
 
 const INITIAL_MESSAGES: InboxMessage[] = [
@@ -99,7 +112,13 @@ const INITIAL_MESSAGES: InboxMessage[] = [
     },
 ];
 
-export default function WebSettingsCMS() {
+export default function WebSettingsCMS({
+    dbSettings,
+    dbInbox,
+}: {
+    dbSettings?: WebSettings;
+    dbInbox?: InboxMessage[];
+}) {
     const { auth } = usePage().props as any;
 
     // Auth authorization check: Super Admin check
@@ -108,73 +127,91 @@ export default function WebSettingsCMS() {
         auth?.user?.role === 'super_admin' ||
         false;
 
-    // Tabs navigation: 'kontak', 'sosmed', 'sistem', 'inbox'
+    // Tabs navigation: 'kontak', 'sosmed', 'sistem', 'pemberitahuan', 'inbox'
     const [activeTab, setActiveTab] = useState<
-        'kontak' | 'sosmed' | 'sistem' | 'inbox'
+        'kontak' | 'sosmed' | 'sistem' | 'pemberitahuan' | 'inbox'
     >('kontak');
 
     // States
-    const [settings, setSettings] = useState<WebSettings>(DEFAULT_SETTINGS);
-    const [inbox, setInbox] = useState<InboxMessage[]>([]);
+    const [settings, setSettings] = useState<WebSettings>(
+        dbSettings || DEFAULT_SETTINGS,
+    );
+    const [inbox, setInbox] = useState<InboxMessage[]>(dbInbox || []);
     const [inboxSearch, setInboxSearch] = useState<string>('');
     const [inboxFilter, setInboxFilter] = useState<'all' | 'unread'>('all');
     const [activeMessage, setActiveMessage] = useState<InboxMessage | null>(
         null,
     );
 
-    // Initial Hydration from local storage
+    // Modal states for popup notification image upload & asset selection
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
+        null,
+    );
+
+    // Handler for flyer image selection
+    const handleFlyerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File gambar melebihi batas 10MB!');
+            return;
+        }
+
+        setSelectedUploadFile(file);
+        setIsUploadModalOpen(true);
+        e.target.value = '';
+    };
+
+    const handleUploadConfirm = (result: { base64: string }) => {
+        setSettings((prev) => ({
+            ...prev,
+            pemberitahuan_gambar: result.base64,
+        }));
+        toast.success('Gambar flyer berhasil diunggah & dioptimasi!');
+    };
+
+    // Sync settings and inbox from database props
     useEffect(() => {
-        const savedSettings = localStorage.getItem('bka_settings');
-        const savedInbox = localStorage.getItem('bka_pesan');
-
-        if (savedSettings) {
-            try {
-                setSettings(JSON.parse(savedSettings));
-            } catch {
-                setSettings(DEFAULT_SETTINGS);
-            }
-        } else {
-            setSettings(DEFAULT_SETTINGS);
-            localStorage.setItem(
-                'bka_settings',
-                JSON.stringify(DEFAULT_SETTINGS),
-            );
+        if (dbSettings) {
+            setSettings(dbSettings);
         }
-
-        if (savedInbox) {
-            try {
-                setInbox(JSON.parse(savedInbox));
-            } catch {
-                setInbox(INITIAL_MESSAGES);
-            }
-        } else {
-            setInbox(INITIAL_MESSAGES);
-            localStorage.setItem('bka_pesan', JSON.stringify(INITIAL_MESSAGES));
+        if (dbInbox) {
+            setInbox(dbInbox);
         }
-    }, []);
-
-    // Save settings helper
-    const handleSaveSettings = (
-        updated: WebSettings,
-        message = 'Pengaturan berhasil diperbarui',
-    ) => {
-        setSettings(updated);
-        localStorage.setItem('bka_settings', JSON.stringify(updated));
-        toast.success(message);
-    };
-
-    // Save inbox helper
-    const handleSaveInbox = (updated: InboxMessage[]) => {
-        setInbox(updated);
-        localStorage.setItem('bka_pesan', JSON.stringify(updated));
-    };
+    }, [dbSettings, dbInbox]);
 
     // Tab 1: Save Contact Info
     const handleContactSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        handleSaveSettings(
-            settings,
-            'Informasi kontak kantor berhasil diperbarui',
+        router.post(
+            '/admin/settings',
+            {
+                alamat: settings.alamat,
+                telepon: settings.telepon,
+                email: settings.email,
+                jam_operasional: settings.jam_operasional,
+                google_maps_embed: settings.google_maps_embed,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Informasi kontak kantor berhasil diperbarui',
+                    );
+                },
+                onError: (err) => {
+                    toast.error(
+                        (Object.values(err)[0] as string) ||
+                            'Gagal memperbarui informasi kontak',
+                    );
+                },
+            },
         );
     };
 
@@ -207,49 +244,153 @@ export default function WebSettingsCMS() {
 
     const handleSosmedSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        handleSaveSettings(
-            settings,
-            'Tautan media sosial resmi berhasil diperbarui',
+
+        const invalidUrls = settings.mediaSosial.some(
+            (item) => !item.url || !item.url.startsWith('http'),
         );
-    };
-
-    // Tab 3: System settings image upload to Base64
-    const handleImageUpload = (
-        e: React.ChangeEvent<HTMLInputElement>,
-        field: 'logo_base64' | 'favicon_base64',
-    ) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Validation limits
-        const limitSize = field === 'logo_base64' ? 500 * 1024 : 100 * 1024;
-        if (file.size > limitSize) {
+        if (invalidUrls) {
             toast.error(
-                `Ukuran berkas melebihi batas (${field === 'logo_base64' ? '500 KB' : '100 KB'})`,
+                'Harap masukkan URL media sosial yang valid (mulai dengan http:// atau https://)',
             );
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const base64 = event.target?.result as string;
-            setSettings((prev) => ({ ...prev, [field]: base64 }));
-            toast.success('Gambar berhasil dipilih, silakan klik Simpan');
-        };
-        reader.readAsDataURL(file);
+        router.post(
+            '/admin/settings',
+            {
+                mediaSosial: settings.mediaSosial as any,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Tautan media sosial resmi berhasil diperbarui',
+                    );
+                },
+                onError: (err) => {
+                    toast.error(
+                        (Object.values(err)[0] as string) ||
+                            'Gagal memperbarui tautan media sosial',
+                    );
+                },
+            },
+        );
+    };
+
+    // Tab 3: System settings image upload to Base64 (optimized to WebP)
+    const handleImageUpload = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+        field: 'logo_base64' | 'favicon_base64' | 'pemberitahuan_gambar',
+    ) => {
+        const file = e.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        // Limit size validation before optimization (prevent crash on extremely large files)
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File gambar melebihi batas 10MB!');
+            return;
+        }
+
+        // Configuration per image type
+        let maxWidth = 800;
+        let quality = 0.75;
+        if (field === 'logo_base64') {
+            maxWidth = 500;
+            quality = 0.85;
+        } else if (field === 'favicon_base64') {
+            maxWidth = 64;
+            quality = 0.9;
+        } else if (field === 'pemberitahuan_gambar') {
+            maxWidth = 1200; // notification flyer is larger and needs high clarity
+            quality = 0.8;
+        }
+
+        const optimizePromise = optimizeFile(file, maxWidth, quality);
+
+        toast.promise(optimizePromise, {
+            loading: 'Mengompresi & mengoptimasi gambar...',
+            success: (result) => {
+                setSettings((prev) => ({ ...prev, [field]: result.base64 }));
+                const savings = Math.round(
+                    ((result.originalSize - result.size) /
+                        result.originalSize) *
+                        100,
+                );
+                return `Gambar berhasil diunggah & dioptimasi (${savings}% lebih hemat)!`;
+            },
+            error: 'Gagal mengompresi gambar',
+        });
+
+        // Reset file input value to allow uploading the same file again
+        e.target.value = '';
     };
 
     const handleSystemSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!isSuperAdmin) {
             toast.error(
                 'Hanya Super Admin yang diizinkan memperbarui pengaturan sistem',
             );
+
             return;
         }
-        handleSaveSettings(
-            settings,
-            'Konfigurasi identitas sistem & SEO berhasil diperbarui',
+
+        router.post(
+            '/admin/settings',
+            {
+                nama_website: settings.nama_website,
+                deskripsi_seo: settings.deskripsi_seo,
+                logo_base64: settings.logo_base64 || null,
+                favicon_base64: settings.favicon_base64 || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Konfigurasi identitas sistem & SEO berhasil diperbarui',
+                    );
+                },
+                onError: (err) => {
+                    toast.error(
+                        (Object.values(err)[0] as string) ||
+                            'Gagal memperbarui pengaturan sistem',
+                    );
+                },
+            },
+        );
+    };
+
+    const handleNotificationSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        router.post(
+            '/admin/settings',
+            {
+                pemberitahuan_aktif: settings.pemberitahuan_aktif || '0',
+                pemberitahuan_gambar: settings.pemberitahuan_gambar || null,
+                pemberitahuan_link_url: settings.pemberitahuan_link_url || '',
+                pemberitahuan_link_teks: settings.pemberitahuan_link_teks || '',
+                pemberitahuan_tombol_teks:
+                    settings.pemberitahuan_tombol_teks || '',
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Pengaturan popup pemberitahuan berhasil diperbarui',
+                    );
+                },
+                onError: (err) => {
+                    toast.error(
+                        (Object.values(err)[0] as string) ||
+                            'Gagal memperbarui pengaturan pemberitahuan',
+                    );
+                },
+            },
         );
     };
 
@@ -259,36 +400,61 @@ export default function WebSettingsCMS() {
 
         // Mark read automatically
         if (!msg.dibaca) {
-            const updated = inbox.map((m) =>
-                m.id === msg.id ? { ...m, dibaca: true } : m,
+            router.post(
+                `/admin/settings/inbox/${msg.id}/toggle-read`,
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setInbox((prev) =>
+                            prev.map((m) =>
+                                m.id === msg.id ? { ...m, dibaca: true } : m,
+                            ),
+                        );
+                    },
+                },
             );
-            handleSaveInbox(updated);
         }
     };
 
     const handleToggleReadStatus = (msgId: string, currentStatus: boolean) => {
-        const updated = inbox.map((m) =>
-            m.id === msgId ? { ...m, dibaca: !currentStatus } : m,
+        router.post(
+            `/admin/settings/inbox/${msgId}/toggle-read`,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        currentStatus
+                            ? 'Pesan ditandai sebagai belum dibaca'
+                            : 'Pesan ditandai sebagai sudah dibaca',
+                    );
+                    setInbox((prev) =>
+                        prev.map((m) =>
+                            m.id === msgId
+                                ? { ...m, dibaca: !currentStatus }
+                                : m,
+                        ),
+                    );
+                    if (activeMessage && activeMessage.id === msgId) {
+                        setActiveMessage((prev) =>
+                            prev ? { ...prev, dibaca: !currentStatus } : null,
+                        );
+                    }
+                },
+            },
         );
-        handleSaveInbox(updated);
-        toast.success(
-            currentStatus
-                ? 'Pesan ditandai sebagai belum dibaca'
-                : 'Pesan ditandai sebagai sudah dibaca',
-        );
-
-        if (activeMessage && activeMessage.id === msgId) {
-            setActiveMessage((prev) =>
-                prev ? { ...prev, dibaca: !currentStatus } : null,
-            );
-        }
     };
 
     const handleDeleteMessage = (msgId: string) => {
-        const updated = inbox.filter((m) => m.id !== msgId);
-        handleSaveInbox(updated);
-        toast.success('Pesan berhasil dihapus dari kotak masuk');
-        setActiveMessage(null);
+        router.delete(`/admin/settings/inbox/${msgId}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Pesan berhasil dihapus dari kotak masuk');
+                setInbox((prev) => prev.filter((m) => m.id !== msgId));
+                setActiveMessage(null);
+            },
+        });
     };
 
     // Filter and search inbox
@@ -369,6 +535,18 @@ export default function WebSettingsCMS() {
                             <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[9px] font-extrabold text-amber-700 uppercase">
                                 Super
                             </span>
+                        </button>
+
+                        <button
+                            onClick={() => setActiveTab('pemberitahuan')}
+                            className={`flex w-full items-center gap-3 rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
+                                activeTab === 'pemberitahuan'
+                                    ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
+                                    : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
+                            }`}
+                        >
+                            <Sparkles size={16} />
+                            <span>Popup Pemberitahuan</span>
                         </button>
 
                         <button
@@ -872,7 +1050,269 @@ export default function WebSettingsCMS() {
                             </form>
                         )}
 
-                        {/* PANEL 4: PESAN MASUK (INBOX) */}
+                        {/* PANEL 4: POPUP PEMBERITAHUAN */}
+                        {activeTab === 'pemberitahuan' && (
+                            <form
+                                onSubmit={handleNotificationSubmit}
+                                className="flex flex-col gap-6"
+                            >
+                                <div>
+                                    <h2 className="text-base font-bold text-neutral-900">
+                                        Manajemen Popup Pemberitahuan Beranda
+                                    </h2>
+                                    <p className="mt-1 text-xs text-neutral-500">
+                                        Konfigurasikan pengumuman visual
+                                        (flyer/banner) penting yang akan muncul
+                                        secara otomatis saat pengunjung pertama
+                                        kali membuka beranda utama.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-5">
+                                    {/* Toggle Aktif */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-neutral-800">
+                                            Status Popup Pemberitahuan *
+                                        </label>
+                                        <div className="w-full max-w-[200px]">
+                                            <select
+                                                value={
+                                                    settings.pemberitahuan_aktif ||
+                                                    '0'
+                                                }
+                                                onChange={(e) =>
+                                                    setSettings((prev) => ({
+                                                        ...prev,
+                                                        pemberitahuan_aktif:
+                                                            e.target.value,
+                                                    }))
+                                                }
+                                                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-bold outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                                required
+                                            >
+                                                <option value="0">
+                                                    Nonaktif (Sembunyikan)
+                                                </option>
+                                                <option value="1">
+                                                    Aktif (Tampilkan)
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Upload Banner */}
+                                    <div className="flex flex-col gap-2">
+                                        <span className="text-xs font-bold text-neutral-800">
+                                            Poster / Flyer Pemberitahuan *
+                                        </span>
+                                        <div className="border-neutral-150 flex flex-col items-center gap-6 rounded-2xl border bg-neutral-50/30 p-4 md:flex-row">
+                                            {/* Preview */}
+                                            <div className="flex h-48 w-48 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 shadow-2xs">
+                                                {settings.pemberitahuan_gambar ? (
+                                                    <img
+                                                        src={
+                                                            settings.pemberitahuan_gambar
+                                                        }
+                                                        alt="Flyer Pemberitahuan"
+                                                        className="h-full w-full object-contain"
+                                                    />
+                                                ) : (
+                                                    <Sparkles
+                                                        className="animate-pulse stroke-1 text-neutral-300"
+                                                        size={48}
+                                                    />
+                                                )}
+                                            </div>
+
+                                            <div className="flex min-w-0 flex-1 flex-col gap-3">
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={
+                                                            settings.pemberitahuan_gambar ||
+                                                            ''
+                                                        }
+                                                        onChange={(e) =>
+                                                            setSettings(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    pemberitahuan_gambar:
+                                                                        e.target
+                                                                            .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                        placeholder="URL Gambar..."
+                                                        className="flex-1 rounded-xl border border-neutral-200 bg-white p-3 font-mono text-xs text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setIsPickerOpen(
+                                                                true,
+                                                            )
+                                                        }
+                                                        className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-100"
+                                                    >
+                                                        Pilih dari Aset
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-3 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/50 p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xs font-bold text-neutral-600">
+                                                            Unggah Gambar
+                                                            Langsung
+                                                        </span>
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={
+                                                            handleFlyerFileChange
+                                                        }
+                                                        className="w-full text-xs text-neutral-500 file:mr-3 file:rounded-xl file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-emerald-700 file:hover:bg-emerald-100"
+                                                    />
+                                                </div>
+
+                                                {settings.pemberitahuan_gambar && (
+                                                    <div className="flex justify-start">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSettings(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        pemberitahuan_gambar:
+                                                                            '',
+                                                                    }),
+                                                                );
+                                                                toast.info(
+                                                                    'Flyer dihapus dari draf',
+                                                                );
+                                                            }}
+                                                            className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50"
+                                                        >
+                                                            Hapus Flyer
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <span className="text-[9px] leading-normal font-semibold text-neutral-400">
+                                                    Rekomendasi rasio portrait
+                                                    atau persegi (e.g.
+                                                    800x1000px) agar pas di
+                                                    layar. Kompresi otomatis
+                                                    akan menyesuaikan ukuran &
+                                                    format WebP.
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* CTA Link URL */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-neutral-800">
+                                            Tautan URL Pengalihan (CTA Link URL)
+                                            - Opsional
+                                        </label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://example.com/halaman-tujuan..."
+                                            value={
+                                                settings.pemberitahuan_link_url ||
+                                                ''
+                                            }
+                                            onChange={(e) =>
+                                                setSettings((prev) => ({
+                                                    ...prev,
+                                                    pemberitahuan_link_url:
+                                                        e.target.value,
+                                                }))
+                                            }
+                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                        />
+                                        <p className="text-[10px] font-medium text-neutral-400">
+                                            Jika diisi, poster pemberitahuan
+                                            dapat diklik oleh pengguna untuk
+                                            mengarah ke URL ini.
+                                        </p>
+                                    </div>
+
+                                    {/* CTA Button Label */}
+                                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-xs font-bold text-neutral-800">
+                                                Label Tombol Aksi (CTA Button) -
+                                                Opsional
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Daftar Sekarang"
+                                                value={
+                                                    settings.pemberitahuan_tombol_teks ||
+                                                    ''
+                                                }
+                                                onChange={(e) =>
+                                                    setSettings((prev) => ({
+                                                        ...prev,
+                                                        pemberitahuan_tombol_teks:
+                                                            e.target.value,
+                                                    }))
+                                                }
+                                                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            />
+                                            <p className="text-[10px] font-medium text-neutral-400">
+                                                Jika diisi, tombol aksi tambahan
+                                                akan tampil di bawah flyer di
+                                                popup.
+                                            </p>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-xs font-bold text-neutral-800">
+                                                Teks Link Deskripsi (Optional
+                                                Description Link) - Opsional
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Pelajari lebih lanjut..."
+                                                value={
+                                                    settings.pemberitahuan_link_teks ||
+                                                    ''
+                                                }
+                                                onChange={(e) =>
+                                                    setSettings((prev) => ({
+                                                        ...prev,
+                                                        pemberitahuan_link_teks:
+                                                            e.target.value,
+                                                    }))
+                                                }
+                                                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            />
+                                            <p className="text-[10px] font-medium text-neutral-400">
+                                                Teks bantuan opsional yang
+                                                diletakkan di bawah gambar
+                                                popup.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex items-center justify-end border-t border-neutral-100 pt-4">
+                                    <button
+                                        type="submit"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B5E20] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#145218]"
+                                    >
+                                        <Save size={14} />
+                                        <span>
+                                            Simpan Pengaturan Pemberitahuan
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* PANEL 5: PESAN MASUK (INBOX) */}
                         {activeTab === 'inbox' && (
                             <div className="flex flex-col gap-5">
                                 <div>
@@ -1158,6 +1598,31 @@ export default function WebSettingsCMS() {
                     </div>
                 )}
             </div>
+
+            {/* Asset Picker Modal */}
+            <AssetPickerModal
+                isOpen={isPickerOpen}
+                onClose={() => setIsPickerOpen(false)}
+                onSelect={(url) =>
+                    setSettings((prev) => ({
+                        ...prev,
+                        pemberitahuan_gambar: url,
+                    }))
+                }
+            />
+
+            {/* Image Upload Modal */}
+            <ImageUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => {
+                    setIsUploadModalOpen(false);
+                    setSelectedUploadFile(null);
+                }}
+                file={selectedUploadFile}
+                onConfirm={handleUploadConfirm}
+                defaultWidth={1200}
+                defaultQuality={80}
+            />
         </>
     );
 }

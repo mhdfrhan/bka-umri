@@ -23,6 +23,7 @@ const applyTheme = (): void => {
 
 const subscribe = (callback: () => void) => {
     listeners.add(callback);
+
     return () => listeners.delete(callback);
 };
 

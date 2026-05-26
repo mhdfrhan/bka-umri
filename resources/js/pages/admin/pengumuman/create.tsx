@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     Megaphone,
     ArrowLeft,
@@ -8,11 +7,13 @@ import {
     Image as ImageIcon,
     Paperclip,
     Trash2,
+    Upload,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { formatFileSize } from '@/lib/format-file-size';
 import { optimizeFile } from '@/lib/image-optimizer';
 
@@ -24,22 +25,17 @@ interface Attachment {
 }
 
 export default function TambahPengumuman() {
-    const [title, setTitle] = useState('');
-    const [slug, setSlug] = useState('');
-    const [content, setContent] = useState('');
-    const [status, setStatus] = useState<
-        'draf' | 'terpublikasi' | 'diarsipkan'
-    >('draf');
-    const [isPenting, setIsPenting] = useState(false);
-    const [date, setDate] = useState(
-        () => new Date().toISOString().split('T')[0],
-    );
-    const [thumbnail, setThumbnail] = useState(
-        'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
-    );
-
-    // Attachments State
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const { data, setData, post, processing, errors } = useForm({
+        judul: '',
+        slug: '',
+        status: 'draf',
+        is_penting: false,
+        tanggal_publikasi: new Date().toISOString().split('T')[0],
+        thumbnail:
+            'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+        isi: '',
+        attachments: [] as Attachment[],
+    });
 
     // Modal Asset Picker
     const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -49,19 +45,24 @@ export default function TambahPengumuman() {
     const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
         null,
     );
-    const [isSaving, setIsSaving] = useState(false);
     const [isSlugEdited, setIsSlugEdited] = useState(false);
 
     // Auto-slug generator
     const handleTitleChange = (val: string) => {
-        setTitle(val);
         if (!isSlugEdited) {
             const generated = val
                 .toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '')
                 .replace(/\s+/g, '-')
                 .replace(/-+/g, '-');
-            setSlug(generated);
+
+            setData((prevData) => ({
+                ...prevData,
+                judul: val,
+                slug: generated,
+            }));
+        } else {
+            setData('judul', val);
         }
     };
 
@@ -71,13 +72,16 @@ export default function TambahPengumuman() {
             .toLowerCase()
             .replace(/\s+/g, '-')
             .replace(/[^a-z0-9-]/g, '');
-        setSlug(cleaned);
+        setData('slug', cleaned);
     };
 
     // Direct Image Upload & Compression
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
 
         if (file.size > 10 * 1024 * 1024) {
             toast.error('File gambar melebihi batas 10MB!');
@@ -90,7 +94,7 @@ export default function TambahPengumuman() {
     };
 
     const handleUploadConfirm = (result: { base64: string }) => {
-        setThumbnail(result.base64);
+        setData('thumbnail', result.base64);
         toast.success(
             'Gambar cover pengumuman berhasil diunggah & dioptimasi!',
         );
@@ -101,19 +105,21 @@ export default function TambahPengumuman() {
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const files = e.target.files;
-        if (!files || files.length === 0) return;
 
-        if (attachments.length + files.length > 3) {
+        if (!files || files.length === 0) {
+            return;
+        }
+
+        if (data.attachments.length + files.length > 3) {
             toast.error('Maksimal lampiran adalah 3 berkas!');
             return;
         }
 
-        const newAttachments = [...attachments];
+        const newAttachments = [...data.attachments];
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
 
-            // Limit 10MB
             if (file.size > 10 * 1024 * 1024) {
                 toast.error(`File "${file.name}" melebihi batas 10MB!`);
                 continue;
@@ -132,14 +138,17 @@ export default function TambahPengumuman() {
             }
         }
 
-        setAttachments(newAttachments);
+        setData('attachments', newAttachments);
         toast.success('Lampiran berhasil ditambahkan.');
         e.target.value = '';
     };
 
     // Delete Attachment
     const handleDeleteAttachment = (index: number) => {
-        setAttachments((prev) => prev.filter((_, idx) => idx !== index));
+        setData(
+            'attachments',
+            data.attachments.filter((_, idx) => idx !== index),
+        );
     };
 
     // Form submit
@@ -147,60 +156,31 @@ export default function TambahPengumuman() {
         e.preventDefault();
 
         // Validations
-        if (title.trim().length < 10) {
+        if (data.judul.trim().length < 10) {
             toast.error('Judul pengumuman minimal harus 10 karakter!');
             return;
         }
-        if (!slug.trim()) {
+
+        if (!data.slug.trim()) {
             toast.error('Slug URL wajib diisi!');
             return;
         }
-        if (content.replace(/<[^>]*>/g, '').trim().length < 20) {
+
+        if (data.isi.replace(/<[^>]*>/g, '').trim().length < 20) {
             toast.error('Isi pengumuman minimal harus 20 karakter!');
             return;
         }
 
-        setIsSaving(true);
-
-        try {
-            const saved = localStorage.getItem('bka_pengumuman');
-            const list = saved ? JSON.parse(saved) : [];
-
-            // Slug uniqueness
-            if (list.some((a: any) => a.slug === slug)) {
-                toast.error('Slug URL sudah digunakan! Ubah secara manual.');
-                setIsSaving(false);
-                return;
-            }
-
-            const nextId =
-                list.length > 0
-                    ? Math.max(...list.map((a: any) => a.id)) + 1
-                    : 1;
-            const newAnnouncement = {
-                id: nextId,
-                title: title.trim(),
-                slug: slug.trim(),
-                content: content.trim(),
-                excerpt: content.replace(/<[^>]*>/g, '').slice(0, 160) + '...',
-                date: date || new Date().toISOString().split('T')[0],
-                author: 'Admin BKA',
-                status,
-                isPenting,
-                thumbnail,
-                attachments,
-            };
-
-            const updatedList = [newAnnouncement, ...list];
-            localStorage.setItem('bka_pengumuman', JSON.stringify(updatedList));
-
-            toast.success(`Pengumuman "${title}" berhasil dibuat!`);
-            router.visit('/admin/pengumuman');
-        } catch {
-            toast.error('Gagal menyimpan pengumuman.');
-        } finally {
-            setIsSaving(false);
-        }
+        post('/admin/pengumuman', {
+            onSuccess: () => {
+                toast.success(`Pengumuman "${data.judul}" berhasil dibuat!`);
+            },
+            onError: (errs) => {
+                Object.values(errs).forEach((err) => {
+                    toast.error(err);
+                });
+            },
+        });
     };
 
     return (
@@ -241,22 +221,27 @@ export default function TambahPengumuman() {
                                     Judul Pengumuman
                                 </label>
                                 <span
-                                    className={`text-xs ${title.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}
+                                    className={`text-xs ${data.judul.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}
                                 >
-                                    {title.length} / 200 karakter (min 10)
+                                    {data.judul.length} / 200 karakter (min 10)
                                 </span>
                             </div>
                             <input
                                 type="text"
                                 maxLength={200}
                                 required
-                                value={title}
+                                value={data.judul}
                                 onChange={(e) =>
                                     handleTitleChange(e.target.value)
                                 }
                                 placeholder="Contoh: Jadwal Pembayaran Uang Kuliah Semester Ganjil TA 2026/2027"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.judul && (
+                                <p className="text-xs font-semibold text-red-500">
+                                    {errors.judul}
+                                </p>
+                            )}
                         </div>
 
                         {/* Slug URL */}
@@ -271,13 +256,18 @@ export default function TambahPengumuman() {
                             <input
                                 type="text"
                                 required
-                                value={slug}
+                                value={data.slug}
                                 onChange={(e) =>
                                     handleSlugChange(e.target.value)
                                 }
                                 placeholder="contoh: jadwal-pembayaran-uang-kuliah"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.slug && (
+                                <p className="text-xs font-semibold text-red-500">
+                                    {errors.slug}
+                                </p>
+                            )}
                         </div>
 
                         {/* Status, Tanggal, & Penting */}
@@ -287,9 +277,9 @@ export default function TambahPengumuman() {
                                     Status
                                 </label>
                                 <select
-                                    value={status}
+                                    value={data.status}
                                     onChange={(e) =>
-                                        setStatus(e.target.value as any)
+                                        setData('status', e.target.value as any)
                                     }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
@@ -309,8 +299,13 @@ export default function TambahPengumuman() {
                                 </label>
                                 <input
                                     type="date"
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
+                                    value={data.tanggal_publikasi}
+                                    onChange={(e) =>
+                                        setData(
+                                            'tanggal_publikasi',
+                                            e.target.value,
+                                        )
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 />
                             </div>
@@ -318,9 +313,9 @@ export default function TambahPengumuman() {
                             <label className="mt-6 flex cursor-pointer items-center gap-2 rounded-xl border border-neutral-200 px-4 py-2 select-none">
                                 <input
                                     type="checkbox"
-                                    checked={isPenting}
+                                    checked={data.is_penting}
                                     onChange={(e) =>
-                                        setIsPenting(e.target.checked)
+                                        setData('is_penting', e.target.checked)
                                     }
                                     className="size-4 cursor-pointer rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500"
                                 />
@@ -342,14 +337,16 @@ export default function TambahPengumuman() {
                             </label>
 
                             <div className="flex flex-col items-start gap-4 md:flex-row">
-                                {/* Image input and selection buttons */}
                                 <div className="w-full flex-1 space-y-3">
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            value={thumbnail}
+                                            value={data.thumbnail}
                                             onChange={(e) =>
-                                                setThumbnail(e.target.value)
+                                                setData(
+                                                    'thumbnail',
+                                                    e.target.value,
+                                                )
                                             }
                                             placeholder="URL Gambar..."
                                             className="flex-1 rounded-xl border border-neutral-200 bg-white p-3 font-mono text-xs text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1"
@@ -384,7 +381,7 @@ export default function TambahPengumuman() {
                                 {/* Preview container */}
                                 <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-neutral-200/60 bg-neutral-100 md:w-56">
                                     <img
-                                        src={thumbnail}
+                                        src={data.thumbnail}
                                         alt="Pratinjau Cover"
                                         className="h-full w-full object-cover"
                                         onError={(e) => {
@@ -407,10 +404,15 @@ export default function TambahPengumuman() {
                                 </span>
                             </div>
                             <RichTextEditor
-                                value={content}
-                                onChange={setContent}
+                                value={data.isi}
+                                onChange={(val) => setData('isi', val)}
                                 className="border-neutral-200 focus-within:border-emerald-600 focus-within:ring-emerald-600/20"
                             />
+                            {errors.isi && (
+                                <p className="text-xs font-semibold text-red-500">
+                                    {errors.isi}
+                                </p>
+                            )}
                         </div>
 
                         {/* Attachments Repeater Upload */}
@@ -418,7 +420,8 @@ export default function TambahPengumuman() {
                             <div className="flex items-center justify-between">
                                 <label className="flex items-center gap-1 text-sm font-semibold text-neutral-700">
                                     <Paperclip className="size-4 text-neutral-500" />
-                                    Lampiran Berkas ({attachments.length} / 3)
+                                    Lampiran Berkas ({data.attachments.length} /
+                                    3)
                                 </label>
                                 <span className="text-[10px] font-bold text-neutral-400">
                                     PDF / Word / Excel, maks 10MB
@@ -426,7 +429,7 @@ export default function TambahPengumuman() {
                             </div>
 
                             {/* Direct attachments picker */}
-                            {attachments.length < 3 && (
+                            {data.attachments.length < 3 && (
                                 <input
                                     type="file"
                                     multiple
@@ -437,9 +440,9 @@ export default function TambahPengumuman() {
                             )}
 
                             {/* Attachment list */}
-                            {attachments.length > 0 && (
+                            {data.attachments.length > 0 && (
                                 <div className="space-y-2 pt-1">
-                                    {attachments.map((file, idx) => (
+                                    {data.attachments.map((file, idx) => (
                                         <div
                                             key={idx}
                                             className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50/50 p-3"
@@ -486,11 +489,11 @@ export default function TambahPengumuman() {
                         </Link>
                         <button
                             type="submit"
-                            disabled={isSaving}
+                            disabled={processing}
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
                         >
                             <Save className="size-4" />
-                            {isSaving ? 'Menyimpan...' : 'Simpan Pengumuman'}
+                            {processing ? 'Menyimpan...' : 'Simpan Pengumuman'}
                         </button>
                     </div>
                 </form>
@@ -500,7 +503,7 @@ export default function TambahPengumuman() {
             <AssetPickerModal
                 isOpen={isPickerOpen}
                 onClose={() => setIsPickerOpen(false)}
-                onSelect={setThumbnail}
+                onSelect={(url) => setData('thumbnail', url)}
             />
 
             <ImageUploadModal

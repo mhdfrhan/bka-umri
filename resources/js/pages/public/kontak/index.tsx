@@ -64,28 +64,9 @@ export default function KontakIndex({ kontak }: KontakProps) {
     const heroRef = useScrollReveal<HTMLDivElement>();
     const leftRef = useScrollReveal<HTMLDivElement>();
     const rightRef = useScrollReveal<HTMLDivElement>();
-    const [localKontak, setLocalKontak] = useState<KontakDetail | null>(null);
-
-    // Initial Hydration from local storage
-    useEffect(() => {
-        const savedSettings = localStorage.getItem('bka_settings');
-        if (savedSettings) {
-            try {
-                const parsed = JSON.parse(savedSettings);
-                setLocalKontak({
-                    alamat: parsed.alamat,
-                    telepon: parsed.telepon,
-                    email: parsed.email,
-                    jam_operasional: parsed.jam_operasional,
-                    google_maps_embed: parsed.google_maps_embed,
-                    mediaSosial: parsed.mediaSosial,
-                });
-            } catch {}
-        }
-    }, []);
 
     // Safe fallback handling for dynamic vs mock data
-    const resolvedKontak = localKontak || kontak || dummyKontak;
+    const resolvedKontak = kontak || dummyKontak;
 
     // ─── MAPLIBRE GL INTERACTIVE MAP ENGINE STATES & REFS ───
     const MAP_STYLES = [
@@ -119,7 +100,9 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
     // Initializing MapLibre GL dynamically to prevent SSR global evaluation issues
     useEffect(() => {
-        if (typeof window === 'undefined' || !mapContainerRef.current) return;
+        if (typeof window === 'undefined' || !mapContainerRef.current) {
+            return;
+        }
 
         let map: any;
 
@@ -212,6 +195,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
     const handleToggle3D = () => {
         const nextMode = !is3DMode;
         setIs3DMode(nextMode);
+
         if (mapInstanceRef.current) {
             mapInstanceRef.current.easeTo({
                 pitch: nextMode ? 45 : 0,
@@ -304,7 +288,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
     };
 
     // Form submit handler
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // 1. Perform validation checks
@@ -312,58 +296,69 @@ export default function KontakIndex({ kontak }: KontakProps) {
             return;
         }
 
-        // 2. Perform Mock Rate Limiting check (max 3 messages in current session)
-        if (messageCount >= 3) {
-            toast.error('Terlalu banyak pesan. Silakan coba lagi nanti.');
-
-            return;
-        }
-
         setSubmitting(true);
 
-        // 3. Simulate backend submission delay (1.5 seconds)
-        setTimeout(() => {
-            // Push message to local storage array for dynamic Inbox dashboard
-            try {
-                let currentMessages = [];
-                const savedInbox = localStorage.getItem('bka_pesan');
-                if (savedInbox) {
-                    try {
-                        currentMessages = JSON.parse(savedInbox);
-                    } catch {}
-                }
-                const newMsg = {
-                    id: 'msg-' + Date.now(),
-                    nama: formData.nama.trim(),
-                    email: formData.email.trim(),
-                    subjek: formData.subjek.trim(),
-                    pesan: formData.pesan.trim(),
-                    tanggal: new Date().toISOString(),
-                    dibaca: false,
-                };
-                const updatedInbox = [newMsg, ...currentMessages];
-                localStorage.setItem('bka_pesan', JSON.stringify(updatedInbox));
-            } catch (err) {
-                console.error(
-                    'Failed to save message to local storage inbox',
-                    err,
-                );
-            }
+        try {
+            // Get CSRF Token
+            const csrfToken =
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute('content') || '';
 
-            setSubmitting(false);
-            setMessageCount((prev) => prev + 1);
-
-            // Success Feedback
-            toast.success('Pesan berhasil dikirim!');
-
-            // Form Reset
-            setFormData({
-                nama: '',
-                email: '',
-                subjek: '',
-                pesan: '',
+            const response = await fetch('/kontak', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify(formData),
             });
-        }, 1500);
+
+            const result = await response.json();
+
+            if (response.ok) {
+                toast.success(result.message || 'Pesan berhasil dikirim!');
+                setFormData({
+                    nama: '',
+                    email: '',
+                    subjek: '',
+                    pesan: '',
+                });
+                setMessageCount((prev) => prev + 1);
+            } else {
+                if (response.status === 429) {
+                    toast.error(
+                        'Terlalu banyak mengirim pesan. Silakan coba lagi nanti.',
+                    );
+                } else if (response.status === 422 && result.errors) {
+                    const validationErrors = {
+                        nama: '',
+                        email: '',
+                        subjek: '',
+                        pesan: '',
+                    };
+                    Object.keys(result.errors).forEach((key) => {
+                        if (key in validationErrors) {
+                            validationErrors[
+                                key as keyof typeof validationErrors
+                            ] = result.errors[key][0];
+                        }
+                    });
+                    setErrors(validationErrors);
+                    toast.error('Harap periksa kembali isian formulir Anda.');
+                } else {
+                    toast.error(result.message || 'Gagal mengirim pesan.');
+                }
+            }
+        } catch (err) {
+            console.error('Error submitting form:', err);
+            toast.error(
+                'Terjadi kesalahan koneksi. Silakan coba beberapa saat lagi.',
+            );
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const breadcrumbItems = [

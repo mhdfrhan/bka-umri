@@ -1,11 +1,11 @@
-import { ArrowRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/ui/section-header';
-import { formatDate } from '@/lib/format-date';
 import {
     useScrollReveal,
     useScrollRevealChildren,
 } from '@/hooks/use-scroll-reveal';
+import { formatDate } from '@/lib/format-date';
 
 interface NewsItem {
     slug: string;

@@ -1,6 +1,6 @@
+import { Head, usePage } from '@inertiajs/react';
+import * as Icons from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
-import { CheckCircle2, CreditCard, Landmark } from 'lucide-react';
 import BeritaSection from '@/components/sections/berita-section';
 import BidangSection from '@/components/sections/bidang-section';
 import CtaDokumentasi from '@/components/sections/cta-dokumentasi';
@@ -38,7 +38,7 @@ interface BidangItem {
 }
 
 interface LayananItem {
-    icon: typeof CheckCircle2;
+    icon: any;
     title: string;
     description: string;
 }
@@ -73,6 +73,7 @@ interface HomeProps {
     kepalaBiro?: KepalaBiro | null;
     bidangs?: BidangItem[];
     layanan?: LayananData;
+    stats?: any[];
     beritaTerbaru?: NewsItem[];
     pengumumanTerbaru?: PengumumanItem[];
 }
@@ -82,83 +83,75 @@ export default function Home({
     kepalaBiro = null,
     bidangs = [],
     layanan,
+    stats = [],
     beritaTerbaru = [],
     pengumumanTerbaru = [],
 }: HomeProps) {
-    const [liveBerita, setLiveBerita] = useState<NewsItem[]>([]);
-    const [livePengumuman, setLivePengumuman] = useState<PengumumanItem[]>([]);
-    const [liveBidangs, setLiveBidangs] = useState<BidangItem[]>([]);
+    const { pengaturan } = usePage().props as any;
+    const siteName = pengaturan?.nama_website || 'Biro Keuangan & Aset UMRI';
+    const siteDescription =
+        pengaturan?.deskripsi_seo ||
+        'Portal resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau (UMRI). Menyediakan layanan administrasi keuangan dan informasi pengelolaan aset yang transparan dan akuntabel.';
+
+    const [showPopup, setShowPopup] = useState(false);
+    const [dontShowToday, setDontShowToday] = useState(false);
+    const [isExiting, setIsExiting] = useState(false);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            // Sync Bidang
-            const savedBidangs = localStorage.getItem('bka_bidangs');
-            if (savedBidangs) {
-                try {
-                    const parsed = JSON.parse(savedBidangs);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        setLiveBidangs(
-                            parsed.map((b: any) => ({
-                                slug: b.slug,
-                                nama: b.nama,
-                                deskripsiSingkat:
-                                    b.deskripsiSingkat ||
-                                    b.deskripsi_singkat ||
-                                    '',
-                            })),
-                        );
-                    }
-                } catch {}
-            }
+        if (typeof window !== 'undefined' && pengaturan) {
+            const isAktif = pengaturan.pemberitahuan_aktif === '1';
+            const gambar = pengaturan.pemberitahuan_gambar;
 
-            // Sync Berita
-            const savedNews = localStorage.getItem('bka_berita');
-            if (savedNews) {
-                try {
-                    const parsed = JSON.parse(savedNews);
-                    if (Array.isArray(parsed)) {
-                        const published = parsed
-                            .filter((n: any) => n.status === 'terpublikasi')
-                            .slice(0, 4);
-                        if (published.length > 0) {
-                            setLiveBerita(published);
-                        }
-                    }
-                } catch {}
-            }
+            if (isAktif && gambar) {
+                // Get today's local date string YYYY-MM-DD
+                const d = new Date();
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const todayStr = `${year}-${month}-${day}`;
 
-            // Sync Pengumuman
-            const savedAnnouncements = localStorage.getItem('bka_pengumuman');
-            if (savedAnnouncements) {
-                try {
-                    const parsed = JSON.parse(savedAnnouncements);
-                    if (Array.isArray(parsed)) {
-                        const published = parsed.filter(
-                            (p: any) =>
-                                p.status === 'terpublikasi' ||
-                                p.status === undefined,
-                        );
-                        const sorted = [...published]
-                            .sort((a, b) => {
-                                if (a.is_penting && !b.is_penting) return -1;
-                                if (!a.is_penting && b.is_penting) return 1;
-                                return (
-                                    new Date(b.date).getTime() -
-                                    new Date(a.date).getTime()
-                                );
-                            })
-                            .slice(0, 3);
-                        if (sorted.length > 0) {
-                            setLivePengumuman(sorted);
-                        }
-                    }
-                } catch {}
+                const lastShown = localStorage.getItem('bka_popup_last_shown');
+                if (lastShown !== todayStr) {
+                    setShowPopup(true);
+                }
             }
         }
-    }, []);
+    }, [pengaturan]);
 
+    // Prevent background scrolling when popup is open
+    useEffect(() => {
+        if (showPopup) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showPopup]);
+
+    const handleClosePopup = () => {
+        if (typeof window !== 'undefined' && dontShowToday) {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+
+            localStorage.setItem('bka_popup_last_shown', todayStr);
+        }
+        setIsExiting(true);
+        setTimeout(() => {
+            setShowPopup(false);
+            setIsExiting(false);
+        }, 300); // 300ms matches duration-300
+    };
     // ----------------------------------------------------
     // Fallback Mock Data for UI Visual Completeness
+    // ----------------------------------------------------
+    // ----------------------------------------------------
+    // Resolve Dynamic Data & Fallback Mock Data
     // ----------------------------------------------------
     const finalBanners =
         banners.length > 0
@@ -199,7 +192,7 @@ export default function Home({
         periode: 'Periode 2024 - 2028',
         foto: 'https://smart.umri.ac.id/application/modules/personalia/assets/uploads/foto/f405f-rahmawita-se.jpg',
         sambutan:
-            "Assalamu'alaikum Warahmatullahi Wabarakatuh. Selamat datang di portal resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau (UMRI). Biro ini berkomitmen untuk menyelenggarakan administrasi keuangan dan pengelolaan aset yang transparan, akuntabel, dan berorientasi pada pelayanan prima. Melalui website ini, kami berharap civitas akademika UMRI dan masyarakat luas dapat mengakses informasi serta layanan administrasi keuangan secara cepat, akurat, dan efisien. Kami terus berinovasi mengintegrasikan sistem digital demi kemudahan kita bersama. Terima kasih atas kepercayaan dan kerjasama Anda semua. Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
+            "Assalamu'alaikum Warahmatullahi Wabarakatuh. Selamat datang di portal resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau (UMRI). Biro ini berkomitmen to menyelenggarakan administrasi keuangan dan pengelolaan aset yang transparan, akuntabel, dan berorientasi pada pelayanan prima. Melalui website ini, kami berharap civitas akademika UMRI dan masyarakat luas dapat mengakses informasi serta layanan administrasi keuangan secara cepat, akurat, dan efisien. Kami terus berinovasi mengintegrasikan sistem digital demi kemudahan kita bersama. Terima kasih atas kepercayaan dan kerjasama Anda semua. Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
     };
 
     const defaultBidangs = [
@@ -216,33 +209,40 @@ export default function Home({
                 'Mengatur inventarisasi, distribusi, pemeliharaan sarana prasarana, pengadaan barang, serta optimalisasi pemanfaatan aset fisik Universitas Muhammadiyah Riau.',
         },
     ];
-    const finalBidangs =
-        liveBidangs.length > 0
-            ? liveBidangs
-            : bidangs.length > 0
-              ? bidangs
-              : defaultBidangs;
+    const finalBidangs = bidangs.length > 0 ? bidangs : defaultBidangs;
 
-    const finalLayananList = layanan?.items || [
-        {
-            icon: CheckCircle2,
-            title: 'Sistemasi Administrasi Keuangan',
-            description:
-                'Kepengurusan pembayaran tidak perlu membawa kertas/berkas lagi, semua sudah tercatat dalam sistem online.',
-        },
-        {
-            icon: CreditCard,
-            title: 'Pembayaran Uang Kuliah Online Maupun Di Kampus',
-            description:
-                'Kami memberi keleluasaan pembayaran instan via online maupun langsung datang ke kampus melalui teller Bank rekanan.',
-        },
-        {
-            icon: Landmark,
-            title: 'Pilihan Bank Rekanan',
-            description:
-                'Pembayaran online bisa dibayarkan melalui banyak pilihan bank rekanan yang tersebar di pelosok daerah.',
-        },
-    ];
+    // Resolve Layanan Icons Dynamically
+    const resolvedLayananItems =
+        layanan?.items && layanan.items.length > 0
+            ? layanan.items.map((item: any) => {
+                  const IconComponent =
+                      (Icons as any)[item.icon] || Icons.CheckCircle2;
+                  return {
+                      icon: IconComponent,
+                      title: item.title,
+                      description: item.description,
+                  };
+              })
+            : [
+                  {
+                      icon: Icons.CheckCircle2,
+                      title: 'Sistemasi Administrasi Keuangan',
+                      description:
+                          'Kepengurusan pembayaran tidak perlu membawa kertas/berkas lagi, semua sudah tercatat dalam sistem online.',
+                  },
+                  {
+                      icon: Icons.CreditCard,
+                      title: 'Pembayaran Uang Kuliah Online Maupun Di Kampus',
+                      description:
+                          'Kami memberi keleluasaan pembayaran instan via online maupun langsung datang ke kampus melalui teller Bank rekanan.',
+                  },
+                  {
+                      icon: Icons.Landmark,
+                      title: 'Pilihan Bank Rekanan',
+                      description:
+                          'Pembayaran online bisa dibayarkan melalui banyak pilihan bank rekanan yang tersebar di pelosok daerah.',
+                  },
+              ];
 
     const finalLayanan = {
         judul_section:
@@ -254,8 +254,43 @@ export default function Home({
         youtube_url:
             layanan?.youtube_url ||
             'https://www.youtube.com/embed/4SI1Q-JkVm8?si=aSmMt81oihsA4yLQ',
-        layananList: finalLayananList,
+        layananList: resolvedLayananItems,
     };
+
+    // Resolve Stats Icons Dynamically
+    const finalStats =
+        stats && stats.length > 0
+            ? stats.map((item: any) => {
+                  const IconComponent =
+                      (Icons as any)[item.icon] || Icons.Award;
+                  return {
+                      icon: IconComponent,
+                      value: item.value,
+                      label: item.label,
+                  };
+              })
+            : [
+                  {
+                      icon: Icons.Building2,
+                      value: '2015',
+                      label: 'Tahun Berdiri',
+                  },
+                  {
+                      icon: Icons.Users,
+                      value: '25+',
+                      label: 'Staf Berpengalaman',
+                  },
+                  {
+                      icon: Icons.Award,
+                      value: '40+',
+                      label: 'Unit Kerja Dilayani',
+                  },
+                  {
+                      icon: Icons.BookOpen,
+                      value: '1.000+',
+                      label: 'Dokumen Dikelola',
+                  },
+              ];
 
     const defaultBerita = [
         {
@@ -304,18 +339,14 @@ export default function Home({
         },
     ];
     const finalBerita =
-        liveBerita.length > 0
-            ? liveBerita.length < 4
-                ? [...liveBerita, ...defaultBerita.slice(liveBerita.length, 4)]
-                : liveBerita
-            : beritaTerbaru.length > 0
-              ? beritaTerbaru.length < 4
-                  ? [
-                        ...beritaTerbaru,
-                        ...defaultBerita.slice(beritaTerbaru.length, 4),
-                    ]
-                  : beritaTerbaru
-              : defaultBerita;
+        beritaTerbaru.length > 0
+            ? beritaTerbaru.length < 3
+                ? [
+                      ...beritaTerbaru,
+                      ...defaultBerita.slice(beritaTerbaru.length, 3),
+                  ]
+                : beritaTerbaru.slice(0, 3)
+            : defaultBerita.slice(0, 3);
 
     const defaultPengumuman = [
         {
@@ -344,20 +375,13 @@ export default function Home({
         },
     ];
     const finalPengumuman =
-        livePengumuman.length > 0
-            ? livePengumuman
-            : pengumumanTerbaru.length > 0
-              ? pengumumanTerbaru
-              : defaultPengumuman;
+        pengumumanTerbaru.length > 0 ? pengumumanTerbaru : defaultPengumuman;
 
     return (
         <>
             <Head>
-                <title>Beranda - Biro Keuangan & Aset UMRI</title>
-                <meta
-                    name="description"
-                    content="Portal resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau (UMRI). Menyediakan layanan administrasi keuangan dan informasi pengelolaan aset yang transparan dan akuntabel."
-                />
+                <title>{`Beranda - ${siteName}`}</title>
+                <meta name="description" content={siteDescription} />
             </Head>
 
             <div className="flex w-full flex-col">
@@ -385,11 +409,100 @@ export default function Home({
                 <PengumumanSection pengumumanList={finalPengumuman} />
 
                 {/* Seksi 7: Statistik Kelembagaan */}
-                <StatistikSection />
+                <StatistikSection stats={finalStats} />
 
                 {/* Seksi Tambahan: CTA Dokumentasi */}
                 <CtaDokumentasi />
             </div>
+
+            {/* Modal Popup Pemberitahuan */}
+            {showPopup && (
+                <div
+                    onClick={handleClosePopup}
+                    className={`fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/80 p-4 backdrop-blur-xs transition-all duration-300 select-none ${
+                        isExiting
+                            ? 'animate-out duration-300 fade-out'
+                            : 'animate-in duration-300 fade-in'
+                    }`}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className={`relative flex w-full max-w-2xl flex-col items-center justify-center bg-transparent transition-all duration-300 ${
+                            isExiting
+                                ? 'animate-out duration-300 zoom-out-95 fade-out'
+                                : 'animate-in duration-300 zoom-in-95 fade-in'
+                        }`}
+                    >
+                        {/* Close button top-right */}
+                        <button
+                            onClick={handleClosePopup}
+                            className="text-neutral-850 border-neutral-250/30 absolute -top-4 -right-4 z-50 cursor-pointer rounded-full border bg-white p-2 shadow-md transition-all hover:bg-neutral-100 hover:text-black"
+                            aria-label="Tutup"
+                        >
+                            <Icons.X className="size-5 stroke-[2.5]" />
+                        </button>
+
+                        {/* Flyer image */}
+                        <div className="flex h-auto w-full items-center justify-center overflow-hidden rounded-2xl shadow-2xl">
+                            {pengaturan.pemberitahuan_link_url ? (
+                                <a
+                                    href={pengaturan.pemberitahuan_link_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block h-full w-full cursor-pointer transition-opacity hover:opacity-95"
+                                    onClick={handleClosePopup}
+                                >
+                                    <img
+                                        src={pengaturan.pemberitahuan_gambar}
+                                        alt="Flyer Pemberitahuan"
+                                        className="h-auto max-h-[75vh] w-full rounded-2xl object-contain"
+                                    />
+                                </a>
+                            ) : (
+                                <img
+                                    src={pengaturan.pemberitahuan_gambar}
+                                    alt="Flyer Pemberitahuan"
+                                    className="h-auto max-h-[75vh] w-full rounded-2xl object-contain"
+                                />
+                            )}
+                        </div>
+
+                        {/* Optional Description Text */}
+                        {pengaturan.pemberitahuan_link_teks && (
+                            <p className="mt-3.5 max-w-lg text-center text-xs leading-normal font-semibold text-white/95 drop-shadow-md">
+                                {pengaturan.pemberitahuan_link_teks}
+                            </p>
+                        )}
+
+                        {/* Optional CTA Button */}
+                        {pengaturan.pemberitahuan_link_url &&
+                            pengaturan.pemberitahuan_tombol_teks && (
+                                <a
+                                    href={pengaturan.pemberitahuan_link_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-emerald-650 mt-3.5 inline-flex items-center justify-center rounded-xl border border-emerald-500/20 px-6 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-102 hover:bg-emerald-700 active:scale-98"
+                                    onClick={handleClosePopup}
+                                >
+                                    {pengaturan.pemberitahuan_tombol_teks}
+                                </a>
+                            )}
+
+                        {/* Checkbox "Jangan tampilkan hari ini" */}
+                        <label className="mt-5 flex cursor-pointer items-center gap-2.5 text-xs font-semibold text-white/90 drop-shadow-md select-none hover:text-white md:text-sm">
+                            <input
+                                type="checkbox"
+                                checked={dontShowToday}
+                                onChange={(e) =>
+                                    setDontShowToday(e.target.checked)
+                                }
+                                className="text-emerald-650 accent-emerald-650 size-4 cursor-pointer rounded border-white/50 bg-transparent transition-all focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
+                            />
+                            <span>Jangan tampilkan hari ini</span>
+                        </label>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { X } from 'lucide-react';
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface AdminModalProps {
@@ -28,10 +28,12 @@ export function AdminModal({
         if (isOpen) {
             setShouldRender(true);
             const timer = setTimeout(() => setAnimate(true), 10);
+
             return () => clearTimeout(timer);
         } else {
             setAnimate(false);
             const timer = setTimeout(() => setShouldRender(false), 200);
+
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
@@ -55,7 +57,9 @@ export function AdminModal({
         };
     }, [isOpen, onClose]);
 
-    if (!shouldRender) return null;
+    if (!shouldRender) {
+        return null;
+    }
 
     const maxWidthClasses = {
         sm: 'max-w-sm',

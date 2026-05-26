@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Calendar,
     Image as ImageIcon,
@@ -26,163 +26,75 @@ interface AlbumItem {
     kategori?: string;
 }
 
-const dummyAlbums = [
-    {
-        judul: 'Peluncuran Portal Keuangan Terintegrasi BKA UMRI',
-        slug: 'peluncuran-portal-keuangan-bka',
-        cover_url:
-            'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
-        tanggal_kegiatan: '2026-05-20',
-        jumlah_foto: 12,
-        category: 'Keuangan',
-        deskripsi:
-            'Dokumentasi resmi acara peluncuran portal pembayaran SPP baru terintegrasi virtual account bank syariah.',
-    },
-    {
-        judul: 'Workshop Optimalisasi & Pencatatan Aset Wilayah Muhammadiyah',
-        slug: 'workshop-optimalisasi-aset',
-        cover_url:
-            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
-        tanggal_kegiatan: '2026-05-15',
-        jumlah_foto: 8,
-        category: 'Aset',
-        deskripsi:
-            'Sinergi pencatatan sarana prasarana fisik guna meraih akreditasi kampus unggul tingkat nasional.',
-    },
-    {
-        judul: 'Penandatanganan MoU Kerja Sama dengan Bank Syariah Indonesia',
-        slug: 'penandatanganan-mou-mitra-bank',
-        cover_url:
-            'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=600&q=80',
-        tanggal_kegiatan: '2026-05-10',
-        jumlah_foto: 15,
-        category: 'Keuangan',
-        deskripsi:
-            'Penandatanganan dokumen kerja sama kemitraan strategis pembayaran uang kuliah tunggal mahasiswa.',
-    },
-    {
-        judul: 'Pelatihan Internal Software ERP Akuntansi Staf BKA',
-        slug: 'pelatihan-erp-akuntansi-staf',
-        cover_url:
-            'https://images.unsplash.com/photo-1531496730074-83b638c0a7ac?w=600&q=80',
-        tanggal_kegiatan: '2026-04-20',
-        jumlah_foto: 6,
-        category: 'Keuangan',
-        deskripsi:
-            'Peningkatan kompetensi staf administrasi keuangan dalam pengoperasian modul modul ERP terbaru.',
-    },
-    {
-        judul: 'Bakti Sosial Ramadhan 1447H Biro Keuangan & Aset',
-        slug: 'bakti-sosial-ramadhan-bka',
-        cover_url:
-            'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&q=80',
-        tanggal_kegiatan: '2026-04-05',
-        jumlah_foto: 20,
-        category: 'Keuangan',
-        deskripsi:
-            'Pemberian santunan dan paket kebutuhan pokok kepada panti asuhan muhammadiyah binaan UMRI.',
-    },
-    {
-        judul: 'Rapat Kerja Tahunan Evaluasi Anggaran & Aset UMRI 2026',
-        slug: 'rapat-kerja-tahunan-bka-2026',
-        cover_url:
-            'https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80',
-        tanggal_kegiatan: '2026-03-12',
-        jumlah_foto: 10,
-        category: 'Keuangan',
-        deskripsi:
-            'Rapat kerja seluruh jajaran biro keuangan guna menyusun anggaran operasional tahun akademik baru.',
-    },
-];
+interface PaginatedAlbums {
+    data: AlbumItem[];
+    links: any[];
+}
 
-const dummyPagination = [
-    { url: null, label: 'Prev', active: false },
-    { url: '/dokumentasi?page=1', label: '1', active: true },
-    { url: null, label: 'Next', active: false },
-];
+interface DokumentasiIndexProps {
+    albums: PaginatedAlbums;
+    categories: string[];
+    filters: {
+        search?: string;
+        category?: string;
+    };
+}
 
-export default function DokumentasiIndex() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [albumList, setAlbumList] = useState<any[]>([]);
-    const [categories, setCategories] = useState<string[]>([]);
-    const [activeCategory, setActiveCategory] = useState('Semua');
+export default function DokumentasiIndex({
+    albums,
+    categories = [],
+    filters,
+}: DokumentasiIndexProps) {
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+    const [activeCategory, setActiveCategory] = useState(
+        filters.category || 'Semua',
+    );
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const filterRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
+    // Debounce search query updates
     useEffect(() => {
-        const savedCats = localStorage.getItem('bka_dokumentasi_categories');
-        let loadedCats = ['Keuangan', 'Aset'];
-        if (savedCats) {
-            try {
-                loadedCats = JSON.parse(savedCats);
-            } catch {
-                // ignore
+        const timer = setTimeout(() => {
+            if (searchQuery !== (filters.search || '')) {
+                router.get(
+                    '/dokumentasi',
+                    {
+                        search: searchQuery,
+                        category: activeCategory,
+                    },
+                    {
+                        preserveState: true,
+                        replace: true,
+                    },
+                );
             }
-        } else {
-            localStorage.setItem(
-                'bka_dokumentasi_categories',
-                JSON.stringify(loadedCats),
-            );
-        }
-        setCategories(loadedCats);
+        }, 400);
 
-        const saved = localStorage.getItem('bka_albums');
-        if (saved) {
-            try {
-                setAlbumList(JSON.parse(saved));
-            } catch {
-                setAlbumList([]);
-            }
-        } else {
-            const seeded = dummyAlbums.map((a, index) => ({
-                id: index + 1,
-                title: a.judul,
-                slug: a.slug,
-                description: a.deskripsi,
-                date: a.tanggal_kegiatan,
-                coverUrl: a.cover_url,
-                category: a.category,
-                photos: Array.from({ length: a.jumlah_foto }).map((_, i) => ({
-                    id: String(i + 1),
-                    url: a.cover_url,
-                    order: i + 1,
-                })),
-            }));
-            localStorage.setItem('bka_albums', JSON.stringify(seeded));
-            setAlbumList(seeded);
-        }
-    }, []);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
-    const mappedAlbums: AlbumItem[] = (albumList || [])
-        .filter((a) => a && (a.title || a.judul))
-        .map((a: any) => ({
-            judul: a.title || a.judul || 'Tanpa Judul',
-            slug: a.slug || '',
-            cover_url: a.coverUrl || a.cover_url || '',
-            tanggal_kegiatan: a.date || a.tanggal_kegiatan || '',
-            jumlah_foto: a.photos ? a.photos.length : a.jumlah_foto || 0,
-            deskripsi: a.description || a.deskripsi || '',
-            kategori: a.category || a.kategori || 'Tanpa Kategori',
-        }));
-
-    const filteredAlbums = mappedAlbums.filter((album) => {
-        if (!album) return false;
-        const matchesSearch =
-            album.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (album.deskripsi || '')
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase());
-        const matchesCategory =
-            activeCategory === 'Semua' || album.kategori === activeCategory;
-        return matchesSearch && matchesCategory;
-    });
+    const handleCategoryChange = (cat: string) => {
+        setActiveCategory(cat);
+        router.get(
+            '/dokumentasi',
+            {
+                search: searchQuery,
+                category: cat,
+            },
+            {
+                preserveState: true,
+            },
+        );
+    };
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
         { title: 'Dokumentasi', href: '/dokumentasi' },
     ];
+
+    const albumList = albums?.data || [];
 
     return (
         <>
@@ -216,8 +128,8 @@ export default function DokumentasiIndex() {
                                 Album Kegiatan
                             </h2>
                             <p className="text-xs text-[#5C6B73]">
-                                Menampilkan {filteredAlbums.length} album
-                                dokumentasi resmi
+                                Menampilkan {albumList.length} album dokumentasi
+                                resmi
                             </p>
                         </div>
 
@@ -238,7 +150,7 @@ export default function DokumentasiIndex() {
 
                     <div className="mt-6 flex flex-wrap gap-2 border-t border-[#F1F3F1] pt-5">
                         <button
-                            onClick={() => setActiveCategory('Semua')}
+                            onClick={() => handleCategoryChange('Semua')}
                             className={`rounded-full px-4 py-1.5 text-xs font-extrabold transition-all ${
                                 activeCategory === 'Semua'
                                     ? 'bg-[#1B5E20] text-white shadow-xs'
@@ -250,7 +162,7 @@ export default function DokumentasiIndex() {
                         {categories.map((cat) => (
                             <button
                                 key={cat}
-                                onClick={() => setActiveCategory(cat)}
+                                onClick={() => handleCategoryChange(cat)}
                                 className={`rounded-full px-4 py-1.5 text-xs font-extrabold transition-all ${
                                     activeCategory === cat
                                         ? 'bg-[#1B5E20] text-white shadow-xs'
@@ -266,13 +178,13 @@ export default function DokumentasiIndex() {
 
             <section className="min-h-[400px] flex-1 bg-[#F7F9F7] py-12 md:py-16">
                 <div className="bka-container">
-                    {filteredAlbums.length > 0 ? (
+                    {albumList.length > 0 ? (
                         <>
                             <div
                                 ref={gridRef}
                                 className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                             >
-                                {filteredAlbums.map((album, idx) => (
+                                {albumList.map((album, idx) => (
                                     <div
                                         key={album.slug}
                                         className={`bka-reveal bka-stagger-${(idx % 6) + 1} group flex h-full flex-col overflow-hidden rounded-2xl border border-[#DDE5DD] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md`}
@@ -357,7 +269,7 @@ export default function DokumentasiIndex() {
                             </div>
 
                             <div className="mt-12 flex justify-center">
-                                <Pagination links={dummyPagination} />
+                                <Pagination links={albums.links} />
                             </div>
                         </>
                     ) : (
@@ -376,7 +288,7 @@ export default function DokumentasiIndex() {
                                 <button
                                     onClick={() => {
                                         setSearchQuery('');
-                                        setActiveCategory('Semua');
+                                        handleCategoryChange('Semua');
                                     }}
                                     className="rounded-xl bg-[#1B5E20] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#145218]"
                                 >

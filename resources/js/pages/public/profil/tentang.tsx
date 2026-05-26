@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { Landmark, ShieldCheck } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -35,16 +34,7 @@ export default function Tentang({ konten }: TentangProps) {
         </blockquote>
     `;
 
-    const [liveKonten, setLiveKonten] = useState(defaultKonten);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('bka_tentang_kami');
-            if (saved) {
-                setLiveKonten(saved);
-            }
-        }
-    }, [defaultKonten]);
+    const liveKonten = defaultKonten;
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     Image as ImageIcon,
     FileText,
@@ -16,10 +15,11 @@ import {
     EyeOff,
     X,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { optimizeFile } from '@/lib/image-optimizer';
-import { formatFileSize } from '@/lib/format-file-size';
 import { AdminModal } from '@/components/admin/admin-modal';
+import { formatFileSize } from '@/lib/format-file-size';
+import { optimizeFile } from '@/lib/image-optimizer';
 
 interface Asset {
     id: string;
@@ -33,8 +33,19 @@ interface Asset {
     createdAt: string;
 }
 
-export default function AsetIndex() {
-    const [assets, setAssets] = useState<Asset[]>([]);
+interface AsetIndexProps {
+    assets: Asset[];
+    totalOptimized: number;
+    totalOriginal: number;
+    savePercent: number;
+}
+
+export default function AsetIndex({
+    assets = [],
+    totalOptimized = 0,
+    totalOriginal = 0,
+    savePercent = 0,
+}: AsetIndexProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState<'all' | 'image' | 'file'>(
         'all',
@@ -49,106 +60,133 @@ export default function AsetIndex() {
     // Selected Asset Details modal / overlay
     const [viewingAsset, setViewingAsset] = useState<Asset | null>(null);
 
-    // Load assets from local storage
+    // Sync viewing asset details when assets prop changes
     useEffect(() => {
-        const saved = localStorage.getItem('bka_assets');
-        if (saved) {
-            try {
-                setAssets(JSON.parse(saved));
-            } catch {
-                setAssets([]);
+        if (viewingAsset) {
+            const current = assets.find(
+                (a) => String(a.id) === String(viewingAsset.id),
+            );
+            if (current) {
+                setViewingAsset(current);
+            } else {
+                setViewingAsset(null);
             }
         }
-    }, []);
+    }, [assets]);
 
-    const saveAssets = (updatedList: Asset[]) => {
-        setAssets(updatedList);
-        localStorage.setItem('bka_assets', JSON.stringify(updatedList));
-    };
-
-    // Handle file upload & optimization
+    // Handle file upload & optimization sequentially to prevent concurrent request conflicts in Inertia
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (!files || files.length === 0) return;
+
+        if (!files || files.length === 0) {
+            return;
+        }
 
         setIsUploading(true);
-        let successCount = 0;
-        const newList = [...assets];
 
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+        const uploadFile = (index: number) => {
+            if (index >= files.length) {
+                setIsUploading(false);
+                toast.success('Semua file berhasil diunggah & dioptimasi!');
+                // Reset file input
+                e.target.value = '';
+                return;
+            }
 
-            // Limit 10MB
+            const file = files[index];
             if (file.size > 10 * 1024 * 1024) {
                 toast.error(`File "${file.name}" melebihi batas 10MB!`);
-                continue;
+                uploadFile(index + 1);
+                return;
             }
 
-            try {
-                const result = await optimizeFile(
-                    file,
-                    maxWidth,
-                    quality / 100,
-                );
+            optimizeFile(file, maxWidth, quality / 100)
+                .then((result) => {
+                    router.post(
+                        '/admin/aset',
+                        {
+                            name: result.name,
+                            url: result.base64,
+                            type: result.type,
+                            extension: result.extension,
+                            size: result.size,
+                            originalSize: result.originalSize,
+                            isVisible: addToGallery,
+                        },
+                        {
+                            preserveScroll: true,
+                            onSuccess: () => {
+                                uploadFile(index + 1);
+                            },
+                            onError: () => {
+                                toast.error(
+                                    `Gagal mengunggah "${file.name}" ke server`,
+                                );
+                                uploadFile(index + 1);
+                            },
+                        },
+                    );
+                })
+                .catch((err) => {
+                    toast.error(`Gagal mengoptimasi file "${file.name}"`);
+                    uploadFile(index + 1);
+                });
+        };
 
-                const newAsset: Asset = {
-                    id: String(Date.now() + i),
-                    name: result.name,
-                    url: result.base64,
-                    type: result.type,
-                    extension: result.extension,
-                    size: result.size,
-                    originalSize: result.originalSize,
-                    isVisible: addToGallery,
-                    createdAt: new Date().toISOString().split('T')[0],
-                };
-
-                newList.unshift(newAsset);
-                successCount++;
-            } catch (err) {
-                toast.error(`Gagal mengoptimasi file "${file.name}"`);
-            }
-        }
-
-        if (successCount > 0) {
-            saveAssets(newList);
-            toast.success(
-                `${successCount} file berhasil diunggah & dioptimasi!`,
-            );
-        }
-
-        setIsUploading(false);
-        // Reset file input
-        e.target.value = '';
+        uploadFile(0);
     };
 
-    // Toggle asset visibility
+    // Toggle asset visibility on the backend
     const handleToggleVisibility = (id: string) => {
-        const updated = assets.map((a) =>
-            a.id === id ? { ...a, isVisible: !a.isVisible } : a,
+        const asset = assets.find((a) => String(a.id) === String(id));
+        if (!asset) return;
+
+        router.put(
+            `/admin/aset/${id}`,
+            {
+                is_visible: !asset.isVisible,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.info('Visibilitas aset diperbarui.');
+                    if (
+                        viewingAsset &&
+                        String(viewingAsset.id) === String(id)
+                    ) {
+                        setViewingAsset((prev) =>
+                            prev
+                                ? { ...prev, isVisible: !prev.isVisible }
+                                : null,
+                        );
+                    }
+                },
+                onError: () => {
+                    toast.error('Gagal memperbarui visibilitas aset.');
+                },
+            },
         );
-        saveAssets(updated);
-        toast.info('Visibilitas aset diperbarui.');
-        if (viewingAsset && viewingAsset.id === id) {
-            setViewingAsset((prev) =>
-                prev ? { ...prev, isVisible: !prev.isVisible } : null,
-            );
-        }
     };
 
     // Copy URL to Clipboard
     const handleCopyUrl = (url: string) => {
         navigator.clipboard.writeText(url);
-        toast.success('URL Aset (Base64 Data) berhasil disalin ke clipboard!');
+        toast.success('URL Aset berhasil disalin ke clipboard!');
     };
 
-    // Delete asset
+    // Delete asset from the backend
     const handleDeleteAsset = (id: string) => {
-        const item = assets.find((a) => a.id === id);
-        const updated = assets.filter((a) => a.id !== id);
-        saveAssets(updated);
-        toast.success(`Aset "${item?.name}" berhasil dihapus.`);
-        setViewingAsset(null);
+        const item = assets.find((a) => String(a.id) === String(id));
+        router.delete(`/admin/aset/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(`Aset "${item?.name || ''}" berhasil dihapus.`);
+                setViewingAsset(null);
+            },
+            onError: () => {
+                toast.error('Gagal menghapus aset.');
+            },
+        });
     };
 
     // Filters logic
@@ -157,6 +195,7 @@ export default function AsetIndex() {
             .toLowerCase()
             .includes(searchQuery.toLowerCase());
         const matchesFilter = activeFilter === 'all' || a.type === activeFilter;
+
         return matchesSearch && matchesFilter;
     });
 
@@ -171,16 +210,6 @@ export default function AsetIndex() {
             </div>
         );
     };
-
-    // Calculate total optimized size vs original size
-    const totalOptimized = assets.reduce((sum, a) => sum + a.size, 0);
-    const totalOriginal = assets.reduce((sum, a) => sum + a.originalSize, 0);
-    const savePercent =
-        totalOriginal > 0
-            ? Math.round(
-                  ((totalOriginal - totalOptimized) / totalOriginal) * 100,
-              )
-            : 0;
 
     return (
         <>

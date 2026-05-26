@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     Images,
     ArrowLeft,
@@ -11,6 +10,7 @@ import {
     ArrowDown,
     Plus,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
@@ -22,89 +22,76 @@ interface PhotoItem {
     order: number;
 }
 
-export default function EditAlbum() {
-    const [albumId, setAlbumId] = useState<number | null>(null);
-    const [albumList, setAlbumList] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+interface AlbumDetail {
+    id: number;
+    title: string;
+    slug: string;
+    description?: string;
+    date: string;
+    coverUrl: string;
+    category?: string;
+    photos: PhotoItem[];
+}
 
-    const [title, setTitle] = useState('');
-    const [slug, setSlug] = useState('');
-    const [description, setDescription] = useState('');
-    const [date, setDate] = useState('');
-    const [coverUrl, setCoverUrl] = useState('');
-    const [category, setCategory] = useState('');
-    const [categories, setCategories] = useState<string[]>([
-        'Keuangan',
-        'Aset',
-    ]);
-    const [photos, setPhotos] = useState<PhotoItem[]>([]);
+interface EditAlbumProps {
+    album: AlbumDetail;
+    categories: string[];
+}
 
-    const [isPickerOpen, setIsPickerOpen] = useState(false);
+export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
+    const { data, setData, post, processing, errors } = useForm({
+        _method: 'PUT',
+        judul: album.title || '',
+        slug: album.slug || '',
+        deskripsi: album.description || '',
+        tanggal_kegiatan: album.date || '',
+        kategori:
+            album.category ||
+            (categories.length > 0 ? categories[0] : 'Keuangan'),
+        coverUrl: album.coverUrl || '',
+        photos: album.photos || [],
+    });
+
+    const [pickerTarget, setPickerTarget] = useState<'cover' | 'photos' | null>(
+        null,
+    );
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
         null,
     );
-    const [isSaving, setIsSaving] = useState(false);
     const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
     const [isSlugEdited, setIsSlugEdited] = useState(true);
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const pathSegments = window.location.pathname.split('/');
-            const idStr = pathSegments[pathSegments.length - 2];
-            const parsedId = parseInt(idStr, 10);
-            setAlbumId(parsedId);
+    const handleSelectPhotosFromAsset = (url: string) => {
+        const nextOrder =
+            data.photos.length > 0
+                ? Math.max(...data.photos.map((p) => p.order)) + 1
+                : 1;
 
-            const saved = localStorage.getItem('bka_albums');
-            let loaded: any[] = [];
-            if (saved) {
-                try {
-                    loaded = JSON.parse(saved);
-                    setAlbumList(loaded);
-                } catch {
-                    loaded = [];
-                }
-            }
+        const newPhoto: PhotoItem = {
+            id: String(Date.now()),
+            url: url,
+            order: nextOrder,
+        };
 
-            const savedCats = localStorage.getItem(
-                'bka_dokumentasi_categories',
-            );
-            let loadedCats = ['Keuangan', 'Aset'];
-            if (savedCats) {
-                try {
-                    loadedCats = JSON.parse(savedCats);
-                } catch {
-                    // ignore
-                }
-            }
-            setCategories(loadedCats);
-
-            const item = loaded.find((a: any) => a.id === parsedId);
-            if (item) {
-                setTitle(item.title || '');
-                setSlug(item.slug || '');
-                setDescription(item.description || '');
-                setDate(item.date || new Date().toISOString().split('T')[0]);
-                setCoverUrl(item.coverUrl || '');
-                setPhotos(item.photos || []);
-                setCategory(item.category || loadedCats[0] || 'Tanpa Kategori');
-            } else {
-                toast.error('Album tidak ditemukan!');
-                router.visit('/admin/dokumentasi');
-            }
-            setIsLoading(false);
-        }
-    }, []);
+        setData('photos', [...data.photos, newPhoto]);
+        toast.success('Foto dari aset berhasil ditambahkan ke album!');
+    };
 
     const handleTitleChange = (val: string) => {
-        setTitle(val);
         if (!isSlugEdited) {
             const generated = val
                 .toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '')
                 .replace(/\s+/g, '-')
                 .replace(/-+/g, '-');
-            setSlug(generated);
+            setData((prev) => ({
+                ...prev,
+                judul: val,
+                slug: generated,
+            }));
+        } else {
+            setData('judul', val);
         }
     };
 
@@ -114,12 +101,15 @@ export default function EditAlbum() {
             .toLowerCase()
             .replace(/\s+/g, '-')
             .replace(/[^a-z0-9-]/g, '');
-        setSlug(cleaned);
+        setData('slug', cleaned);
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
 
         if (file.size > 10 * 1024 * 1024) {
             toast.error('File gambar melebihi batas 10MB!');
@@ -132,7 +122,7 @@ export default function EditAlbum() {
     };
 
     const handleUploadConfirm = (result: { base64: string }) => {
-        setCoverUrl(result.base64);
+        setData('coverUrl', result.base64);
         toast.success('Cover album berhasil diunggah & dioptimasi!');
     };
 
@@ -140,17 +130,18 @@ export default function EditAlbum() {
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const files = e.target.files;
-        if (!files || files.length === 0) return;
 
-        if (photos.length + files.length > 50) {
+        if (!files || files.length === 0) {
+            return;
+        }
+
+        if (data.photos.length + files.length > 50) {
             toast.error('Maksimal 50 foto per album!');
             return;
         }
 
         setIsUploadingPhotos(true);
-        const newPhotos = [...photos];
-        const savedAssets = localStorage.getItem('bka_assets');
-        const assetsList = savedAssets ? JSON.parse(savedAssets) : [];
+        const newPhotos = [...data.photos];
         let successCount = 0;
 
         for (let i = 0; i < files.length; i++) {
@@ -175,19 +166,6 @@ export default function EditAlbum() {
                 };
 
                 newPhotos.push(newPhoto);
-
-                assetsList.unshift({
-                    id: String(Date.now() + i),
-                    name: result.name,
-                    url: result.base64,
-                    type: 'image',
-                    extension: 'webp',
-                    size: result.size,
-                    originalSize: result.originalSize,
-                    isVisible: true,
-                    createdAt: new Date().toISOString().split('T')[0],
-                });
-
                 successCount++;
             } catch {
                 toast.error(`Gagal mengompresi foto "${file.name}"`);
@@ -195,11 +173,8 @@ export default function EditAlbum() {
         }
 
         if (successCount > 0) {
-            setPhotos(newPhotos);
-            localStorage.setItem('bka_assets', JSON.stringify(assetsList));
-            toast.success(
-                `${successCount} foto berhasil dikompresi & dimasukkan ke album!`,
-            );
+            setData('photos', newPhotos);
+            toast.success(`${successCount} foto berhasil dimasukkan ke album!`);
         }
 
         setIsUploadingPhotos(false);
@@ -207,89 +182,67 @@ export default function EditAlbum() {
     };
 
     const handleDeletePhoto = (id: string) => {
-        setPhotos((prev) => prev.filter((p) => p.id !== id));
-        toast.info(
-            'Foto dilepas dari album (berkas asli di Aset Media tetap aman).',
+        setData(
+            'photos',
+            data.photos.filter((p) => p.id !== id),
         );
+        toast.info('Foto dilepas dari album.');
     };
 
     const handleMovePhoto = (index: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === photos.length - 1) return;
+        if (direction === 'up' && index === 0) {
+            return;
+        }
+
+        if (direction === 'down' && index === data.photos.length - 1) {
+            return;
+        }
 
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        const updated = [...photos];
+        const updated = [...data.photos];
 
         const temp = updated[index];
         updated[index] = updated[targetIndex];
         updated[targetIndex] = temp;
 
         const final = updated.map((p, idx) => ({ ...p, order: idx + 1 }));
-        setPhotos(final);
+        setData('photos', final);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (title.trim().length < 5) {
+        if (data.judul.trim().length < 5) {
             toast.error('Judul album minimal harus 5 karakter!');
             return;
         }
-        if (!slug.trim()) {
+
+        if (!data.slug.trim()) {
             toast.error('Slug URL wajib diisi!');
             return;
         }
 
-        setIsSaving(true);
-
-        try {
-            const isSlugTaken = albumList.some(
-                (a: any) => a.slug === slug && a.id !== albumId,
-            );
-            if (isSlugTaken) {
-                toast.error(
-                    'Slug URL sudah digunakan album lain! Ubah secara manual.',
-                );
-                setIsSaving(false);
-                return;
-            }
-
-            const updatedAlbum = {
-                id: albumId,
-                title: title.trim(),
-                slug: slug.trim(),
-                description: description.trim(),
-                date,
-                coverUrl,
-                category,
-                photos,
-            };
-
-            const updatedList = albumList.map((a: any) =>
-                a.id === albumId ? updatedAlbum : a,
-            );
-            localStorage.setItem('bka_albums', JSON.stringify(updatedList));
-
-            toast.success(`Album "${title}" berhasil diperbarui!`);
-            router.visit('/admin/dokumentasi');
-        } catch {
-            toast.error('Gagal menyimpan album.');
-        } finally {
-            setIsSaving(false);
-        }
+        post(`/admin/dokumentasi/${album.id}`, {
+            onSuccess: () => {
+                toast.success(`Album "${data.judul}" berhasil diperbarui!`);
+            },
+            onError: (errs) => {
+                if (errs.slug) {
+                    toast.error(
+                        'Slug URL sudah digunakan album lain! Ubah secara manual.',
+                    );
+                } else if (errs.judul) {
+                    toast.error(errs.judul);
+                } else {
+                    toast.error('Gagal memperbarui album. Periksa isian Anda.');
+                }
+            },
+        });
     };
-
-    if (isLoading) {
-        return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-emerald-600"></div>
-            </div>
-        );
-    }
 
     return (
         <>
-            <Head title={`Edit Album - ${title}`} />
+            <Head title={`Edit Album - ${data.judul}`} />
 
             <div className="mx-auto w-full max-w-4xl space-y-6 p-6 md:space-y-8 md:p-8">
                 <div className="flex flex-col justify-between gap-4 border-b border-neutral-200 pb-5 md:flex-row md:items-center">
@@ -305,7 +258,7 @@ export default function EditAlbum() {
                         </div>
                         <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-neutral-800">
                             <Images className="size-6 text-emerald-600" />
-                            Kelola Album: {title}
+                            Kelola Album: {data.judul}
                         </h1>
                         <p className="mt-1 text-sm leading-relaxed font-light text-neutral-500">
                             Sesuaikan rincian album, tambahkan foto dokumentasi
@@ -330,13 +283,18 @@ export default function EditAlbum() {
                                 type="text"
                                 maxLength={150}
                                 required
-                                value={title}
+                                value={data.judul}
                                 onChange={(e) =>
                                     handleTitleChange(e.target.value)
                                 }
                                 placeholder="Contoh: Kunjungan Evaluasi LLDIKTI Wilayah X"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.judul && (
+                                <p className="text-xs font-semibold text-red-600">
+                                    {errors.judul}
+                                </p>
+                            )}
                         </div>
 
                         <div className="space-y-1.5">
@@ -350,13 +308,18 @@ export default function EditAlbum() {
                             <input
                                 type="text"
                                 required
-                                value={slug}
+                                value={data.slug}
                                 onChange={(e) =>
                                     handleSlugChange(e.target.value)
                                 }
                                 placeholder="contoh: kunjungan-evaluasi-lldikti"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.slug && (
+                                <p className="text-xs font-semibold text-red-600">
+                                    {errors.slug}
+                                </p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -365,9 +328,9 @@ export default function EditAlbum() {
                                     Kategori Album
                                 </label>
                                 <select
-                                    value={category}
+                                    value={data.kategori}
                                     onChange={(e) =>
-                                        setCategory(e.target.value)
+                                        setData('kategori', e.target.value)
                                     }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
@@ -394,8 +357,13 @@ export default function EditAlbum() {
                                 <input
                                     type="date"
                                     required
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
+                                    value={data.tanggal_kegiatan}
+                                    onChange={(e) =>
+                                        setData(
+                                            'tanggal_kegiatan',
+                                            e.target.value,
+                                        )
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 />
                             </div>
@@ -407,9 +375,9 @@ export default function EditAlbum() {
                                 <textarea
                                     maxLength={500}
                                     rows={2}
-                                    value={description}
+                                    value={data.deskripsi}
                                     onChange={(e) =>
-                                        setDescription(e.target.value)
+                                        setData('deskripsi', e.target.value)
                                     }
                                     placeholder="Rangkuman singkat isi album liputan kegiatan ini..."
                                     className="w-full resize-none rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
@@ -427,9 +395,12 @@ export default function EditAlbum() {
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            value={coverUrl}
+                                            value={data.coverUrl}
                                             onChange={(e) =>
-                                                setCoverUrl(e.target.value)
+                                                setData(
+                                                    'coverUrl',
+                                                    e.target.value,
+                                                )
                                             }
                                             placeholder="URL Gambar..."
                                             className="flex-1 rounded-xl border border-neutral-200 bg-white p-3 font-mono text-xs text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1"
@@ -437,7 +408,7 @@ export default function EditAlbum() {
                                         <button
                                             type="button"
                                             onClick={() =>
-                                                setIsPickerOpen(true)
+                                                setPickerTarget('cover')
                                             }
                                             className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-100"
                                         >
@@ -462,7 +433,7 @@ export default function EditAlbum() {
 
                                 <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-neutral-200/60 bg-neutral-100 md:w-56">
                                     <img
-                                        src={coverUrl}
+                                        src={data.coverUrl}
                                         alt="Pratinjau Cover"
                                         className="h-full w-full object-cover"
                                         onError={(e) => {
@@ -478,7 +449,7 @@ export default function EditAlbum() {
                     <div className="space-y-6 rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] md:p-8">
                         <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
                             <h2 className="text-sm font-extrabold tracking-wide text-neutral-800 uppercase">
-                                Foto Dokumentasi ({photos.length} / 50)
+                                Foto Dokumentasi ({data.photos.length} / 50)
                             </h2>
                             <span className="text-neutral-450 text-[10px] font-bold">
                                 Dimaksimalkan ke format WebP
@@ -486,23 +457,41 @@ export default function EditAlbum() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-200 p-8 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-50/20">
-                                <Plus className="mb-2 size-8 text-neutral-400 transition-colors group-hover:text-emerald-600" />
-                                <span className="text-xs font-bold text-neutral-600">
-                                    Unggah foto liputan baru ke album
-                                </span>
-                                <span className="mt-1 text-[10px] text-neutral-400">
-                                    Multi-upload berkas JPG/PNG/WebP, maks 10MB
-                                </span>
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handlePhotosUpload}
-                                    className="hidden"
-                                    disabled={isUploadingPhotos}
-                                />
-                            </label>
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                <label className="group flex flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-200 p-6 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-50/20">
+                                    <Plus className="mb-2 size-6 text-neutral-400 transition-colors group-hover:text-emerald-600" />
+                                    <span className="text-xs font-bold text-neutral-600">
+                                        Unggah foto liputan baru
+                                    </span>
+                                    <span className="mt-0.5 text-[10px] text-neutral-400">
+                                        Multi-upload berkas JPG/PNG/WebP, maks
+                                        10MB
+                                    </span>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={handlePhotosUpload}
+                                        className="hidden"
+                                        disabled={isUploadingPhotos}
+                                    />
+                                </label>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setPickerTarget('photos')}
+                                    className="group flex flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-200 p-6 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-50/20"
+                                >
+                                    <ImageIcon className="mb-2 size-6 text-neutral-400 transition-colors group-hover:text-emerald-600" />
+                                    <span className="text-xs font-bold text-neutral-600">
+                                        Pilih dari Aset Media
+                                    </span>
+                                    <span className="mt-0.5 text-[10px] text-neutral-400">
+                                        Pilih file gambar yang sudah ada di
+                                        galeri
+                                    </span>
+                                </button>
+                            </div>
                             {isUploadingPhotos && (
                                 <div className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-600">
                                     <div className="size-3.5 animate-spin rounded-full border-t-2 border-b-2 border-emerald-600" />
@@ -512,9 +501,9 @@ export default function EditAlbum() {
                             )}
                         </div>
 
-                        {photos.length > 0 ? (
+                        {data.photos.length > 0 ? (
                             <div className="grid grid-cols-2 gap-6 pt-2 sm:grid-cols-3 md:grid-cols-4">
-                                {photos
+                                {data.photos
                                     .sort((a, b) => a.order - b.order)
                                     .map((photo, index) => (
                                         <div
@@ -546,7 +535,7 @@ export default function EditAlbum() {
                                                     type="button"
                                                     disabled={
                                                         index ===
-                                                        photos.length - 1
+                                                        data.photos.length - 1
                                                     }
                                                     onClick={() =>
                                                         handleMovePhoto(
@@ -594,20 +583,26 @@ export default function EditAlbum() {
                         </Link>
                         <button
                             type="submit"
-                            disabled={isSaving}
+                            disabled={processing}
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
                         >
                             <Save className="size-4" />
-                            {isSaving ? 'Menyimpan...' : 'Perbarui Album'}
+                            {processing ? 'Menyimpan...' : 'Perbarui Album'}
                         </button>
                     </div>
                 </form>
             </div>
 
             <AssetPickerModal
-                isOpen={isPickerOpen}
-                onClose={() => setIsPickerOpen(false)}
-                onSelect={setCoverUrl}
+                isOpen={pickerTarget !== null}
+                onClose={() => setPickerTarget(null)}
+                onSelect={(val) => {
+                    if (pickerTarget === 'cover') {
+                        setData('coverUrl', val);
+                    } else if (pickerTarget === 'photos') {
+                        handleSelectPhotosFromAsset(val);
+                    }
+                }}
             />
 
             <ImageUploadModal

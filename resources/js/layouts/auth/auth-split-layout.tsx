@@ -1,14 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
-import { home } from '@/routes/public';
-import type { AuthLayoutProps } from '@/types';
 import { ShieldCheck, Database, Award } from 'lucide-react';
+import { home } from '@/routes';
+import type { AuthLayoutProps } from '@/types';
 
 export default function AuthSplitLayout({
     children,
     title,
     description,
 }: AuthLayoutProps) {
-    const { name } = usePage().props;
+    const { name, pengaturan } = usePage().props as any;
+    const logoUrl = pengaturan?.logo_base64 || '/assets/logo-bka.png';
 
     return (
         <div className="relative grid h-dvh flex-col items-center justify-center bg-neutral-50 px-4 font-sans selection:bg-emerald-500 selection:text-white sm:px-8 lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -23,13 +24,16 @@ export default function AuthSplitLayout({
                 <div className="relative z-20 flex items-center">
                     <Link href={home()} className="flex items-center">
                         <img
-                            src="/assets/logo-bka.png"
+                            src={logoUrl}
                             alt="Logo BKA UMRI"
                             className="object-contain"
                             style={{
                                 height: '48px',
                                 width: 'auto',
-                                filter: 'brightness(0) invert(1)',
+                                filter:
+                                    logoUrl === '/assets/logo-bka.png'
+                                        ? 'brightness(0) invert(1)'
+                                        : undefined,
                                 opacity: 0.9,
                             }}
                         />
@@ -102,7 +106,7 @@ export default function AuthSplitLayout({
                             className="group flex items-center justify-center"
                         >
                             <img
-                                src="/assets/logo-bka.png"
+                                src={logoUrl}
                                 alt="Logo BKA UMRI"
                                 className="h-12 w-auto object-contain transition-transform group-hover:scale-101"
                             />

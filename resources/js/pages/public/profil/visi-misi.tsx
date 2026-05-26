@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { Compass, Target } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -51,24 +50,8 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
         },
     ];
 
-    const [liveVisi, setLiveVisi] = useState(defaultVisi);
-    const [liveMisiItems, setLiveMisiItems] =
-        useState<MisiItem[]>(defaultMisiItems);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const savedData = localStorage.getItem('bka_visi_misi');
-            if (savedData) {
-                try {
-                    const parsed = JSON.parse(savedData);
-                    if (parsed.visi) setLiveVisi(parsed.visi);
-                    if (parsed.misiItems) setLiveMisiItems(parsed.misiItems);
-                } catch (e) {
-                    // ignore
-                }
-            }
-        }
-    }, [defaultVisi, defaultMisiItems]);
+    const liveVisi = defaultVisi;
+    const liveMisiItems = defaultMisiItems;
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
@@ -118,9 +101,10 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
                             <h2 className="mb-2 text-xs font-bold tracking-widest text-[#1B5E20] uppercase">
                                 Visi BKA UMRI
                             </h2>
-                            <p className="max-w-3xl text-2xl leading-relaxed font-bold tracking-tight text-gray-900 italic">
-                                &ldquo;{liveVisi}&rdquo;
-                            </p>
+                            <div
+                                className="prose max-w-3xl text-center text-xl leading-relaxed font-bold tracking-tight text-gray-900 italic prose-emerald"
+                                dangerouslySetInnerHTML={{ __html: liveVisi }}
+                            />
                         </div>
                     </div>
 

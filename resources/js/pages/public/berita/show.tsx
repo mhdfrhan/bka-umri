@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -7,94 +6,90 @@ import {
     Linkedin,
     Twitter,
     User,
+    Link as LinkIcon,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 
-// ─── Dummy Data fallback ───
-const dummyArticle = {
-    slug: 'bka-luncurkan-sistem-keuangan-baru-2026',
-    thumbnail:
-        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
-    category: 'Layanan',
-    title: 'BKA UMRI Luncurkan Portal Keuangan Terintegrasi untuk Mahasiswa',
-    date: '2026-05-20',
-    author: 'Admin BKA',
-    content: `
-        <p>Universitas Muhammadiyah Riau (UMRI) melalui Biro Keuangan dan Aset (BKA) secara resmi meluncurkan Portal Keuangan Terintegrasi. Inovasi ini ditujukan khusus untuk mempermudah proses administrasi keuangan dan pembayaran biaya kuliah bagi seluruh mahasiswa aktif.</p>
-        
-        <p>Dalam acara sosialisasi yang diselenggarakan secara hybrid di Aula Utama UMRI, Kepala BKA menyampaikan bahwa digitalisasi layanan administrasi adalah keniscayaan di era modern. "Kami memahami bahwa efisiensi waktu sangat berharga bagi civitas akademika. Dengan sistem baru ini, mahasiswa tidak perlu lagi mengantre panjang di loket pembayaran," ujarnya.</p>
-        
-        <h3>Fitur Utama Portal Terintegrasi</h3>
-        <p>Sistem ini dirancang dengan antarmuka yang ramah pengguna (user-friendly) dan dilengkapi dengan beberapa fitur unggulan, antara lain:</p>
-        <ul>
-            <li><strong>Pembayaran Real-Time:</strong> Status pembayaran akan langsung diperbarui dalam sistem segera setelah transaksi berhasil melalui bank mitra (BSI, Bank Muamalat, Bank Riau Kepri Syariah).</li>
-            <li><strong>Riwayat Tagihan Transparan:</strong> Mahasiswa dapat mengunduh invoice digital dan melihat rincian riwayat pembayaran dari semester pertama hingga saat ini.</li>
-            <li><strong>Pengajuan Dispensasi Online:</strong> Proses pengajuan keringanan biaya kuliah kini dapat dilakukan dengan mengunggah berkas persyaratan langsung melalui portal tanpa perlu membawa dokumen fisik.</li>
-        </ul>
-        
-        <blockquote>
-            "Transformasi digital bukan sekadar mengubah dokumen fisik menjadi elektronik, tetapi mengubah paradigma pelayanan birokrasi menjadi lebih transparan, cepat, dan akuntabel."
-        </blockquote>
-        
-        <p>Tim IT UMRI memastikan bahwa portal ini telah dilengkapi dengan sistem keamanan enkripsi terkini untuk melindungi data pribadi dan riwayat transaksi mahasiswa. Sistem ini akan mulai diimplementasikan secara penuh pada masa registrasi semester ganjil tahun akademik 2026/2027.</p>
-        
-        <p>Biga mahasiswa yang mengalami kendala teknis saat mengakses portal, BKA telah menyediakan layanan *helpdesk* terpadu yang dapat dihubungi melalui email resmi maupun *hotline* WhatsApp yang beroperasi pada jam kerja.</p>
-    `,
-};
+interface NewsItem {
+    slug: string;
+    thumbnail: string;
+    category?: string;
+    title: string;
+    date: string;
+    author?: string;
+    content: string;
+}
 
 const formatDateIndo = (dateStr: string) => {
-    if (!dateStr) return '';
-    if (dateStr.includes(' ') && isNaN(Number(dateStr.split(' ')[0])))
-        return dateStr; // already formatted like "20 Mei 2026"
+    if (!dateStr) {
+        return '';
+    }
+
+    if (dateStr.includes(' ') && isNaN(Number(dateStr.split(' ')[0]))) {
+        return dateStr;
+    } // already formatted like "20 Mei 2026"
+
     try {
         const dateObj = new Date(dateStr);
-        if (isNaN(dateObj.getTime())) return dateStr;
+
+        if (isNaN(dateObj.getTime())) {
+            return dateStr;
+        }
+
         const options: Intl.DateTimeFormatOptions = {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
         };
+
         return dateObj.toLocaleDateString('id-ID', options);
     } catch {
         return dateStr;
     }
 };
 
-export default function BeritaShow() {
+export default function BeritaShow({ berita }: { berita: NewsItem }) {
     const articleRef = useScrollReveal<HTMLDivElement>();
-    const [article, setArticle] = useState(dummyArticle);
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const pathSegments = window.location.pathname.split('/');
-            const slug = pathSegments[pathSegments.length - 1];
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(window.location.href);
+        toast.success('Tautan berita berhasil disalin ke papan klip!');
+    };
 
-            const savedNews = localStorage.getItem('bka_berita');
-            if (savedNews) {
-                try {
-                    const parsed = JSON.parse(savedNews);
-                    const item = parsed.find((n: any) => n.slug === slug);
-                    if (item) {
-                        setArticle({
-                            slug: item.slug,
-                            thumbnail: item.thumbnail,
-                            category: item.category || 'Tanpa Kategori',
-                            title: item.title,
-                            date: item.date,
-                            author: item.author || 'Admin BKA',
-                            content: item.content,
-                        });
-                    }
-                } catch {
-                    // ignore
-                }
-            }
-        }
-    }, []);
+    const handleShareFacebook = () => {
+        const shareUrl = encodeURIComponent(window.location.href);
+        window.open(
+            `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
+            '_blank',
+        );
+    };
+
+    const handleShareTwitter = () => {
+        const text = encodeURIComponent(
+            `Lihat berita "${berita.title}" di Website BKA UMRI: ${window.location.href}`,
+        );
+        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    };
+
+    const handleShareLinkedIn = () => {
+        const shareUrl = encodeURIComponent(window.location.href);
+        window.open(
+            `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`,
+            '_blank',
+        );
+    };
+
+    const handleShareWhatsApp = () => {
+        const text = encodeURIComponent(
+            `Lihat berita "${berita.title}" di Website BKA UMRI: ${window.location.href}`,
+        );
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    };
 
     return (
         <>
-            <Head title={`${article.title} - BKA UMRI`}>
+            <Head title={`${berita.title} - BKA UMRI`}>
                 <meta
                     name="description"
                     content="Detail berita Biro Keuangan dan Aset Universitas Muhammadiyah Riau."
@@ -106,7 +101,7 @@ export default function BeritaShow() {
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0">
                     <img
-                        src={article.thumbnail}
+                        src={berita.thumbnail}
                         alt=""
                         aria-hidden="true"
                         className="h-full w-full object-cover"
@@ -125,7 +120,7 @@ export default function BeritaShow() {
                         {/* Category Badge */}
                         <div className="mb-6">
                             <span className="inline-block rounded-full bg-[#C8A000] px-4 py-1.5 text-xs font-bold tracking-widest text-[#1A1A1A] uppercase shadow-md">
-                                {article.category}
+                                {berita.category}
                             </span>
                         </div>
 
@@ -134,7 +129,7 @@ export default function BeritaShow() {
                             className="mb-8 leading-tight font-bold text-white"
                             style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}
                         >
-                            {article.title}
+                            {berita.title}
                         </h1>
 
                         {/* Meta Data */}
@@ -144,11 +139,11 @@ export default function BeritaShow() {
                                     size={16}
                                     className="text-[#C8A000]"
                                 />
-                                <span>{formatDateIndo(article.date)}</span>
+                                <span>{formatDateIndo(berita.date)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <User size={16} className="text-[#C8A000]" />
-                                <span>{article.author}</span>
+                                <span>{berita.author}</span>
                             </div>
                         </div>
                     </div>
@@ -166,7 +161,7 @@ export default function BeritaShow() {
                         <div
                             className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-2xl prose-a:text-[#1B5E20] prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-[#C8A000] prose-blockquote:bg-[#F7F9F7] prose-blockquote:px-6 prose-blockquote:py-3 prose-blockquote:font-medium prose-blockquote:text-[#1B5E20] prose-blockquote:italic prose-img:rounded-2xl prose-img:shadow-md"
                             dangerouslySetInnerHTML={{
-                                __html: article.content,
+                                __html: berita.content,
                             }}
                         />
 
@@ -183,28 +178,55 @@ export default function BeritaShow() {
                                 Kembali ke Daftar Berita
                             </Link>
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
                                 <span className="text-sm font-semibold text-[#1A1A1A]">
                                     Bagikan:
                                 </span>
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                     <button
+                                        onClick={handleShareWhatsApp}
+                                        aria-label="Share on WhatsApp"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        title="Bagikan ke WhatsApp"
+                                    >
+                                        <svg
+                                            className="size-4 fill-current"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.501-5.733-1.455L0 24zm6.79-11.767c.186-.12.308-.24.428-.36.12-.12.18-.24.3-.36l.24-.36c.06-.12.12-.18.12-.3 0-.12-.06-.24-.12-.36l-.9-2.16c-.12-.3-.24-.3-.42-.3h-.3c-.18 0-.42.06-.6.24-.18.18-.72.72-.72 1.74 0 1.02.72 2.04.84 2.16.12.12 1.44 2.16 3.42 2.94.48.18.84.3 1.14.36.48.12.9.12 1.26.06.36-.06 1.14-.48 1.32-.96.18-.48.18-.9 0-.96-.06-.06-.18-.12-.36-.24-.18-.12-.96-.48-1.14-.54-.18-.06-.3-.12-.42.06-.12.18-.48.6-.6.72-.12.12-.24.12-.42 0-.18-.12-.78-.3-1.5-1.02-.54-.48-.9-1.08-1.02-1.2-.12-.18-.02-.3.08-.36z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={handleShareFacebook}
                                         aria-label="Share on Facebook"
                                         className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        title="Bagikan ke Facebook"
                                     >
                                         <Facebook size={16} />
                                     </button>
                                     <button
+                                        onClick={handleShareTwitter}
                                         aria-label="Share on Twitter"
                                         className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        title="Bagikan ke Twitter / X"
                                     >
                                         <Twitter size={16} />
                                     </button>
                                     <button
+                                        onClick={handleShareLinkedIn}
                                         aria-label="Share on LinkedIn"
                                         className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        title="Bagikan ke LinkedIn"
                                     >
                                         <Linkedin size={16} />
+                                    </button>
+                                    <button
+                                        onClick={handleCopyLink}
+                                        aria-label="Copy Link"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        title="Salin Tautan Berita"
+                                    >
+                                        <LinkIcon size={16} />
                                     </button>
                                 </div>
                             </div>

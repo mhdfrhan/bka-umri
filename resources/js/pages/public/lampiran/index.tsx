@@ -51,56 +51,20 @@ const dummyKategoriLampirans: KategoriLampiran[] = [
     },
 ];
 
-export default function LampiranIndex({ kategoriLampirans }: LampiranProps) {
+export default function LampiranIndex({
+    kategoriLampirans = [],
+}: LampiranProps) {
     const [searchQuery, setSearchQuery] = useState('');
-    const [realCategories, setRealCategories] = useState<KategoriLampiran[]>(
-        [],
-    );
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const filterRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
-    useEffect(() => {
-        const savedCategories = localStorage.getItem('bka_kategori_lampiran');
-        const savedFiles = localStorage.getItem('bka_berkas_lampiran');
-        if (savedCategories) {
-            try {
-                const parsedCats = JSON.parse(savedCategories);
-                let parsedFiles = [];
-                if (savedFiles) {
-                    try {
-                        parsedFiles = JSON.parse(savedFiles);
-                    } catch {}
-                }
-                const enriched = parsedCats.map((cat: any) => {
-                    const count = parsedFiles.filter(
-                        (f: any) => f.kategori_id === cat.id,
-                    ).length;
-                    return {
-                        nama: cat.nama,
-                        slug: cat.slug,
-                        deskripsi: cat.deskripsi || '',
-                        jumlah_berkas: count,
-                    };
-                });
-                setRealCategories(enriched);
-            } catch {
-                setRealCategories([]);
-            }
-        }
-    }, []);
-
     // Safe fallback handling for dynamic vs mock data
-    const isUsingRealData =
-        realCategories.length > 0 ||
-        !!(kategoriLampirans && kategoriLampirans.length > 0);
     const resolvedKategori =
-        realCategories.length > 0
-            ? realCategories
-            : isUsingRealData
-              ? kategoriLampirans || []
-              : dummyKategoriLampirans;
+        kategoriLampirans.length > 0
+            ? kategoriLampirans
+            : dummyKategoriLampirans;
 
     // Filter categories based on search input for highly interactive preview
     const filteredKategori = resolvedKategori.filter(

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     Newspaper,
     ArrowLeft,
@@ -7,39 +6,48 @@ import {
     Globe,
     Image as ImageIcon,
     Upload,
-    Sliders,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
-const DEFAULT_CATEGORIES = [
-    'Kegiatan',
-    'Layanan',
-    'Mitra',
-    'Prestasi',
-    'Aturan',
-];
+interface CategoryItem {
+    id: number;
+    nama: string;
+}
 
-export default function EditBerita() {
-    const [newsId, setNewsId] = useState<number | null>(null);
-    const [newsList, setNewsList] = useState<any[]>([]);
-    const [categories, setCategories] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+interface NewsItem {
+    id: number;
+    judul: string;
+    slug: string;
+    kategori: string;
+    thumbnail: string;
+    isi: string;
+    status: 'draf' | 'terpublikasi' | 'diarsipkan';
+    tanggal_publikasi: string;
+}
 
-    // Form States
-    const [title, setTitle] = useState('');
-    const [slug, setSlug] = useState('');
-    const [category, setCategory] = useState('');
-    const [thumbnail, setThumbnail] = useState('');
-    const [content, setContent] = useState('');
-    const [status, setStatus] = useState<
-        'draf' | 'terpublikasi' | 'diarsipkan'
-    >('draf');
-    const [date, setDate] = useState('');
-    const [author, setAuthor] = useState('Admin BKA');
-    const [isSaving, setIsSaving] = useState(false);
+interface EditBeritaProps {
+    berita: NewsItem;
+    categories: CategoryItem[];
+}
+
+export default function EditBerita({
+    berita,
+    categories = [],
+}: EditBeritaProps) {
+    const { data, setData, post, processing, errors } = useForm({
+        judul: berita.judul || '',
+        slug: berita.slug || '',
+        kategori: berita.kategori || 'Tanpa Kategori',
+        status: berita.status || 'draf',
+        tanggal_publikasi: berita.tanggal_publikasi || '',
+        thumbnail: berita.thumbnail || '',
+        isi: berita.isi || '',
+        _method: 'PUT',
+    });
 
     // Asset Picker Modal State
     const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
@@ -52,7 +60,10 @@ export default function EditBerita() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
 
         if (file.size > 10 * 1024 * 1024) {
             toast.error('File gambar melebihi batas 10MB!');
@@ -65,75 +76,29 @@ export default function EditBerita() {
     };
 
     const handleUploadConfirm = (result: { base64: string }) => {
-        setThumbnail(result.base64);
+        setData('thumbnail', result.base64);
         toast.success('Gambar cover berhasil diunggah & dioptimasi!');
     };
 
     // Is slug edited manually?
     const [isSlugEdited, setIsSlugEdited] = useState(true);
 
-    // Parse ID from URL and Load Data
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const pathSegments = window.location.pathname.split('/');
-            // Expected path: /admin/berita/{id}/edit -> {id} is 2nd element from the right
-            const idStr = pathSegments[pathSegments.length - 2];
-            const parsedId = parseInt(idStr, 10);
-            setNewsId(parsedId);
-
-            const savedNews = localStorage.getItem('bka_berita');
-            let loadedNews: any[] = [];
-            if (savedNews) {
-                try {
-                    loadedNews = JSON.parse(savedNews);
-                    setNewsList(loadedNews);
-                } catch {
-                    loadedNews = [];
-                }
-            }
-
-            const savedCategories = localStorage.getItem('bka_categories');
-            let loadedCategories = DEFAULT_CATEGORIES;
-            if (savedCategories) {
-                try {
-                    loadedCategories = JSON.parse(savedCategories);
-                } catch {
-                    loadedCategories = DEFAULT_CATEGORIES;
-                }
-            }
-            setCategories(loadedCategories);
-
-            // Find current article details
-            const item = loadedNews.find((n: any) => n.id === parsedId);
-            if (item) {
-                setTitle(item.title || '');
-                setSlug(item.slug || '');
-                setCategory(
-                    item.category || loadedCategories[0] || 'Tanpa Kategori',
-                );
-                setThumbnail(item.thumbnail || '');
-                setContent(item.content || '');
-                setStatus(item.status || 'draf');
-                setDate(item.date || new Date().toISOString().split('T')[0]);
-                setAuthor(item.author || 'Admin BKA');
-            } else {
-                toast.error('Artikel berita tidak ditemukan!');
-                router.visit('/admin/berita');
-            }
-            setIsLoading(false);
-        }
-    }, []);
-
     // Auto-slug generator
     const handleTitleChange = (val: string) => {
-        setTitle(val);
         if (!isSlugEdited) {
             const generated = val
                 .toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '') // remove special characters
                 .replace(/\s+/g, '-') // replace spaces with dashes
                 .replace(/-+/g, '-'); // remove redundant dashes
-            setSlug(generated);
+
+            setData((prevData) => ({
+                ...prevData,
+                judul: val,
+                slug: generated,
+            }));
+        } else {
+            setData('judul', val);
         }
     };
 
@@ -143,83 +108,48 @@ export default function EditBerita() {
             .toLowerCase()
             .replace(/\s+/g, '-')
             .replace(/[^a-z0-9-]/g, '');
-        setSlug(cleaned);
+        setData('slug', cleaned);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         // Validations
-        if (title.trim().length < 10) {
+        if (data.judul.trim().length < 10) {
             toast.error('Judul berita minimal harus 10 karakter!');
             return;
         }
-        if (!slug.trim()) {
+
+        if (!data.slug.trim()) {
             toast.error('Slug URL wajib diisi!');
             return;
         }
-        if (!thumbnail.trim()) {
+
+        if (!data.thumbnail.trim()) {
             toast.error('URL gambar cover/thumbnail wajib diisi!');
             return;
         }
-        if (content.replace(/<[^>]*>/g, '').trim().length < 50) {
+
+        if (data.isi.replace(/<[^>]*>/g, '').trim().length < 50) {
             toast.error('Isi berita minimal harus 50 karakter!');
             return;
         }
 
-        setIsSaving(true);
-
-        try {
-            // Slug uniqueness check (excluding currently edited item)
-            const isSlugTaken = newsList.some(
-                (n: any) => n.slug === slug && n.id !== newsId,
-            );
-            if (isSlugTaken) {
-                toast.error(
-                    'Slug URL sudah digunakan artikel lain! Ubah slug secara manual.',
-                );
-                setIsSaving(false);
-                return;
-            }
-
-            const updatedArticle = {
-                id: newsId,
-                title: title.trim(),
-                slug: slug.trim(),
-                category: category || 'Tanpa Kategori',
-                thumbnail: thumbnail.trim(),
-                content: content.trim(),
-                excerpt: content.replace(/<[^>]*>/g, '').slice(0, 160) + '...',
-                date: date || new Date().toISOString().split('T')[0],
-                author,
-                status,
-            };
-
-            const updatedList = newsList.map((n: any) =>
-                n.id === newsId ? updatedArticle : n,
-            );
-            localStorage.setItem('bka_berita', JSON.stringify(updatedList));
-
-            toast.success(`Berita "${title}" berhasil diperbarui!`);
-            router.visit('/admin/berita');
-        } catch (error) {
-            toast.error('Gagal memperbarui berita.');
-        } finally {
-            setIsSaving(false);
-        }
+        post(`/admin/berita/${berita.id}`, {
+            onSuccess: () => {
+                toast.success(`Berita "${data.judul}" berhasil diperbarui!`);
+            },
+            onError: (errs) => {
+                Object.values(errs).forEach((err) => {
+                    toast.error(err);
+                });
+            },
+        });
     };
-
-    if (isLoading) {
-        return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-emerald-600"></div>
-            </div>
-        );
-    }
 
     return (
         <>
-            <Head title={`Edit Berita - ${title}`} />
+            <Head title={`Edit Berita - ${data.judul}`} />
 
             <div className="mx-auto w-full max-w-3xl space-y-6 p-6 md:space-y-8 md:p-8">
                 {/* Header */}
@@ -236,7 +166,7 @@ export default function EditBerita() {
                         </div>
                         <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-neutral-800">
                             <Newspaper className="size-6 text-emerald-600" />
-                            Edit Berita: {title || 'Detail Artikel'}
+                            Edit Berita: {data.judul || 'Detail Artikel'}
                         </h1>
                         <p className="mt-1 text-sm leading-relaxed font-light text-neutral-500">
                             Sesuaikan isi tulisan, kategori, status terbit, atau
@@ -255,22 +185,27 @@ export default function EditBerita() {
                                     Judul Berita
                                 </label>
                                 <span
-                                    className={`text-xs ${title.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}
+                                    className={`text-xs ${data.judul.length < 10 ? 'text-red-500' : 'text-neutral-400'}`}
                                 >
-                                    {title.length} / 200 karakter (min 10)
+                                    {data.judul.length} / 200 karakter (min 10)
                                 </span>
                             </div>
                             <input
                                 type="text"
                                 maxLength={200}
                                 required
-                                value={title}
+                                value={data.judul}
                                 onChange={(e) =>
                                     handleTitleChange(e.target.value)
                                 }
                                 placeholder="Contoh: Sosialisasi Pengajuan Beasiswa Mahasiswa UMRI 2026"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.judul && (
+                                <p className="text-xs font-semibold text-red-500">
+                                    {errors.judul}
+                                </p>
+                            )}
                         </div>
 
                         {/* Slug URL */}
@@ -285,13 +220,18 @@ export default function EditBerita() {
                             <input
                                 type="text"
                                 required
-                                value={slug}
+                                value={data.slug}
                                 onChange={(e) =>
                                     handleSlugChange(e.target.value)
                                 }
                                 placeholder="contoh: sosialisasi-pengajuan-beasiswa"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.slug && (
+                                <p className="text-xs font-semibold text-red-500">
+                                    {errors.slug}
+                                </p>
+                            )}
                         </div>
 
                         {/* Kategori & Status (Grid) */}
@@ -301,15 +241,15 @@ export default function EditBerita() {
                                     Kategori Artikel
                                 </label>
                                 <select
-                                    value={category}
+                                    value={data.kategori}
                                     onChange={(e) =>
-                                        setCategory(e.target.value)
+                                        setData('kategori', e.target.value)
                                     }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
                                     {categories.map((c) => (
-                                        <option key={c} value={c}>
-                                            {c}
+                                        <option key={c.id} value={c.nama}>
+                                            {c.nama}
                                         </option>
                                     ))}
                                     <option value="Tanpa Kategori">
@@ -323,9 +263,9 @@ export default function EditBerita() {
                                     Status Publikasi
                                 </label>
                                 <select
-                                    value={status}
+                                    value={data.status}
                                     onChange={(e) =>
-                                        setStatus(e.target.value as any)
+                                        setData('status', e.target.value as any)
                                     }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
@@ -349,8 +289,10 @@ export default function EditBerita() {
                             </label>
                             <input
                                 type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
+                                value={data.tanggal_publikasi}
+                                onChange={(e) =>
+                                    setData('tanggal_publikasi', e.target.value)
+                                }
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
                         </div>
@@ -391,23 +333,23 @@ export default function EditBerita() {
                                 <input
                                     type="text"
                                     placeholder="Atau masukkan URL gambar di sini..."
-                                    value={thumbnail}
+                                    value={data.thumbnail}
                                     onChange={(e) =>
-                                        setThumbnail(e.target.value)
+                                        setData('thumbnail', e.target.value)
                                     }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-2.5 font-mono text-xs text-neutral-600 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
                                 />
                             </div>
 
                             {/* Thumbnail preview */}
-                            {thumbnail && (
+                            {data.thumbnail && (
                                 <div className="space-y-1.5 border-t border-neutral-100 pt-2">
                                     <label className="block text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
                                         Preview Gambar Cover
                                     </label>
                                     <div className="group relative flex aspect-video max-w-md items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/50">
                                         <img
-                                            src={thumbnail}
+                                            src={data.thumbnail}
                                             alt="Preview Cover"
                                             className="h-full w-full object-cover"
                                             onError={(e) => {
@@ -425,7 +367,7 @@ export default function EditBerita() {
                         <AssetPickerModal
                             isOpen={isAssetModalOpen}
                             onClose={() => setIsAssetModalOpen(false)}
-                            onSelect={setThumbnail}
+                            onSelect={(url) => setData('thumbnail', url)}
                         />
 
                         <ImageUploadModal
@@ -449,10 +391,15 @@ export default function EditBerita() {
                                 </span>
                             </div>
                             <RichTextEditor
-                                value={content}
-                                onChange={setContent}
+                                value={data.isi}
+                                onChange={(val) => setData('isi', val)}
                                 className="border-neutral-200 focus-within:border-emerald-600 focus-within:ring-emerald-600/20"
                             />
+                            {errors.isi && (
+                                <p className="text-xs font-semibold text-red-500">
+                                    {errors.isi}
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -466,11 +413,11 @@ export default function EditBerita() {
                         </Link>
                         <button
                             type="submit"
-                            disabled={isSaving}
+                            disabled={processing}
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
                         >
                             <Save className="size-4" />
-                            {isSaving ? 'Menyimpan...' : 'Perbarui Berita'}
+                            {processing ? 'Menyimpan...' : 'Perbarui Berita'}
                         </button>
                     </div>
                 </form>

@@ -70,8 +70,10 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
                         return false;
                     }
                 }
+
                 return true;
             }
+
             return path === urlToCompare;
         };
 

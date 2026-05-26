@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react';
 import { X, Search, Image as ImageIcon, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface Asset {
     id: string;
     name: string;
     url: string;
-    type: 'image' | 'file';
     extension: string;
-    size: number;
-    isVisible: boolean;
-    createdAt: string;
 }
 
 interface AssetPickerModalProps {
@@ -25,27 +21,28 @@ export function AssetPickerModal({
 }: AssetPickerModalProps) {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [selectedAssetUrl, setSelectedAssetUrl] = useState<string | null>(
         null,
     );
 
     useEffect(() => {
         if (isOpen) {
-            const saved = localStorage.getItem('bka_assets');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    // only show visible image assets
-                    const images = parsed.filter(
-                        (a: any) => a.type === 'image' && a.isVisible,
-                    );
-                    setAssets(images);
-                } catch {
+            setIsLoading(true);
+            setSelectedAssetUrl(null);
+            fetch('/admin/aset/pilihan')
+                .then((res) => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
+                .then((data) => {
+                    setAssets(data);
+                    setIsLoading(false);
+                })
+                .catch(() => {
                     setAssets([]);
-                }
-            } else {
-                setAssets([]);
-            }
+                    setIsLoading(false);
+                });
         }
     }, [isOpen]);
 
@@ -60,7 +57,9 @@ export function AssetPickerModal({
         }
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) {
+        return null;
+    }
 
     return (
         <div
@@ -98,12 +97,20 @@ export function AssetPickerModal({
                 </div>
 
                 {/* Grid */}
-                <div className="mb-6 min-h-[300px] flex-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">
-                    {filtered.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                <div className="mb-6 flex min-h-[300px] flex-1 flex-col justify-center overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
+                            <div className="mb-3 size-8 animate-spin rounded-full border-t-2 border-b-2 border-emerald-600" />
+                            <p className="text-sm font-semibold">
+                                Memuat aset gambar...
+                            </p>
+                        </div>
+                    ) : filtered.length > 0 ? (
+                        <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                             {filtered.map((asset) => {
                                 const isSelected =
                                     selectedAssetUrl === asset.url;
+
                                 return (
                                     <div
                                         key={asset.id}

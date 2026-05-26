@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import {
     Compass,
     Target,
@@ -11,6 +10,7 @@ import {
     ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface MisiItem {
     id: number;
@@ -49,102 +49,99 @@ const DEFAULT_MISI: MisiItem[] = [
     },
 ];
 
-export default function EditVisiMisi() {
-    const [visi, setVisi] = useState('');
-    const [misiList, setMisiList] = useState<MisiItem[]>([]);
-    const [isSaving, setIsSaving] = useState(false);
+interface Props {
+    visi: string | null;
+    misiList: MisiItem[];
+}
 
-    // Load initial data
-    useEffect(() => {
-        const savedData = localStorage.getItem('bka_visi_misi');
-        if (savedData) {
-            try {
-                const parsed = JSON.parse(savedData);
-                setVisi(parsed.visi || DEFAULT_VISI);
-                setMisiList(parsed.misiItems || DEFAULT_MISI);
-            } catch (e) {
-                setVisi(DEFAULT_VISI);
-                setMisiList(DEFAULT_MISI);
-            }
-        } else {
-            setVisi(DEFAULT_VISI);
-            setMisiList(DEFAULT_MISI);
-        }
-    }, []);
+export default function EditVisiMisi({ visi, misiList }: Props) {
+    const { data, setData, put, processing } = useForm({
+        visi: visi || DEFAULT_VISI,
+        misiItems: misiList && misiList.length > 0 ? misiList : DEFAULT_MISI,
+    });
 
     // Handle add mission
     const handleAddMisi = () => {
-        if (misiList.length >= 10) {
+        if (data.misiItems.length >= 10) {
             toast.warning('Maksimum 10 poin misi diperbolehkan!');
             return;
         }
-        const nextId =
-            misiList.length > 0
-                ? Math.max(...misiList.map((m) => m.id)) + 1
-                : 1;
+
+        const maxId = data.misiItems.reduce(
+            (max, m) => (m.id > max ? m.id : max),
+            0,
+        );
         const newMisi: MisiItem = {
-            id: nextId,
+            id: maxId + 1,
             isi: '',
-            urutan: misiList.length + 1,
+            urutan: data.misiItems.length + 1,
         };
-        setMisiList([...misiList, newMisi]);
+        setData('misiItems', [...data.misiItems, newMisi]);
     };
 
     // Handle remove mission
     const handleRemoveMisi = (id: number) => {
-        if (misiList.length <= 1) {
+        if (data.misiItems.length <= 1) {
             toast.warning('Minimal harus terdapat 1 poin misi!');
             return;
         }
-        const updated = misiList
+
+        const updated = data.misiItems
             .filter((m) => m.id !== id)
             .map((m, idx) => ({
                 ...m,
                 urutan: idx + 1,
             }));
-        setMisiList(updated);
+        setData('misiItems', updated);
     };
 
     // Handle change text mission
     const handleChangeMisi = (id: number, text: string) => {
-        const updated = misiList.map((m) =>
+        const updated = data.misiItems.map((m) =>
             m.id === id ? { ...m, isi: text } : m,
         );
-        setMisiList(updated);
+        setData('misiItems', updated);
     };
 
     // Reorder actions
     const handleMoveUp = (index: number) => {
-        if (index === 0) return;
-        const items = [...misiList];
+        if (index === 0) {
+            return;
+        }
+
+        const items = [...data.misiItems];
         const temp = items[index];
         items[index] = items[index - 1];
         items[index - 1] = temp;
 
         const updated = items.map((m, idx) => ({ ...m, urutan: idx + 1 }));
-        setMisiList(updated);
+        setData('misiItems', updated);
     };
 
     const handleMoveDown = (index: number) => {
-        if (index === misiList.length - 1) return;
-        const items = [...misiList];
+        if (index === data.misiItems.length - 1) {
+            return;
+        }
+
+        const items = [...data.misiItems];
         const temp = items[index];
         items[index] = items[index + 1];
         items[index + 1] = temp;
 
         const updated = items.map((m, idx) => ({ ...m, urutan: idx + 1 }));
-        setMisiList(updated);
+        setData('misiItems', updated);
     };
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
 
         // Basic validation
-        if (!visi.trim()) {
+        if (!data.visi.trim()) {
             toast.error('Visi organisasi tidak boleh kosong!');
             return;
         }
-        const hasEmptyMisi = misiList.some((m) => !m.isi.trim());
+
+        const hasEmptyMisi = data.misiItems.some((m) => !m.isi.trim());
         if (hasEmptyMisi) {
             toast.error(
                 'Terdapat poin misi yang masih kosong! Harap isi atau hapus poin tersebut.',
@@ -152,19 +149,14 @@ export default function EditVisiMisi() {
             return;
         }
 
-        setIsSaving(true);
-        try {
-            const dataToSave = {
-                visi: visi.trim(),
-                misiItems: misiList,
-            };
-            localStorage.setItem('bka_visi_misi', JSON.stringify(dataToSave));
-            toast.success('Visi & Misi BKA berhasil disimpan secara lokal!');
-        } catch (error) {
-            toast.error('Gagal menyimpan data.');
-        } finally {
-            setIsSaving(false);
-        }
+        put('/admin/profil/visi-misi', {
+            onSuccess: () => {
+                toast.success('Visi & Misi BKA berhasil diperbarui!');
+            },
+            onError: () => {
+                toast.error('Gagal menyimpan data.');
+            },
+        });
     };
 
     return (
@@ -249,11 +241,13 @@ export default function EditVisiMisi() {
                         <div className="border-t border-neutral-200 pt-4">
                             <button
                                 type="submit"
-                                disabled={isSaving}
+                                disabled={processing}
                                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
                             >
                                 <Save className="size-4.5" />
-                                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                {processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan Perubahan'}
                             </button>
                         </div>
                     </div>
@@ -275,18 +269,15 @@ export default function EditVisiMisi() {
                                         Teks Visi Utama
                                     </label>
                                     <span
-                                        className={`text-xs ${visi.length > 450 ? 'font-semibold text-red-500' : 'text-neutral-400'}`}
+                                        className={`text-xs ${data.visi.length > 1800 ? 'font-semibold text-red-500' : 'text-neutral-400'}`}
                                     >
-                                        {visi.length} / 500 karakter
+                                        {data.visi.length} / 2000 karakter
                                     </span>
                                 </div>
-                                <textarea
-                                    maxLength={500}
-                                    rows={4}
-                                    value={visi}
-                                    onChange={(e) => setVisi(e.target.value)}
-                                    placeholder="Masukkan visi resmi BKA..."
-                                    className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm leading-relaxed text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                <RichTextEditor
+                                    value={data.visi}
+                                    onChange={(val) => setData('visi', val)}
+                                    className="border-neutral-200 focus-within:border-emerald-600 focus-within:ring-emerald-600/20"
                                 />
                             </div>
                         </div>
@@ -297,7 +288,8 @@ export default function EditVisiMisi() {
                                 <div className="flex items-center gap-2">
                                     <Target className="size-5 text-emerald-600" />
                                     <h3 className="text-base font-bold tracking-tight text-neutral-800">
-                                        Daftar Poin Misi BKA ({misiList.length})
+                                        Daftar Poin Misi BKA (
+                                        {data.misiItems.length})
                                     </h3>
                                 </div>
                                 <button
@@ -311,7 +303,7 @@ export default function EditVisiMisi() {
                             </div>
 
                             <div className="space-y-3">
-                                {misiList
+                                {data.misiItems
                                     .sort((a, b) => a.urutan - b.urutan)
                                     .map((misi, index) => (
                                         <div
@@ -357,7 +349,8 @@ export default function EditVisiMisi() {
                                                     type="button"
                                                     disabled={
                                                         index ===
-                                                        misiList.length - 1
+                                                        data.misiItems.length -
+                                                            1
                                                     }
                                                     onClick={() =>
                                                         handleMoveDown(index)
@@ -384,7 +377,7 @@ export default function EditVisiMisi() {
                                         </div>
                                     ))}
 
-                                {misiList.length === 0 && (
+                                {data.misiItems.length === 0 && (
                                     <div className="rounded-xl border border-dashed border-neutral-200 py-8 text-center">
                                         <Target className="mx-auto mb-2 size-8 animate-pulse text-neutral-300" />
                                         <p className="text-sm font-semibold text-neutral-600">

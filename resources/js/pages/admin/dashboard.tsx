@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Head, usePage, Link } from '@inertiajs/react';
 import {
     FileText,
@@ -22,72 +21,65 @@ import {
     Trash2,
     Edit2,
     Settings,
+    Users,
+    Calendar,
+    TrendingUp,
 } from 'lucide-react';
-import type { Auth } from '@/types';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 import { formatRelativeDate } from '@/lib/format-date';
+import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
-const dummyActivities = [
-    {
-        id: 1,
-        time: '5 menit yang lalu',
-        user: 'Farhan',
-        role: 'Super Admin',
-        action: 'Menerbitkan berita baru',
-        target: 'BKA UMRI Luncurkan Portal Informasi Baru Terintegrasi',
-        type: 'create',
-    },
-    {
-        id: 2,
-        time: '20 menit yang lalu',
-        user: 'Andi Pratama',
-        role: 'Admin',
-        action: 'Mengubah status pengumuman',
-        target: 'Jadwal Pengisian KRS Semester Genap 2025/2026',
-        type: 'update',
-    },
-    {
-        id: 3,
-        time: '1 jam yang lalu',
-        user: 'Farhan',
-        role: 'Super Admin',
-        action: 'Mengubah pengaturan sistem',
-        target: 'Pemberlakuan SSL & Favicon Baru',
-        type: 'system',
-    },
-    {
-        id: 4,
-        time: '3 jam yang lalu',
-        user: 'Farhan',
-        role: 'Super Admin',
-        action: 'Membuat akun pengguna',
-        target: 'Lusi Lestari (Admin Bidang Keuangan)',
-        type: 'user',
-    },
-    {
-        id: 5,
-        time: '1 hari yang lalu',
-        user: 'Andi Pratama',
-        role: 'Admin',
-        action: 'Menghapus berkas lampiran kedaluwarsa',
-        target: 'Panduan Penggunaan Portal Versi 1.0 (PDF)',
-        type: 'delete',
-    },
-];
+interface DashboardProps {
+    stats: {
+        berita: number;
+        pengumuman: number;
+        lampiran: number;
+        pesan: number;
+    };
+    activities: Array<{
+        id: number;
+        time: string;
+        user: string;
+        role: string;
+        action: string;
+        target: string;
+        type: 'create' | 'update' | 'delete' | 'system' | 'user';
+    }>;
+    analytics: {
+        today: number;
+        yesterday: number;
+        week: number;
+        month: number;
+        change_percentage: number;
+        chart_data: Array<{
+            tanggal: string;
+            label: string;
+            hari: string;
+            hari_lengkap: string;
+            kunjungan: number;
+        }>;
+    };
+}
 
-export default function AdminDashboard() {
+export default function AdminDashboard({
+    stats = { berita: 0, pengumuman: 0, lampiran: 0, pesan: 0 },
+    activities = [],
+    analytics = {
+        today: 0,
+        yesterday: 0,
+        week: 0,
+        month: 0,
+        change_percentage: 0,
+        chart_data: [],
+    },
+}: DashboardProps) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const user = auth.user;
     const isSuperAdmin = user?.roles?.includes('super_admin');
 
     const [time, setTime] = useState(new Date());
-    const [stats, setStats] = useState({
-        berita: 12,
-        pengumuman: 8,
-        pesan: 4,
-        lampiran: 15,
-    });
-    const [activities, setActivities] = useState<any[]>([]);
+    const [hoveredBar, setHoveredBar] = useState<number | null>(null);
 
     const [weather, setWeather] = useState<{
         temp: number;
@@ -103,12 +95,13 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
+
         return () => clearInterval(timer);
     }, []);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            // Set current user details in localStorage
+            // Set current user details in localStorage for client utility
             if (user) {
                 localStorage.setItem(
                     'bka_current_user',
@@ -119,113 +112,6 @@ export default function AdminDashboard() {
                     }),
                 );
             }
-
-            // Hydrate statistics
-            const savedBerita = localStorage.getItem('bka_berita');
-            const countBerita = savedBerita
-                ? JSON.parse(savedBerita).length
-                : 12;
-
-            const savedPengumuman = localStorage.getItem('bka_pengumuman');
-            const countPengumuman = savedPengumuman
-                ? JSON.parse(savedPengumuman).length
-                : 8;
-
-            const savedPesan = localStorage.getItem('bka_pesan');
-            const parsedPesan = savedPesan ? JSON.parse(savedPesan) : [];
-            const countPesan =
-                parsedPesan.length > 0
-                    ? parsedPesan.filter((p: any) => !p.dibaca).length
-                    : 4;
-
-            const savedLampiran = localStorage.getItem('bka_berkas_lampiran');
-            const countLampiran = savedLampiran
-                ? JSON.parse(savedLampiran).length
-                : 15;
-
-            setStats({
-                berita: countBerita,
-                pengumuman: countPengumuman,
-                pesan: countPesan,
-                lampiran: countLampiran,
-            });
-
-            // Hydrate activity logs
-            const savedLogs = localStorage.getItem('bka_activity_logs');
-            let logsList = [];
-            if (savedLogs) {
-                try {
-                    logsList = JSON.parse(savedLogs);
-                } catch {
-                    logsList = [];
-                }
-            }
-
-            if (logsList.length === 0) {
-                const seededLogs = [
-                    {
-                        id: 1,
-                        time: new Date(
-                            Date.now() - 5 * 60 * 1000,
-                        ).toISOString(),
-                        user: 'Super Admin',
-                        role: 'Super Admin',
-                        action: 'Menerbitkan berita baru',
-                        target: 'BKA UMRI Luncurkan Portal Informasi Baru Terintegrasi',
-                        type: 'create',
-                    },
-                    {
-                        id: 2,
-                        time: new Date(
-                            Date.now() - 20 * 60 * 1000,
-                        ).toISOString(),
-                        user: 'Admin BKA',
-                        role: 'Admin',
-                        action: 'Mengubah status pengumuman',
-                        target: 'Jadwal Pengisian KRS Semester Genap 2025/2026',
-                        type: 'update',
-                    },
-                    {
-                        id: 3,
-                        time: new Date(
-                            Date.now() - 60 * 60 * 1000,
-                        ).toISOString(),
-                        user: 'Super Admin',
-                        role: 'Super Admin',
-                        action: 'Mengubah pengaturan sistem',
-                        target: 'Pemberlakuan SSL & Favicon Baru',
-                        type: 'system',
-                    },
-                    {
-                        id: 4,
-                        time: new Date(
-                            Date.now() - 3 * 60 * 60 * 1000,
-                        ).toISOString(),
-                        user: 'Super Admin',
-                        role: 'Super Admin',
-                        action: 'Membuat akun pengguna',
-                        target: 'Lusi Lestari (Admin Bidang Keuangan)',
-                        type: 'user',
-                    },
-                    {
-                        id: 5,
-                        time: new Date(
-                            Date.now() - 24 * 60 * 60 * 1000,
-                        ).toISOString(),
-                        user: 'Admin BKA',
-                        role: 'Admin',
-                        action: 'Menghapus berkas lampiran kedaluwarsa',
-                        target: 'Panduan Penggunaan Portal Versi 1.0 (PDF)',
-                        type: 'delete',
-                    },
-                ];
-                localStorage.setItem(
-                    'bka_activity_logs',
-                    JSON.stringify(seededLogs),
-                );
-                logsList = seededLogs;
-            }
-            setActivities(logsList);
         }
     }, [user, isSuperAdmin]);
 
@@ -241,10 +127,15 @@ export default function AdminDashboard() {
                     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,is_day,weather_code`,
                 );
 
-                if (!res.ok) throw new Error('Failed to fetch');
+                if (!res.ok) {
+                    throw new Error('Failed to fetch');
+                }
+
                 const data = await res.json();
 
-                if (!data?.current) throw new Error('Invalid data');
+                if (!data?.current) {
+                    throw new Error('Invalid data');
+                }
 
                 const temp = Math.round(data.current.temperature_2m);
                 const isDay = data.current.is_day === 1;
@@ -252,14 +143,24 @@ export default function AdminDashboard() {
 
                 // Map WMO codes to Indonesian text
                 let text = 'Cerah Berawan';
-                if (code === 0) text = 'Cerah';
-                else if (code === 1 || code === 2) text = 'Cerah Berawan';
-                else if (code === 3) text = 'Berawan';
-                else if (code >= 45 && code <= 48) text = 'Berkabut';
-                else if (code >= 51 && code <= 55) text = 'Gerimis';
-                else if (code >= 61 && code <= 65) text = 'Hujan';
-                else if (code >= 80 && code <= 82) text = 'Hujan Deras';
-                else if (code >= 95 && code <= 99) text = 'Hujan Petir';
+
+                if (code === 0) {
+                    text = 'Cerah';
+                } else if (code === 1 || code === 2) {
+                    text = 'Cerah Berawan';
+                } else if (code === 3) {
+                    text = 'Berawan';
+                } else if (code >= 45 && code <= 48) {
+                    text = 'Berkabut';
+                } else if (code >= 51 && code <= 55) {
+                    text = 'Gerimis';
+                } else if (code >= 61 && code <= 65) {
+                    text = 'Hujan';
+                } else if (code >= 80 && code <= 82) {
+                    text = 'Hujan Deras';
+                } else if (code >= 95 && code <= 99) {
+                    text = 'Hujan Petir';
+                }
 
                 if (isMounted) {
                     setWeather({
@@ -313,18 +214,23 @@ export default function AdminDashboard() {
         if (text === 'Cerah') {
             return isNight ? MoonStar : Sun;
         }
+
         if (text === 'Cerah Berawan' || text === 'Berawan') {
             return isNight ? MoonStar : CloudSun;
         }
+
         if (text === 'Gerimis') {
             return CloudDrizzle;
         }
+
         if (text === 'Hujan' || text === 'Hujan Deras') {
             return CloudRain;
         }
+
         if (text === 'Hujan Petir') {
             return CloudLightning;
         }
+
         return Cloud;
     };
 
@@ -429,12 +335,12 @@ export default function AdminDashboard() {
                         </div>
                         <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 text-sm text-neutral-500">
                             <span>Total artikel terbit</span>
-                            <a
+                            <Link
                                 href="/admin/berita"
                                 className="font-semibold text-emerald-600 hover:text-emerald-700"
                             >
                                 Lihat Semua
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -455,12 +361,12 @@ export default function AdminDashboard() {
                         </div>
                         <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 text-sm text-neutral-500">
                             <span>Informasi penting</span>
-                            <a
+                            <Link
                                 href="/admin/pengumuman"
                                 className="font-semibold text-amber-600 hover:text-amber-700"
                             >
                                 Lihat Semua
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -481,12 +387,12 @@ export default function AdminDashboard() {
                         </div>
                         <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 text-sm text-neutral-500">
                             <span>Belum dibaca</span>
-                            <a
+                            <Link
                                 href="/admin/settings"
                                 className="font-semibold text-teal-600 hover:text-teal-700"
                             >
                                 Lihat Semua
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -507,12 +413,233 @@ export default function AdminDashboard() {
                         </div>
                         <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 text-sm text-neutral-500">
                             <span>Unduhan dokumen</span>
-                            <a
+                            <Link
                                 href="/admin/dokumen"
                                 className="font-semibold text-emerald-600 hover:text-emerald-700"
                             >
                                 Lihat Semua
-                            </a>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Analitik Pengunjung Website (Publik) */}
+                <div className="space-y-4">
+                    <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-neutral-800">
+                        <TrendingUp className="size-5 text-emerald-600" />
+                        Analitik Pengunjung Website (Publik)
+                    </h2>
+
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        {/* Bar Chart Container */}
+                        <div className="flex flex-col justify-between rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)] lg:col-span-2">
+                            <div>
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h3 className="text-sm font-bold text-neutral-700">
+                                        Grafik Kunjungan Unik (7 Hari Terakhir)
+                                    </h3>
+                                    <span className="text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
+                                        Non-Spam / Guest Only
+                                    </span>
+                                </div>
+
+                                {/* Custom HTML/CSS Bar Chart with SVGs */}
+                                <div className="relative mt-8 flex h-64 flex-col justify-end">
+                                    {/* Y-Axis Grid Lines */}
+                                    <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
+                                        {[...Array(5)].map((_, i) => {
+                                            const maxVal = Math.max(
+                                                ...(
+                                                    analytics?.chart_data || []
+                                                ).map((d) => d.kunjungan),
+                                                10,
+                                            );
+                                            const val = Math.round(
+                                                maxVal - (maxVal / 4) * i,
+                                            );
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className="flex h-0 w-full items-center justify-between border-b border-neutral-100/70"
+                                                >
+                                                    <span className="bg-white pr-2 text-[10px] font-bold text-neutral-400/80 select-none">
+                                                        {val}
+                                                    </span>
+                                                    <div className="flex-1 border-t border-dashed border-neutral-100" />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Bars Container */}
+                                    <div className="relative z-10 flex h-48 items-end justify-between px-2">
+                                        {(analytics?.chart_data || []).map(
+                                            (item, index) => {
+                                                const maxVal = Math.max(
+                                                    ...(
+                                                        analytics?.chart_data ||
+                                                        []
+                                                    ).map((d) => d.kunjungan),
+                                                    10,
+                                                );
+                                                const heightPercent =
+                                                    (item.kunjungan / maxVal) *
+                                                    100;
+                                                const isHovered =
+                                                    hoveredBar === index;
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="group relative mx-1 flex flex-1 flex-col items-center"
+                                                        onMouseEnter={() =>
+                                                            setHoveredBar(index)
+                                                        }
+                                                        onMouseLeave={() =>
+                                                            setHoveredBar(null)
+                                                        }
+                                                    >
+                                                        {/* Tooltip */}
+                                                        <div
+                                                            className={cn(
+                                                                'pointer-events-none absolute bottom-full z-30 mb-2 flex flex-col items-center transition-all duration-200',
+                                                                isHovered
+                                                                    ? 'translate-y-0 scale-100 opacity-100'
+                                                                    : 'translate-y-1 scale-95 opacity-0',
+                                                            )}
+                                                        >
+                                                            <div className="rounded-lg bg-neutral-800 px-2.5 py-1.5 text-center text-[10px] font-bold whitespace-nowrap text-white shadow-lg">
+                                                                <p className="font-semibold text-emerald-300">
+                                                                    {
+                                                                        item.kunjungan
+                                                                    }{' '}
+                                                                    Kunjungan
+                                                                </p>
+                                                                <p className="text-[8px] font-light text-neutral-300">
+                                                                    {
+                                                                        item.hari_lengkap
+                                                                    }
+                                                                    ,{' '}
+                                                                    {item.label}
+                                                                </p>
+                                                            </div>
+                                                            <div className="-mt-1 h-2 w-2 rotate-45 bg-neutral-800" />
+                                                        </div>
+
+                                                        {/* Actual Bar */}
+                                                        <div
+                                                            className="relative w-full cursor-pointer rounded-t-lg bg-[linear-gradient(to_top,#1B5E20,#4CAF50)] shadow-2xs transition-all duration-300 group-hover:shadow-md sm:w-10"
+                                                            style={{
+                                                                height: `${Math.max(heightPercent, 3)}%`,
+                                                            }}
+                                                        >
+                                                            <div className="absolute inset-0 rounded-t-lg bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            },
+                                        )}
+                                    </div>
+
+                                    {/* X-Axis Labels */}
+                                    <div className="mt-3 flex justify-between border-t border-neutral-100 px-2 pt-2">
+                                        {(analytics?.chart_data || []).map(
+                                            (item, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex flex-1 flex-col items-center text-center select-none"
+                                                >
+                                                    <span className="text-[10px] font-extrabold text-neutral-700 uppercase">
+                                                        {item.hari}
+                                                    </span>
+                                                    <span className="mt-0.5 text-[8px] font-semibold text-neutral-400">
+                                                        {item.label}
+                                                    </span>
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Metric Cards (Side column) */}
+                        <div className="flex flex-col justify-between gap-4">
+                            {/* Today's visits */}
+                            <div className="flex flex-1 items-center justify-between rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all hover:shadow-sm">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-extrabold tracking-wider text-neutral-400 uppercase">
+                                        Kunjungan Hari Ini
+                                    </p>
+                                    <div className="flex items-baseline gap-2">
+                                        <p className="text-3xl font-extrabold tracking-tight text-neutral-800">
+                                            {analytics?.today || 0}
+                                        </p>
+                                        <span
+                                            className={cn(
+                                                'inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[9px] font-bold',
+                                                (analytics?.change_percentage ||
+                                                    0) >= 0
+                                                    ? 'bg-emerald-50 text-emerald-700'
+                                                    : 'bg-red-50 text-red-700',
+                                            )}
+                                        >
+                                            {(analytics?.change_percentage ||
+                                                0) >= 0
+                                                ? '+'
+                                                : ''}
+                                            {analytics?.change_percentage || 0}%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                                    <Users className="size-5" />
+                                </div>
+                            </div>
+
+                            {/* Yesterday's visits */}
+                            <div className="flex flex-1 items-center justify-between rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all hover:shadow-sm">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-extrabold tracking-wider text-neutral-400 uppercase">
+                                        Kunjungan Kemarin
+                                    </p>
+                                    <p className="text-3xl font-extrabold tracking-tight text-neutral-800">
+                                        {analytics?.yesterday || 0}
+                                    </p>
+                                </div>
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                                    <Calendar className="size-5" />
+                                </div>
+                            </div>
+
+                            {/* This week's visits */}
+                            <div className="flex flex-1 items-center justify-between rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all hover:shadow-sm">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-extrabold tracking-wider text-neutral-400 uppercase">
+                                        Minggu Ini
+                                    </p>
+                                    <p className="text-3xl font-extrabold tracking-tight text-neutral-800">
+                                        {analytics?.week || 0}
+                                    </p>
+                                </div>
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                                    <TrendingUp className="size-5" />
+                                </div>
+                            </div>
+
+                            {/* This month's visits */}
+                            <div className="flex flex-1 items-center justify-between rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all hover:shadow-sm">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-extrabold tracking-wider text-neutral-400 uppercase">
+                                        Bulan Ini
+                                    </p>
+                                    <p className="text-3xl font-extrabold tracking-tight text-neutral-800">
+                                        {analytics?.month || 0}
+                                    </p>
+                                </div>
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                                    <Activity className="size-5" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -576,6 +703,7 @@ export default function AdminDashboard() {
                                         const { icon: Icon, bg } = getIconInfo(
                                             activity.type,
                                         );
+
                                         return (
                                             <li key={activity.id}>
                                                 <div className="relative pb-8">
@@ -658,7 +786,7 @@ export default function AdminDashboard() {
                                 Tindakan Cepat
                             </h2>
                             <div className="grid grid-cols-1 gap-2.5">
-                                <a
+                                <Link
                                     href="/admin/beranda"
                                     className="group flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 transition-all duration-200 hover:border-emerald-100 hover:bg-emerald-50/40 hover:text-emerald-900"
                                 >
@@ -671,9 +799,9 @@ export default function AdminDashboard() {
                                         </span>
                                     </div>
                                     <ArrowRight className="size-3.5 text-neutral-400 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-600" />
-                                </a>
+                                </Link>
 
-                                <a
+                                <Link
                                     href="/admin/berita"
                                     className="group flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 transition-all duration-200 hover:border-emerald-100 hover:bg-emerald-50/40 hover:text-emerald-900"
                                 >
@@ -686,9 +814,9 @@ export default function AdminDashboard() {
                                         </span>
                                     </div>
                                     <ArrowRight className="size-3.5 text-neutral-400 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-600" />
-                                </a>
+                                </Link>
 
-                                <a
+                                <Link
                                     href="/admin/pengumuman"
                                     className="group flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 transition-all duration-200 hover:border-emerald-100 hover:bg-emerald-50/40 hover:text-emerald-900"
                                 >
@@ -701,7 +829,7 @@ export default function AdminDashboard() {
                                         </span>
                                     </div>
                                     <ArrowRight className="size-3.5 text-neutral-400 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-600" />
-                                </a>
+                                </Link>
                             </div>
                         </div>
 

@@ -3,6 +3,7 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
+import ImageExtension from "@tiptap/extension-image"
 import { cn } from "@/lib/utils"
 import {
   BoldIcon,
@@ -14,7 +15,12 @@ import {
   QuoteIcon,
   Heading2Icon,
   Heading3Icon,
+  ImageIcon,
+  FolderIcon,
 } from "lucide-react"
+import { ImageUploadModal } from "@/components/admin/image-upload-modal"
+import { AssetPickerModal } from "@/components/admin/asset-picker-modal"
+import { toast } from "sonner"
 
 export interface RichTextEditorProps {
   value: string
@@ -24,6 +30,24 @@ export interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ value, onChange, error, className }: RichTextEditorProps) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [isAssetPickerOpen, setIsAssetPickerOpen] = React.useState(false)
+
+  const handleTriggerImageUpload = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      setIsModalOpen(true)
+    }
+    e.target.value = "" // Reset
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -36,6 +60,11 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
         openOnClick: false,
         HTMLAttributes: {
           class: "text-primary underline",
+        },
+      }),
+      ImageExtension.configure({
+        HTMLAttributes: {
+          class: "max-w-full rounded-xl my-4",
         },
       }),
     ],
@@ -146,9 +175,75 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
         >
           <LinkIcon className="size-4" />
         </button>
+        <button
+          type="button"
+          onClick={handleTriggerImageUpload}
+          className="flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors"
+          title="Unggah Gambar"
+        >
+          <ImageIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsAssetPickerOpen(true)}
+          className="flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors"
+          title="Sisipkan dari Aset Media"
+        >
+          <FolderIcon className="size-4" />
+        </button>
       </div>
       <EditorContent editor={editor} className="bg-transparent" />
       {error && <p className="p-3 pt-0 text-xs font-medium text-destructive">{error}</p>}
+
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
+      <ImageUploadModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedFile(null)
+        }}
+        file={selectedFile}
+        onConfirm={async (result) => {
+          try {
+            const response = await fetch('/admin/editor-upload', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+              },
+              body: JSON.stringify({
+                image: result.base64,
+                name: result.name,
+              }),
+            });
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            editor.chain().focus().setImage({ src: data.url, alt: result.name }).run();
+            toast.success('Gambar berhasil diunggah & disisipkan!');
+          } catch (e) {
+            toast.error('Gagal mengunggah gambar ke server.');
+          } finally {
+            setIsModalOpen(false)
+            setSelectedFile(null)
+          }
+        }}
+      />
+
+      <AssetPickerModal
+        isOpen={isAssetPickerOpen}
+        onClose={() => setIsAssetPickerOpen(false)}
+        onSelect={(url) => {
+          editor.chain().focus().setImage({ src: url }).run()
+          setIsAssetPickerOpen(false)
+        }}
+      />
     </div>
   )
 }

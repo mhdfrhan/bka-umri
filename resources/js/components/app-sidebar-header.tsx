@@ -1,15 +1,15 @@
-import { Breadcrumbs } from '@/components/breadcrumbs';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { usePage } from '@inertiajs/react';
+import { ChevronsUpDown, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
-import { ChevronsUpDown, ShieldAlert, ShieldCheck } from 'lucide-react';
+import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import type { Auth } from '@/types';
 
 export function AppSidebarHeader({

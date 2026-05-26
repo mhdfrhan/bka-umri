@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Search, Newspaper } from 'lucide-react';
+import { useState } from 'react';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { PageHero } from '@/components/layout/page-hero';
 import NewsCard from '@/components/ui/news-card';
 import { Pagination } from '@/components/ui/pagination';
 import {
@@ -17,171 +19,67 @@ interface NewsItem {
     excerpt: string;
     date: string;
     author?: string;
-    status?: string;
 }
 
-// ─── Dummy Data fallback ───
-const dummyNews: NewsItem[] = [
-    {
-        slug: 'bka-luncurkan-sistem-keuangan-baru-2026',
-        thumbnail:
-            'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
-        category: 'Layanan',
-        title: 'BKA UMRI Luncurkan Portal Keuangan Terintegrasi untuk Mahasiswa',
-        excerpt:
-            'Mulai semester ganjil ini, seluruh layanan administrasi keuangan dan pembayaran kuliah diintegrasikan dalam satu sistem online untuk mempermudah civitas akademika.',
-        date: '20 Mei 2026',
-        author: 'Admin BKA',
-    },
-    {
-        slug: 'workshop-pengelolaan-aset-muhammadiyah',
-        thumbnail:
-            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
-        category: 'Kegiatan',
-        title: 'Workshop Sinergi & Optimalisasi Aset Kampus bersama Wilayah Muhammadiyah',
-        excerpt:
-            'Biro Keuangan dan Aset UMRI menggelar workshop intensif membahas standarisasi pencatatan dan optimalisasi sarana fisik guna mencapai predikat kampus unggul.',
-        date: '15 Mei 2026',
-        author: 'Humas UMRI',
-    },
-    {
-        slug: 'sosialisasi-pembayaran-mitra-perbankan',
-        thumbnail:
-            'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&q=80',
-        category: 'Mitra',
-        title: 'Perluas Akses, UMRI Jalin Kerja Kerja Sama dengan 4 Bank Rekanan Baru',
-        excerpt:
-            'Kini mahasiswa dapat melakukan pembayaran SPP dan uang pembangunan melalui jaringan ATM, M-Banking, maupun teller di empat bank mitra resmi nasional.',
-        date: '10 Mei 2026',
-        author: 'Bagian Keuangan',
-    },
-    {
-        slug: 'audit-keuangan-tahunan-berjalan-lancar',
-        thumbnail:
-            'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&q=80',
-        category: 'Prestasi',
-        title: 'Audit Keuangan Tahunan Berjalan Lancar, BKA Pertahankan Kinerja Positif',
-        excerpt:
-            'Tim audit independen menyelesaikan pemeriksaan keuangan tahunan dan menyatakan BKA UMRI berhasil mempertahankan transparansi serta akuntabilitas.',
-        date: '05 Mei 2026',
-        author: 'Tim BKA',
-    },
-    {
-        slug: 'pembaruan-sop-pengadaan-barang',
-        thumbnail:
-            'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&q=80',
-        category: 'Aturan',
-        title: 'Pembaruan SOP Pengadaan Barang dan Jasa di Lingkungan UMRI',
-        excerpt:
-            'Untuk mempercepat proses pengadaan, BKA merilis SOP terbaru yang memangkas birokrasi tanpa mengurangi pengawasan.',
-        date: '28 April 2026',
-        author: 'Bagian Aset',
-    },
-    {
-        slug: 'pelatihan-software-akuntansi-staf',
-        thumbnail:
-            'https://images.unsplash.com/photo-1531496730074-83b638c0a7ac?w=600&q=80',
-        category: 'Kegiatan',
-        title: 'Pelatihan Software Akuntansi Baru bagi Seluruh Staf Keuangan',
-        excerpt:
-            'Guna meningkatkan efisiensi kerja, BKA menyelenggarakan pelatihan intensif penggunaan software ERP keuangan terbaru.',
-        date: '20 April 2026',
-        author: 'Divisi SDM',
-    },
-];
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
 
-const dummyCategories = [
-    'Semua',
-    'Kegiatan',
-    'Layanan',
-    'Mitra',
-    'Prestasi',
-    'Aturan',
-];
+interface PaginatedBeritas {
+    data: NewsItem[];
+    links: PaginationLink[];
+    current_page: number;
+    last_page: number;
+    total: number;
+}
 
-export default function BeritaIndex() {
-    const [news, setNews] = useState<NewsItem[]>(dummyNews);
-    const [categories, setCategories] = useState<string[]>(dummyCategories);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategory, setActiveCategory] = useState('Semua');
+interface BeritaIndexProps {
+    beritas: PaginatedBeritas;
+    categories: string[];
+    filters: {
+        search: string;
+        kategori: string;
+    };
+}
+
+export default function BeritaIndex({
+    beritas,
+    categories = [],
+    filters,
+}: BeritaIndexProps) {
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+    const [activeCategory, setActiveCategory] = useState(
+        filters.kategori || 'Semua',
+    );
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const filterRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
-    // Parse dynamic page from url params
-    const pageParam =
-        typeof window !== 'undefined'
-            ? new URLSearchParams(window.location.search).get('page')
-            : '1';
-    const currentPage = parseInt(pageParam || '1', 10);
-    const itemsPerPage = 9;
-
-    // Load data from localStorage on mount
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const savedNews = localStorage.getItem('bka_berita');
-            if (savedNews) {
-                try {
-                    const parsed = JSON.parse(savedNews);
-                    // Filter: only show published articles (status === 'terpublikasi')
-                    const published = parsed.filter(
-                        (n: any) => n.status === 'terpublikasi',
-                    );
-                    setNews(published);
-                } catch {
-                    setNews(dummyNews);
-                }
-            }
-
-            const savedCats = localStorage.getItem('bka_categories');
-            if (savedCats) {
-                try {
-                    setCategories(['Semua', ...JSON.parse(savedCats)]);
-                } catch {
-                    setCategories(dummyCategories);
-                }
-            }
-        }
-    }, []);
-
-    // Filter Logic
-    const filteredNews = (news || []).filter((item) => {
-        if (!item) return false;
-        const titleText = item.title || '';
-        const excerptText = item.excerpt || '';
-        const matchesSearch =
-            titleText.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            excerptText.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory =
-            activeCategory === 'Semua' || item.category === activeCategory;
-        return matchesSearch && matchesCategory;
-    });
-
-    // Pagination Calculation
-    const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
-    const paginatedNews = filteredNews.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage,
-    );
-
-    const paginationLinks = [
-        {
-            url: currentPage > 1 ? `?page=${currentPage - 1}` : null,
-            label: 'Prev',
-            active: false,
-        },
-        ...Array.from({ length: totalPages }).map((_, idx) => ({
-            url: `?page=${idx + 1}`,
-            label: String(idx + 1),
-            active: currentPage === idx + 1,
-        })),
-        {
-            url: currentPage < totalPages ? `?page=${currentPage + 1}` : null,
-            label: 'Next',
-            active: false,
-        },
+    const breadcrumbItems = [
+        { title: 'Beranda', href: '/' },
+        { title: 'Berita & Informasi', href: '/berita' },
     ];
+
+    const handleCategoryChange = (cat: string) => {
+        setActiveCategory(cat);
+        router.get(
+            '/berita',
+            { search: searchQuery, kategori: cat },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get(
+            '/berita',
+            { search: searchQuery, kategori: activeCategory },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
 
     return (
         <>
@@ -193,32 +91,17 @@ export default function BeritaIndex() {
             </Head>
 
             {/* Hero Section */}
-            <section className="relative flex min-h-[220px] items-center justify-center overflow-hidden bg-[#0D3B11] md:min-h-[280px]">
-                <div
-                    aria-hidden="true"
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle at 20% 150%, #C8A000 0%, transparent 50%), radial-gradient(circle at 80% -50%, #1B5E20 0%, transparent 50%)',
-                    }}
-                />
-                <div
-                    ref={heroRef}
-                    className="bka-reveal bka-container relative z-[1] py-12 text-center"
-                >
-                    <h1
-                        className="mx-auto max-w-[720px] leading-[1.2] font-bold text-white"
-                        style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}
-                    >
-                        Berita & Informasi
-                    </h1>
-                    <p className="mx-auto mt-4 max-w-[600px] text-[15px] leading-relaxed text-white/80 md:text-[16px]">
-                        Ikuti perkembangan, kegiatan, dan liputan terbaru dari
-                        Biro Keuangan & Aset UMRI.
-                    </p>
-                    <span className="bka-gold-line bka-gold-line-center mt-6" />
+            <PageHero
+                title="Berita & Informasi"
+                description="Ikuti perkembangan, kegiatan, dan liputan terbaru dari Biro Keuangan & Aset UMRI."
+            >
+                <div ref={heroRef} className="bka-reveal">
+                    <Breadcrumbs
+                        breadcrumbs={breadcrumbItems}
+                        variant="public"
+                    />
                 </div>
-            </section>
+            </PageHero>
 
             {/* Filter & Search */}
             <section className="border-b border-[#E8F5E9] bg-white pt-10 pb-6">
@@ -232,15 +115,7 @@ export default function BeritaIndex() {
                             {categories.map((cat) => (
                                 <button
                                     key={cat}
-                                    onClick={() => {
-                                        setActiveCategory(cat);
-                                        // Reset current page on filter change
-                                        if (typeof window !== 'undefined') {
-                                            router.visit(`?page=1`, {
-                                                preserveScroll: true,
-                                            });
-                                        }
-                                    }}
+                                    onClick={() => handleCategoryChange(cat)}
                                     className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
                                         activeCategory === cat
                                             ? 'bg-[#1B5E20] text-white shadow-md'
@@ -253,7 +128,10 @@ export default function BeritaIndex() {
                         </div>
 
                         {/* Search Bar */}
-                        <div className="relative w-full md:max-w-xs">
+                        <form
+                            onSubmit={handleSearchSubmit}
+                            className="relative w-full md:max-w-xs"
+                        >
                             <input
                                 type="text"
                                 placeholder="Cari berita..."
@@ -265,7 +143,7 @@ export default function BeritaIndex() {
                                 size={18}
                                 className="absolute top-1/2 left-4 -translate-y-1/2 text-[#9EAAB2]"
                             />
-                        </div>
+                        </form>
                     </div>
                 </div>
             </section>
@@ -277,7 +155,7 @@ export default function BeritaIndex() {
                         ref={gridRef}
                         className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
                     >
-                        {paginatedNews.map((item, idx) => (
+                        {beritas.data.map((item, idx) => (
                             <div
                                 key={item.slug}
                                 className={`bka-reveal bka-stagger-${(idx % 6) + 1}`}
@@ -287,7 +165,7 @@ export default function BeritaIndex() {
                         ))}
                     </div>
 
-                    {filteredNews.length === 0 && (
+                    {beritas.data.length === 0 && (
                         <div className="py-16 text-center">
                             <Newspaper className="mx-auto mb-3 size-12 text-neutral-300" />
                             <h3 className="text-lg font-bold text-neutral-800">
@@ -301,9 +179,9 @@ export default function BeritaIndex() {
                     )}
 
                     {/* Pagination */}
-                    {totalPages > 1 && (
+                    {beritas.links && beritas.links.length > 3 && (
                         <div className="mt-14">
-                            <Pagination links={paginationLinks} />
+                            <Pagination links={beritas.links} />
                         </div>
                     )}
                 </div>

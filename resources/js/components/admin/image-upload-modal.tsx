@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from 'react';
 import {
     X,
     Sliders,
@@ -7,9 +6,11 @@ import {
     Loader2,
     Maximize2,
 } from 'lucide-react';
-import { optimizeFile, OptimizedFileResult } from '@/lib/image-optimizer';
-import { formatFileSize } from '@/lib/format-file-size';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { formatFileSize } from '@/lib/format-file-size';
+import type { OptimizedFileResult } from '@/lib/image-optimizer';
+import { optimizeFile } from '@/lib/image-optimizer';
 
 interface ImageUploadModalProps {
     isOpen: boolean;
@@ -65,6 +66,7 @@ export function ImageUploadModal({
             img.src = url;
             img.onload = () => {
                 setOriginalDimensions({ w: img.width, h: img.height });
+
                 // If original image width is smaller than defaultWidth, default to it
                 if (img.width < defaultWidth) {
                     setWidth(img.width);
@@ -87,7 +89,9 @@ export function ImageUploadModal({
 
     // Handle optimization when width or quality changes (debounced)
     useEffect(() => {
-        if (!isOpen || !file || !originalUrl) return;
+        if (!isOpen || !file || !originalUrl) {
+            return;
+        }
 
         setIsOptimizing(true);
 
@@ -123,11 +127,14 @@ export function ImageUploadModal({
         };
     }, [width, quality, originalUrl, file, isOpen]);
 
-    if (!isOpen || !file) return null;
+    if (!isOpen || !file) {
+        return null;
+    }
 
     const handleConfirm = () => {
         if (!optimizedResult) {
             toast.error('Harap tunggu hingga proses kompresi selesai.');
+
             return;
         }
 
@@ -136,6 +143,7 @@ export function ImageUploadModal({
             try {
                 const saved = localStorage.getItem('bka_assets');
                 let assetsList = [];
+
                 if (saved) {
                     assetsList = JSON.parse(saved);
                 }

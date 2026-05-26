@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { Users, ZoomIn } from 'lucide-react';
+import { useState } from 'react';
+import Lightbox from 'yet-another-react-lightbox';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { PageHero } from '@/components/layout/page-hero';
 import ProfilTabs from '@/components/public/profil/profil-tabs';
 import PublicLayout from '@/layouts/public-layout';
-import Lightbox from 'yet-another-react-lightbox';
 
 import 'yet-another-react-lightbox/styles.css';
 
@@ -94,54 +94,9 @@ export default function Struktur({
         },
     ];
 
-    const [liveGambarBagan, setLiveGambarBagan] = useState(defaultGambarBagan);
-    const [liveKepalaBiro, setLiveKepalaBiro] =
-        useState<KepalaBiroProps | null>(defaultKepalaBiro);
-    const [liveAnggotaList, setLiveAnggotaList] =
-        useState<AnggotaProps[]>(defaultAnggotaList);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('bka_struktur_organisasi');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.gambarBagan)
-                        setLiveGambarBagan(parsed.gambarBagan);
-                    if (parsed.anggotaList)
-                        setLiveAnggotaList(parsed.anggotaList);
-                } catch (e) {
-                    // ignore
-                }
-            }
-
-            // Sync Kepala Biro from home page CMS if exists
-            const savedBeranda = localStorage.getItem('bka_beranda');
-            if (savedBeranda) {
-                try {
-                    const parsedBeranda = JSON.parse(savedBeranda);
-                    if (parsedBeranda.kepalaBiro) {
-                        setLiveKepalaBiro({
-                            nama:
-                                parsedBeranda.kepalaBiro.nama ||
-                                defaultKepalaBiro.nama,
-                            jabatan:
-                                parsedBeranda.kepalaBiro.jabatan ||
-                                defaultKepalaBiro.jabatan,
-                            periode:
-                                parsedBeranda.kepalaBiro.periode ||
-                                defaultKepalaBiro.periode,
-                            foto:
-                                parsedBeranda.kepalaBiro.foto ||
-                                defaultKepalaBiro.foto,
-                        });
-                    }
-                } catch (e) {
-                    // ignore
-                }
-            }
-        }
-    }, [defaultGambarBagan, defaultAnggotaList]);
+    const liveGambarBagan = defaultGambarBagan;
+    const liveKepalaBiro = defaultKepalaBiro;
+    const liveAnggotaList = defaultAnggotaList;
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },

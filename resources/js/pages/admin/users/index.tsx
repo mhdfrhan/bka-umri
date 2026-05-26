@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import {
     Users,
     UserPlus,
@@ -19,11 +18,12 @@ import {
     ChevronRight,
     ArrowLeft,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import type { Auth } from '@/types';
-import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format-date';
 import { logActivity } from '@/lib/logger';
+import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
 interface CMSUser {
     id: string | number;
@@ -34,39 +34,11 @@ interface CMSUser {
     created_at: string;
 }
 
-const INITIAL_USERS: CMSUser[] = [
-    {
-        id: 'usr-1',
-        name: 'Super Admin',
-        email: 'admin@bka.umri.ac.id',
-        role: 'super_admin',
-        is_active: true,
-        created_at: '2026-05-01T08:00:00.000Z',
-    },
-    {
-        id: 'usr-2',
-        name: 'Admin BKA',
-        email: 'staff@bka.umri.ac.id',
-        role: 'admin',
-        is_active: true,
-        created_at: '2026-05-10T09:30:00.000Z',
-    },
-    {
-        id: 'usr-3',
-        name: 'Admin Keuangan',
-        email: 'keuangan@bka.umri.ac.id',
-        role: 'admin',
-        is_active: true,
-        created_at: '2026-05-15T14:20:00.000Z',
-    },
-];
-
-export default function UsersIndex() {
+export default function UsersIndex({ users }: { users: CMSUser[] }) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUser = auth.user;
     const isSuperAdmin = currentUser?.roles?.includes('super_admin');
 
-    const [users, setUsers] = useState<CMSUser[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusConfirm, setStatusConfirm] = useState<{
         isOpen: boolean;
@@ -82,35 +54,6 @@ export default function UsersIndex() {
         isOpen: false,
         user: null,
     });
-
-    // Load users from localStorage
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('bka_users');
-            if (saved) {
-                try {
-                    setUsers(JSON.parse(saved));
-                } catch {
-                    setUsers(INITIAL_USERS);
-                    localStorage.setItem(
-                        'bka_users',
-                        JSON.stringify(INITIAL_USERS),
-                    );
-                }
-            } else {
-                setUsers(INITIAL_USERS);
-                localStorage.setItem(
-                    'bka_users',
-                    JSON.stringify(INITIAL_USERS),
-                );
-            }
-        }
-    }, []);
-
-    const saveUsersToLocalStorage = (updatedUsers: CMSUser[]) => {
-        setUsers(updatedUsers);
-        localStorage.setItem('bka_users', JSON.stringify(updatedUsers));
-    };
 
     // Calculate active users
     const activeUsersCount = users.filter((u) => u.is_active).length;
@@ -130,6 +73,7 @@ export default function UsersIndex() {
             toast.error(
                 'Operasi Ditolak: Anda tidak dapat menonaktifkan akun Anda sendiri.',
             );
+
             return;
         }
 
@@ -138,10 +82,12 @@ export default function UsersIndex() {
             const activeSuperAdmins = users.filter(
                 (u) => u.role === 'super_admin' && u.is_active,
             );
+
             if (activeSuperAdmins.length <= 1) {
                 toast.error(
                     'Operasi Ditolak: Harus ada minimal 1 akun Super Admin yang aktif untuk mencegah penguncian sistem (system lock-out).',
                 );
+
                 return;
             }
         }
@@ -151,6 +97,7 @@ export default function UsersIndex() {
             toast.error(
                 'Batas Akun Aktif Terpenuhi: Maksimal 10 akun administrator dapat aktif secara bersamaan.',
             );
+
             return;
         }
 
@@ -161,27 +108,43 @@ export default function UsersIndex() {
     };
 
     const confirmToggleStatus = () => {
-        if (!statusConfirm.user) return;
+        if (!statusConfirm.user) {
+            return;
+        }
+
         const target = statusConfirm.user;
         const newStatus = !target.is_active;
 
-        const updated = users.map((u) => {
-            if (u.id === target.id) {
-                return { ...u, is_active: newStatus };
-            }
-            return u;
-        });
-
-        saveUsersToLocalStorage(updated);
-        setStatusConfirm({ isOpen: false, user: null });
-
-        const actionText = newStatus
-            ? 'Mengaktifkan akun pengguna'
-            : 'Menonaktifkan akun pengguna';
-        logActivity(actionText, `${target.name} (${target.email})`, 'user');
-
-        toast.success(
-            `Akun ${target.name} berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}.`,
+        router.put(
+            `/admin/users/${target.id}`,
+            {
+                name: target.name,
+                email: target.email,
+                role: target.role,
+                is_active: newStatus,
+            },
+            {
+                onSuccess: () => {
+                    setStatusConfirm({ isOpen: false, user: null });
+                    const actionText = newStatus
+                        ? 'Mengaktifkan akun pengguna'
+                        : 'Menonaktifkan akun pengguna';
+                    logActivity(
+                        actionText,
+                        `${target.name} (${target.email})`,
+                        'user',
+                    );
+                    toast.success(
+                        `Akun ${target.name} berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}.`,
+                    );
+                },
+                onError: (errors) => {
+                    const message =
+                        Object.values(errors)[0] ||
+                        'Gagal mengubah status akun.';
+                    toast.error(message);
+                },
+            },
         );
     };
 
@@ -192,6 +155,7 @@ export default function UsersIndex() {
             toast.error(
                 'Operasi Ditolak: Anda tidak dapat menghapus akun Anda sendiri.',
             );
+
             return;
         }
 
@@ -200,10 +164,12 @@ export default function UsersIndex() {
             const activeSuperAdmins = users.filter(
                 (u) => u.role === 'super_admin' && u.is_active,
             );
+
             if (activeSuperAdmins.length <= 1) {
                 toast.error(
                     'Operasi Ditolak: Harus ada minimal 1 akun Super Admin yang aktif untuk mencegah penguncian sistem (system lock-out).',
                 );
+
                 return;
             }
         }
@@ -215,19 +181,28 @@ export default function UsersIndex() {
     };
 
     const confirmDeleteUser = () => {
-        if (!deleteConfirm.user) return;
+        if (!deleteConfirm.user) {
+            return;
+        }
+
         const target = deleteConfirm.user;
 
-        const updated = users.filter((u) => u.id !== target.id);
-        saveUsersToLocalStorage(updated);
-        setDeleteConfirm({ isOpen: false, user: null });
-
-        logActivity(
-            'Menghapus akun pengguna',
-            `${target.name} (${target.email})`,
-            'delete',
-        );
-        toast.success(`Akun ${target.name} berhasil dihapus permanen.`);
+        router.delete(`/admin/users/${target.id}`, {
+            onSuccess: () => {
+                setDeleteConfirm({ isOpen: false, user: null });
+                logActivity(
+                    'Menghapus akun pengguna',
+                    `${target.name} (${target.email})`,
+                    'delete',
+                );
+                toast.success(`Akun ${target.name} berhasil dihapus permanen.`);
+            },
+            onError: (errors) => {
+                const message =
+                    Object.values(errors)[0] || 'Gagal menghapus akun.';
+                toast.error(message);
+            },
+        });
     };
 
     // If NOT Super Admin, render beautiful forbidden panel
@@ -429,6 +404,7 @@ export default function UsersIndex() {
                                     filteredUsers.map((item) => {
                                         const isCurrentUser =
                                             item.email === currentUser?.email;
+
                                         return (
                                             <tr
                                                 key={item.id}

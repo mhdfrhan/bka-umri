@@ -2,24 +2,26 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Database\Factories\UserFactory;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 #[Fillable(['name', 'email', 'password', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable, LogsActivity;
 
     /**
      * Get the attributes that should be cast.
@@ -33,9 +35,7 @@ class User extends Authenticatable implements PasskeyUser
             'password' => 'hashed',
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
-            /* @chisel-2fa */
             'two_factor_confirmed_at' => 'datetime',
-            /* @end-chisel-2fa */
         ];
     }
 
@@ -53,5 +53,32 @@ class User extends Authenticatable implements PasskeyUser
     public function scopeAdmin(Builder $query): Builder
     {
         return $query->role(['admin', 'super_admin']);
+    }
+
+    /**
+     * Get the news created by the user.
+     */
+    public function beritas()
+    {
+        return $this->hasMany(Berita::class);
+    }
+
+    /**
+     * Get the announcements created by the user.
+     */
+    public function pengumumans()
+    {
+        return $this->hasMany(Pengumuman::class);
+    }
+
+    /**
+     * Get the options for Spatie activity log.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email', 'is_active'])
+            ->logOnlyDirty()
+            ->useLogName('user');
     }
 }

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Info, Save, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
@@ -25,34 +24,33 @@ const DEFAULT_ABOUT_CONTENT = `
     </blockquote>
 `;
 
-export default function EditTentang() {
-    const [konten, setKonten] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
+interface Halaman {
+    id: number;
+    slug: string;
+    judul: string;
+    konten: string | null;
+}
 
-    // Initialize from local storage or fallback to default
-    useEffect(() => {
-        const saved = localStorage.getItem('bka_tentang_kami');
-        if (saved) {
-            setKonten(saved);
-        } else {
-            setKonten(DEFAULT_ABOUT_CONTENT.trim());
-        }
-    }, []);
+interface Props {
+    halaman: Halaman;
+}
+
+export default function EditTentang({ halaman }: Props) {
+    const { data, setData, put, processing } = useForm({
+        konten: halaman.konten || DEFAULT_ABOUT_CONTENT.trim(),
+    });
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSaving(true);
 
-        try {
-            localStorage.setItem('bka_tentang_kami', konten);
-            toast.success(
-                'Profil Tentang BKA berhasil diperbarui secara lokal!',
-            );
-        } catch (error) {
-            toast.error('Gagal menyimpan perubahan.');
-        } finally {
-            setIsSaving(false);
-        }
+        put('/admin/profil/tentang', {
+            onSuccess: () => {
+                toast.success('Profil Tentang BKA berhasil diperbarui!');
+            },
+            onError: () => {
+                toast.error('Gagal menyimpan perubahan.');
+            },
+        });
     };
 
     return (
@@ -110,8 +108,8 @@ export default function EditTentang() {
                                 Editor Konten Profil
                             </label>
                             <RichTextEditor
-                                value={konten}
-                                onChange={setKonten}
+                                value={data.konten}
+                                onChange={(val) => setData('konten', val)}
                                 className="border-neutral-200 focus-within:border-emerald-600 focus-within:ring-emerald-600/20"
                             />
                         </div>
@@ -121,11 +119,11 @@ export default function EditTentang() {
                     <div className="flex items-center justify-end gap-3">
                         <button
                             type="submit"
-                            disabled={isSaving}
+                            disabled={processing}
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <Save className="size-4.5" />
-                            {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                         </button>
                     </div>
                 </form>

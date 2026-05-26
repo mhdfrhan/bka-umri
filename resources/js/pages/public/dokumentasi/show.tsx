@@ -8,7 +8,7 @@ import {
     Share2,
     ZoomIn,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
@@ -33,54 +33,19 @@ interface AlbumDetail {
     deskripsi?: string;
     tanggal_kegiatan: string;
     kategori?: string;
-    fotos: (string | PhotoItem)[];
+    fotos: PhotoItem[];
 }
 
-export default function DokumentasiShow() {
+interface DokumentasiShowProps {
+    album: AlbumDetail;
+}
+
+export default function DokumentasiShow({ album }: DokumentasiShowProps) {
     const [lightboxIndex, setLightboxIndex] = useState(-1);
-    const [album, setAlbum] = useState<AlbumDetail | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     const headerRef = useScrollReveal<HTMLDivElement>();
     const descRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const segments = window.location.pathname.split('/');
-            const slug = segments[segments.length - 1];
-
-            const saved = localStorage.getItem('bka_albums');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    const found = parsed.find((a: any) => a.slug === slug);
-                    if (found) {
-                        setAlbum({
-                            judul: found.title || found.judul,
-                            slug: found.slug,
-                            deskripsi: found.description || found.deskripsi,
-                            tanggal_kegiatan:
-                                found.date || found.tanggal_kegiatan,
-                            kategori:
-                                found.category ||
-                                found.kategori ||
-                                'Tanpa Kategori',
-                            fotos: found.photos
-                                ? found.photos.map((p: any) => ({
-                                      url: p.url,
-                                      caption: p.caption || '',
-                                  }))
-                                : found.fotos || [],
-                        });
-                    }
-                } catch {
-                    // ignore
-                }
-            }
-            setIsLoading(false);
-        }
-    }, []);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -88,7 +53,10 @@ export default function DokumentasiShow() {
     };
 
     const handleShareWhatsApp = () => {
-        if (!album) return;
+        if (!album) {
+            return;
+        }
+
         const text = encodeURIComponent(
             `Lihat album dokumentasi "${album.judul}" di Website BKA UMRI: ${window.location.href}`,
         );
@@ -102,14 +70,6 @@ export default function DokumentasiShow() {
             '_blank',
         );
     };
-
-    if (isLoading) {
-        return (
-            <div className="flex min-h-[400px] items-center justify-center bg-white pt-24">
-                <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-[#1B5E20]"></div>
-            </div>
-        );
-    }
 
     if (!album) {
         return (
@@ -129,14 +89,6 @@ export default function DokumentasiShow() {
 
     const slides = (album.fotos || [])
         .map((photo, idx) => {
-            if (typeof photo === 'string') {
-                return {
-                    src: photo,
-                    alt: `${album.judul} - Foto ${idx + 1}`,
-                    title: `${album.judul} - Foto ${idx + 1}`,
-                };
-            }
-
             return {
                 src: photo.url || '',
                 alt: photo.caption || `${album.judul} - Foto ${idx + 1}`,

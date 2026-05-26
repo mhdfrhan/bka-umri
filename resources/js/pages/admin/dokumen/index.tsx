@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     FolderOpen,
     FileText,
@@ -17,6 +16,7 @@ import {
     Info,
     FileArchive,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { formatDate } from '@/lib/format-date';
 import { formatFileSize } from '@/lib/format-file-size';
@@ -125,14 +125,19 @@ const INITIAL_FILES: BerkasItem[] = [
         tipe_file: 'pdf',
         ukuran: 1890000,
         tanggal_upload: '2026-05-20',
-        download_url:
-            'data:application/pdf;base64,JVBERi0xLjQKJdPr6gogMSAwIG9iagogIDw8IC9UeXBlIC9DYXRhbG9nIC9QYWdlcyAyIDAgUiA+PiBlbmRvYmoKMiAwIG9iagogIDw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbIDMgMCBSIF0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBSIHhtbA==',
+        download_url: '',
     },
 ];
 
-export default function LampiranDokumenCMS() {
-    const [categories, setCategories] = useState<KategoriLampiran[]>([]);
-    const [files, setFiles] = useState<BerkasItem[]>([]);
+interface AdminDokumenProps {
+    categories?: KategoriLampiran[];
+    files?: BerkasItem[];
+}
+
+export default function LampiranDokumenCMS({
+    categories = [],
+    files = [],
+}: AdminDokumenProps) {
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -169,137 +174,116 @@ export default function LampiranDokumenCMS() {
         title: string;
     } | null>(null);
 
-    // Initial hydration from local storage
+    // Auto-select first category when categories are loaded
     useEffect(() => {
-        const savedCategories = localStorage.getItem('bka_kategori_lampiran');
-        const savedFiles = localStorage.getItem('bka_berkas_lampiran');
-
-        if (savedCategories) {
-            try {
-                const parsedCat = JSON.parse(savedCategories);
-                setCategories(parsedCat);
-                if (parsedCat.length > 0) {
-                    setSelectedCategoryId(parsedCat[0].id);
-                }
-            } catch {
-                setCategories(INITIAL_CATEGORIES);
-                setSelectedCategoryId(INITIAL_CATEGORIES[0].id);
-            }
-        } else {
-            setCategories(INITIAL_CATEGORIES);
-            localStorage.setItem(
-                'bka_kategori_lampiran',
-                JSON.stringify(INITIAL_CATEGORIES),
-            );
-            setSelectedCategoryId(INITIAL_CATEGORIES[0].id);
+        if (categories.length > 0 && !selectedCategoryId) {
+            setSelectedCategoryId(categories[0].id);
         }
+    }, [categories, selectedCategoryId]);
 
-        if (savedFiles) {
-            try {
-                setFiles(JSON.parse(savedFiles));
-            } catch {
-                setFiles(INITIAL_FILES);
-            }
-        } else {
-            setFiles(INITIAL_FILES);
-            localStorage.setItem(
-                'bka_berkas_lampiran',
-                JSON.stringify(INITIAL_FILES),
-            );
-        }
-    }, []);
-
-    // Helper to persist categories
-    const saveCategoriesToLocalStorage = (updatedCats: KategoriLampiran[]) => {
-        setCategories(updatedCats);
-        localStorage.setItem(
-            'bka_kategori_lampiran',
-            JSON.stringify(updatedCats),
-        );
-    };
-
-    // Helper to persist files
-    const saveFilesToLocalStorage = (updatedFiles: BerkasItem[]) => {
-        setFiles(updatedFiles);
-        localStorage.setItem(
-            'bka_berkas_lampiran',
-            JSON.stringify(updatedFiles),
-        );
-    };
-
-    // Reorder Categories
+    // Reorder Categories on backend
     const handleReorderCategory = (index: number, direction: 'up' | 'down') => {
         const newIndex = direction === 'up' ? index - 1 : index + 1;
-        if (newIndex < 0 || newIndex >= categories.length) return;
+
+        if (newIndex < 0 || newIndex >= categories.length) {
+            return;
+        }
 
         const updated = [...categories];
         const temp = updated[index];
         updated[index] = updated[newIndex];
         updated[newIndex] = temp;
 
-        // Recalculate 'urutan' sequence
-        const finalized = updated.map((cat, idx) => ({
-            ...cat,
-            urutan: idx + 1,
-        }));
-        saveCategoriesToLocalStorage(finalized);
-        toast.success('Urutan kategori berhasil diperbarui');
+        const ids = updated.map((cat) => cat.id);
+
+        router.post(
+            '/admin/dokumen/kategori/reorder',
+            { ids },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Urutan kategori berhasil diperbarui');
+                },
+                onError: () => {
+                    toast.error('Gagal memperbarui urutan kategori');
+                },
+            },
+        );
     };
 
-    // Category Add / Update
+    // Category Add / Update on backend
     const handleCategorySubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!categoryModal.nama.trim()) {
             toast.error('Nama kategori wajib diisi');
             return;
         }
 
-        const slug = categoryModal.nama
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-');
-
         if (categoryModal.mode === 'add') {
-            const newCat: KategoriLampiran = {
-                id: 'cat-' + Date.now(),
-                nama: categoryModal.nama,
-                slug,
-                deskripsi: categoryModal.deskripsi,
-                urutan: categories.length + 1,
-            };
-            const updated = [...categories, newCat];
-            saveCategoriesToLocalStorage(updated);
-            setSelectedCategoryId(newCat.id);
-            toast.success('Kategori baru berhasil ditambahkan');
+            router.post(
+                '/admin/dokumen/kategori',
+                {
+                    nama: categoryModal.nama,
+                    deskripsi: categoryModal.deskripsi,
+                },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Kategori baru berhasil ditambahkan');
+                        setCategoryModal({
+                            isOpen: false,
+                            mode: 'add',
+                            nama: '',
+                            deskripsi: '',
+                        });
+                    },
+                    onError: (errors: any) => {
+                        if (errors.nama) {
+                            toast.error(errors.nama);
+                        } else {
+                            toast.error('Gagal menambahkan kategori');
+                        }
+                    },
+                },
+            );
         } else {
-            const updated = categories.map((cat) => {
-                if (cat.id === categoryModal.id) {
-                    return {
-                        ...cat,
-                        nama: categoryModal.nama,
-                        slug,
-                        deskripsi: categoryModal.deskripsi,
-                    };
-                }
-                return cat;
-            });
-            saveCategoriesToLocalStorage(updated);
-            toast.success('Kategori berhasil diperbarui');
+            router.put(
+                `/admin/dokumen/kategori/${categoryModal.id}`,
+                {
+                    nama: categoryModal.nama,
+                    deskripsi: categoryModal.deskripsi,
+                },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Kategori berhasil diperbarui');
+                        setCategoryModal({
+                            isOpen: false,
+                            mode: 'add',
+                            nama: '',
+                            deskripsi: '',
+                        });
+                    },
+                    onError: (errors: any) => {
+                        if (errors.nama) {
+                            toast.error(errors.nama);
+                        } else {
+                            toast.error('Gagal memperbarui kategori');
+                        }
+                    },
+                },
+            );
         }
-
-        setCategoryModal({
-            isOpen: false,
-            mode: 'add',
-            nama: '',
-            deskripsi: '',
-        });
     };
 
     // File selection/Drag & drop parsing to Base64
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
 
         // Validations
         if (file.size > 10 * 1024 * 1024) {
@@ -319,6 +303,7 @@ export default function LampiranDokumenCMS() {
             'zip',
             'rar',
         ];
+
         if (!ext || !allowedExts.includes(ext)) {
             toast.error(
                 'Format berkas tidak diizinkan. Gunakan PDF/Office Document/Archive.',
@@ -341,9 +326,10 @@ export default function LampiranDokumenCMS() {
         reader.readAsDataURL(file);
     };
 
-    // File Add / Update
+    // File Add / Update on backend
     const handleFileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!fileModal.nama_tampilan.trim()) {
             toast.error('Nama tampilan berkas wajib diisi');
             return;
@@ -354,90 +340,101 @@ export default function LampiranDokumenCMS() {
             return;
         }
 
-        const ext =
-            fileModal.fileName?.split('.').pop()?.toLowerCase() || 'pdf';
-
         if (fileModal.mode === 'add') {
-            const newFile: BerkasItem = {
-                id: 'file-' + Date.now(),
-                kategori_id: selectedCategoryId,
-                nama_tampilan: fileModal.nama_tampilan,
-                deskripsi: fileModal.deskripsi,
-                tipe_file: ext,
-                ukuran: fileModal.fileSize || 0,
-                tanggal_upload: new Date().toISOString().split('T')[0],
-                download_url: fileModal.fileDataUrl || '',
-            };
-            const updated = [newFile, ...files];
-            saveFilesToLocalStorage(updated);
-            toast.success('Berkas berhasil diunggah');
+            router.post(
+                '/admin/dokumen/berkas',
+                {
+                    kategori_id: selectedCategoryId,
+                    nama_tampilan: fileModal.nama_tampilan,
+                    deskripsi: fileModal.deskripsi,
+                    fileDataUrl: fileModal.fileDataUrl,
+                    fileName: fileModal.fileName,
+                },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Berkas berhasil diunggah');
+                        setFileModal({
+                            isOpen: false,
+                            mode: 'add',
+                            kategori_id: '',
+                            nama_tampilan: '',
+                            deskripsi: '',
+                        });
+                    },
+                    onError: () => {
+                        toast.error('Gagal mengunggah berkas');
+                    },
+                },
+            );
         } else {
-            const updated = files.map((file) => {
-                if (file.id === fileModal.id) {
-                    return {
-                        ...file,
-                        nama_tampilan: fileModal.nama_tampilan,
-                        deskripsi: fileModal.deskripsi,
-                        // Update file content only if newly uploaded
-                        download_url:
-                            fileModal.fileDataUrl || file.download_url,
-                        tipe_file:
-                            fileModal.fileName
-                                ?.split('.')
-                                .pop()
-                                ?.toLowerCase() || file.tipe_file,
-                        ukuran: fileModal.fileSize || file.ukuran,
-                    };
-                }
-                return file;
-            });
-            saveFilesToLocalStorage(updated);
-            toast.success('Informasi berkas berhasil diperbarui');
+            router.put(
+                `/admin/dokumen/berkas/${fileModal.id}`,
+                {
+                    nama_tampilan: fileModal.nama_tampilan,
+                    deskripsi: fileModal.deskripsi,
+                    fileDataUrl: fileModal.fileDataUrl || null,
+                    fileName: fileModal.fileName || null,
+                },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Informasi berkas berhasil diperbarui');
+                        setFileModal({
+                            isOpen: false,
+                            mode: 'add',
+                            kategori_id: '',
+                            nama_tampilan: '',
+                            deskripsi: '',
+                        });
+                    },
+                    onError: () => {
+                        toast.error('Gagal memperbarui berkas');
+                    },
+                },
+            );
         }
-
-        setFileModal({
-            isOpen: false,
-            mode: 'add',
-            kategori_id: '',
-            nama_tampilan: '',
-            deskripsi: '',
-        });
     };
 
-    // Confirm deletes
+    // Confirm deletes on backend
     const handleConfirmDelete = () => {
-        if (!deleteConfirm) return;
-
-        if (deleteConfirm.type === 'category') {
-            // Delete category & all contained files
-            const updatedCats = categories.filter(
-                (c) => c.id !== deleteConfirm.id,
-            );
-            const updatedFiles = files.filter(
-                (f) => f.kategori_id !== deleteConfirm.id,
-            );
-            saveCategoriesToLocalStorage(updatedCats);
-            saveFilesToLocalStorage(updatedFiles);
-
-            if (
-                selectedCategoryId === deleteConfirm.id &&
-                updatedCats.length > 0
-            ) {
-                setSelectedCategoryId(updatedCats[0].id);
-            } else {
-                setSelectedCategoryId('');
-            }
-            toast.success(
-                'Kategori beserta seluruh berkas di dalamnya berhasil dihapus',
-            );
-        } else {
-            // Delete single file
-            const updatedFiles = files.filter((f) => f.id !== deleteConfirm.id);
-            saveFilesToLocalStorage(updatedFiles);
-            toast.success('Berkas berhasil dihapus');
+        if (!deleteConfirm) {
+            return;
         }
 
-        setDeleteConfirm(null);
+        if (deleteConfirm.type === 'category') {
+            router.delete(`/admin/dokumen/kategori/${deleteConfirm.id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Kategori beserta seluruh berkas di dalamnya berhasil dihapus',
+                    );
+                    setDeleteConfirm(null);
+                    const remaining = categories.filter(
+                        (c) => c.id !== deleteConfirm.id,
+                    );
+                    if (remaining.length > 0) {
+                        setSelectedCategoryId(remaining[0].id);
+                    } else {
+                        setSelectedCategoryId('');
+                    }
+                },
+                onError: () => {
+                    toast.error('Gagal menghapus kategori');
+                },
+            });
+        } else {
+            router.delete(`/admin/dokumen/berkas/${deleteConfirm.id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Berkas berhasil dihapus');
+                    setDeleteConfirm(null);
+                },
+                onError: () => {
+                    toast.error('Gagal menghapus berkas');
+                },
+            });
+        }
     };
 
     // Icons mapper for specific file formats

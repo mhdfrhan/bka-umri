@@ -1,58 +1,46 @@
-import { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Images, ArrowLeft, Save, Globe } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
 
-export default function TambahAlbum() {
-    const [title, setTitle] = useState('');
-    const [slug, setSlug] = useState('');
-    const [description, setDescription] = useState('');
-    const [date, setDate] = useState(
-        () => new Date().toISOString().split('T')[0],
-    );
-    const [coverUrl, setCoverUrl] = useState(
-        'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
-    );
-    const [category, setCategory] = useState('Keuangan');
-    const [categories, setCategories] = useState<string[]>([
-        'Keuangan',
-        'Aset',
-    ]);
+interface TambahAlbumProps {
+    categories: string[];
+}
+
+export default function TambahAlbum({ categories = [] }: TambahAlbumProps) {
+    const { data, setData, post, processing, errors } = useForm({
+        judul: '',
+        slug: '',
+        deskripsi: '',
+        tanggal_kegiatan: new Date().toISOString().split('T')[0],
+        kategori: categories.length > 0 ? categories[0] : 'Keuangan',
+        coverUrl:
+            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
+    });
 
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
         null,
     );
-    const [isSaving, setIsSaving] = useState(false);
     const [isSlugEdited, setIsSlugEdited] = useState(false);
 
-    useEffect(() => {
-        const savedCats = localStorage.getItem('bka_dokumentasi_categories');
-        if (savedCats) {
-            try {
-                const parsed = JSON.parse(savedCats);
-                setCategories(parsed);
-                if (parsed.length > 0) {
-                    setCategory(parsed[0]);
-                }
-            } catch {
-                // fallback to default
-            }
-        }
-    }, []);
-
     const handleTitleChange = (val: string) => {
-        setTitle(val);
         if (!isSlugEdited) {
             const generated = val
                 .toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '')
                 .replace(/\s+/g, '-')
                 .replace(/-+/g, '-');
-            setSlug(generated);
+            setData((prev) => ({
+                ...prev,
+                judul: val,
+                slug: generated,
+            }));
+        } else {
+            setData('judul', val);
         }
     };
 
@@ -62,12 +50,15 @@ export default function TambahAlbum() {
             .toLowerCase()
             .replace(/\s+/g, '-')
             .replace(/[^a-z0-9-]/g, '');
-        setSlug(cleaned);
+        setData('slug', cleaned);
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+            return;
+        }
 
         if (file.size > 10 * 1024 * 1024) {
             toast.error('File gambar melebihi batas 10MB!');
@@ -80,61 +71,41 @@ export default function TambahAlbum() {
     };
 
     const handleUploadConfirm = (result: { base64: string }) => {
-        setCoverUrl(result.base64);
+        setData('coverUrl', result.base64);
         toast.success('Cover album berhasil diunggah & dioptimasi!');
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (title.trim().length < 5) {
+        if (data.judul.trim().length < 5) {
             toast.error('Judul album minimal harus 5 karakter!');
             return;
         }
-        if (!slug.trim()) {
+
+        if (!data.slug.trim()) {
             toast.error('Slug URL wajib diisi!');
             return;
         }
 
-        setIsSaving(true);
-
-        try {
-            const saved = localStorage.getItem('bka_albums');
-            const list = saved ? JSON.parse(saved) : [];
-
-            if (list.some((a: any) => a.slug === slug)) {
-                toast.error('Slug URL sudah digunakan! Ubah secara manual.');
-                setIsSaving(false);
-                return;
-            }
-
-            const nextId =
-                list.length > 0
-                    ? Math.max(...list.map((a: any) => a.id)) + 1
-                    : 1;
-            const newAlbum = {
-                id: nextId,
-                title: title.trim(),
-                slug: slug.trim(),
-                description: description.trim(),
-                date,
-                coverUrl,
-                category,
-                photos: [],
-            };
-
-            const updatedList = [newAlbum, ...list];
-            localStorage.setItem('bka_albums', JSON.stringify(updatedList));
-
-            toast.success(
-                `Album "${title}" berhasil dibuat! Silakan kelola foto di halaman edit.`,
-            );
-            router.visit('/admin/dokumentasi');
-        } catch {
-            toast.error('Gagal menyimpan album.');
-        } finally {
-            setIsSaving(false);
-        }
+        post('/admin/dokumentasi', {
+            onSuccess: () => {
+                toast.success(
+                    `Album "${data.judul}" berhasil dibuat! Silakan kelola foto di halaman edit.`,
+                );
+            },
+            onError: (errs) => {
+                if (errs.slug) {
+                    toast.error(
+                        'Slug URL sudah digunakan! Ubah secara manual.',
+                    );
+                } else if (errs.judul) {
+                    toast.error(errs.judul);
+                } else {
+                    toast.error('Gagal menyimpan album. Periksa input Anda.');
+                }
+            },
+        });
     };
 
     return (
@@ -174,13 +145,18 @@ export default function TambahAlbum() {
                                 type="text"
                                 maxLength={150}
                                 required
-                                value={title}
+                                value={data.judul}
                                 onChange={(e) =>
                                     handleTitleChange(e.target.value)
                                 }
                                 placeholder="Contoh: Kunjungan Evaluasi LLDIKTI Wilayah X"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.judul && (
+                                <p className="text-xs font-semibold text-red-600">
+                                    {errors.judul}
+                                </p>
+                            )}
                         </div>
 
                         <div className="space-y-1.5">
@@ -194,13 +170,18 @@ export default function TambahAlbum() {
                             <input
                                 type="text"
                                 required
-                                value={slug}
+                                value={data.slug}
                                 onChange={(e) =>
                                     handleSlugChange(e.target.value)
                                 }
                                 placeholder="contoh: kunjungan-evaluasi-lldikti"
                                 className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                             />
+                            {errors.slug && (
+                                <p className="text-xs font-semibold text-red-600">
+                                    {errors.slug}
+                                </p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -209,9 +190,9 @@ export default function TambahAlbum() {
                                     Kategori Album
                                 </label>
                                 <select
-                                    value={category}
+                                    value={data.kategori}
                                     onChange={(e) =>
-                                        setCategory(e.target.value)
+                                        setData('kategori', e.target.value)
                                     }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 >
@@ -235,8 +216,13 @@ export default function TambahAlbum() {
                                 <input
                                     type="date"
                                     required
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
+                                    value={data.tanggal_kegiatan}
+                                    onChange={(e) =>
+                                        setData(
+                                            'tanggal_kegiatan',
+                                            e.target.value,
+                                        )
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 />
                             </div>
@@ -248,9 +234,9 @@ export default function TambahAlbum() {
                                 <textarea
                                     maxLength={500}
                                     rows={2}
-                                    value={description}
+                                    value={data.deskripsi}
                                     onChange={(e) =>
-                                        setDescription(e.target.value)
+                                        setData('deskripsi', e.target.value)
                                     }
                                     placeholder="Rangkuman singkat isi album liputan kegiatan ini..."
                                     className="w-full resize-none rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
@@ -268,9 +254,12 @@ export default function TambahAlbum() {
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            value={coverUrl}
+                                            value={data.coverUrl}
                                             onChange={(e) =>
-                                                setCoverUrl(e.target.value)
+                                                setData(
+                                                    'coverUrl',
+                                                    e.target.value,
+                                                )
                                             }
                                             placeholder="URL Gambar..."
                                             className="flex-1 rounded-xl border border-neutral-200 bg-white p-3 font-mono text-xs text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1"
@@ -303,7 +292,7 @@ export default function TambahAlbum() {
 
                                 <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-neutral-200/60 bg-neutral-100 md:w-56">
                                     <img
-                                        src={coverUrl}
+                                        src={data.coverUrl}
                                         alt="Pratinjau Cover"
                                         className="h-full w-full object-cover"
                                         onError={(e) => {
@@ -325,11 +314,11 @@ export default function TambahAlbum() {
                         </Link>
                         <button
                             type="submit"
-                            disabled={isSaving}
+                            disabled={processing}
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
                         >
                             <Save className="size-4" />
-                            {isSaving ? 'Menyimpan...' : 'Simpan Album'}
+                            {processing ? 'Menyimpan...' : 'Simpan Album'}
                         </button>
                     </div>
                 </form>
@@ -338,7 +327,7 @@ export default function TambahAlbum() {
             <AssetPickerModal
                 isOpen={isPickerOpen}
                 onClose={() => setIsPickerOpen(false)}
-                onSelect={setCoverUrl}
+                onSelect={(val) => setData('coverUrl', val)}
             />
 
             <ImageUploadModal

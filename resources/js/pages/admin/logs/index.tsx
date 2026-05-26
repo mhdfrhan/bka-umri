@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import {
     Activity,
     Search,
@@ -22,10 +21,11 @@ import {
     Info,
     CheckCircle2,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import type { Auth } from '@/types';
-import { cn } from '@/lib/utils';
 import { formatDate, formatRelativeDate } from '@/lib/format-date';
+import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
 interface ActivityLog {
     id: number;
@@ -37,87 +37,11 @@ interface ActivityLog {
     type: 'create' | 'update' | 'delete' | 'system' | 'user';
 }
 
-const SEEDED_LOGS: ActivityLog[] = [
-    {
-        id: 1,
-        time: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        user: 'Super Admin',
-        role: 'Super Admin',
-        action: 'Menerbitkan berita baru',
-        target: 'BKA UMRI Luncurkan Portal Informasi Baru Terintegrasi',
-        type: 'create',
-    },
-    {
-        id: 2,
-        time: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-        user: 'Admin BKA',
-        role: 'Admin',
-        action: 'Mengubah status pengumuman',
-        target: 'Jadwal Pengisian KRS Semester Genap 2025/2026',
-        type: 'update',
-    },
-    {
-        id: 3,
-        time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        user: 'Super Admin',
-        role: 'Super Admin',
-        action: 'Mengubah pengaturan sistem',
-        target: 'Pemberlakuan SSL & Favicon Baru',
-        type: 'system',
-    },
-    {
-        id: 4,
-        time: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        user: 'Super Admin',
-        role: 'Super Admin',
-        action: 'Membuat akun pengguna',
-        target: 'Lusi Lestari (Admin Bidang Keuangan)',
-        type: 'user',
-    },
-    {
-        id: 5,
-        time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        user: 'Admin BKA',
-        role: 'Admin',
-        action: 'Menghapus berkas lampiran kedaluwarsa',
-        target: 'Panduan Penggunaan Portal Versi 1.0 (PDF)',
-        type: 'delete',
-    },
-    {
-        id: 6,
-        time: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        user: 'Super Admin',
-        role: 'Super Admin',
-        action: 'Mengubah struktur bidang baru',
-        target: 'Bidang Kemahasiswaan & Hubungan Alumni',
-        type: 'update',
-    },
-    {
-        id: 7,
-        time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        user: 'Admin BKA',
-        role: 'Admin',
-        action: 'Mengunggah dokumentasi album baru',
-        target: 'Pelantikan Rektor Universitas Muhammadiyah Riau Periode 2026-2030',
-        type: 'create',
-    },
-    {
-        id: 8,
-        time: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        user: 'Super Admin',
-        role: 'Super Admin',
-        action: 'Menonaktifkan akses administrator',
-        target: 'Rudi Hermawan (Admin Bidang Humas)',
-        type: 'user',
-    },
-];
-
-export default function LogsIndex() {
+export default function LogsIndex({ logs }: { logs: ActivityLog[] }) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUser = auth.user;
     const isSuperAdmin = currentUser?.roles?.includes('super_admin');
 
-    const [logs, setLogs] = useState<ActivityLog[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedType, setSelectedType] = useState<string>('all');
     const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
@@ -129,36 +53,6 @@ export default function LogsIndex() {
     // Modals state
     const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
     const [detailLog, setDetailLog] = useState<ActivityLog | null>(null);
-
-    // Load logs on mount
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('bka_activity_logs');
-            if (saved) {
-                try {
-                    setLogs(JSON.parse(saved));
-                } catch {
-                    setLogs(SEEDED_LOGS);
-                    localStorage.setItem(
-                        'bka_activity_logs',
-                        JSON.stringify(SEEDED_LOGS),
-                    );
-                }
-            } else {
-                setLogs(SEEDED_LOGS);
-                localStorage.setItem(
-                    'bka_activity_logs',
-                    JSON.stringify(SEEDED_LOGS),
-                );
-            }
-        }
-    }, []);
-
-    // Helper to persist logs back
-    const saveLogs = (updatedLogs: ActivityLog[]) => {
-        setLogs(updatedLogs);
-        localStorage.setItem('bka_activity_logs', JSON.stringify(updatedLogs));
-    };
 
     // Filter Logs
     const filteredLogs = logs.filter((log) => {
@@ -215,21 +109,46 @@ export default function LogsIndex() {
 
     // Erase all logs
     const handleClearLogs = () => {
-        saveLogs([]);
-        setClearConfirmOpen(false);
-        toast.success('Seluruh log aktivitas sistem berhasil dikosongkan.');
+        router.delete('/admin/logs', {
+            onSuccess: () => {
+                setClearConfirmOpen(false);
+                toast.success(
+                    'Seluruh log aktivitas sistem berhasil dikosongkan.',
+                );
+            },
+            onError: (errors) => {
+                const message =
+                    Object.values(errors)[0] || 'Gagal mengosongkan log.';
+                toast.error(message);
+            },
+        });
     };
 
     // Seed mock logs
     const handleSeedLogs = () => {
-        saveLogs(SEEDED_LOGS);
-        toast.success('Berhasil memuat ulang data log contoh (Mock Logs).');
+        router.post(
+            '/admin/logs/seed',
+            {},
+            {
+                onSuccess: () => {
+                    toast.success(
+                        'Berhasil memuat ulang data log contoh (Mock Logs).',
+                    );
+                },
+                onError: (errors) => {
+                    const message =
+                        Object.values(errors)[0] || 'Gagal memuat log contoh.';
+                    toast.error(message);
+                },
+            },
+        );
     };
 
     // CSV Exporter
     const exportCSV = () => {
         if (logs.length === 0) {
             toast.error('Tidak ada data log untuk diekspor.');
+
             return;
         }
 
@@ -272,8 +191,10 @@ export default function LogsIndex() {
     const exportJSON = () => {
         if (logs.length === 0) {
             toast.error('Tidak ada data log untuk diekspor.');
+
             return;
         }
+
         const jsonContent =
             'data:text/json;charset=utf-8,' +
             encodeURIComponent(JSON.stringify(logs, null, 2));
@@ -645,6 +566,7 @@ export default function LogsIndex() {
                                             color,
                                             label,
                                         } = getLogIcon(log.type);
+
                                         return (
                                             <tr
                                                 key={log.id}

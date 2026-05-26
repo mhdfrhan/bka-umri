@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage, useForm } from '@inertiajs/react';
 import {
     Users,
     Edit2,
@@ -14,10 +13,11 @@ import {
     AlertCircle,
     Save,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import type { Auth } from '@/types';
-import { cn } from '@/lib/utils';
 import { logActivity } from '@/lib/logger';
+import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
 interface CMSUser {
     id: string | number;
@@ -25,36 +25,43 @@ interface CMSUser {
     email: string;
     role: 'super_admin' | 'admin';
     is_active: boolean;
-    created_at: string;
+    created_at?: string;
 }
 
-export default function UserEdit() {
+interface UserEditProps {
+    user: CMSUser;
+    isLastActiveSuperAdmin: boolean;
+    activeCount: number;
+}
+
+export default function UserEdit({
+    user,
+    isLastActiveSuperAdmin,
+    activeCount,
+}: UserEditProps) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUser = auth.user;
     const isSuperAdmin = currentUser?.roles?.includes('super_admin');
 
-    const [userId, setUserId] = useState<string | null>(null);
-    const [userList, setUserList] = useState<CMSUser[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [role, setRole] = useState<'super_admin' | 'admin'>('admin');
-    const [isActive, setIsActive] = useState(true);
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const { data, setData, put, processing, errors } = useForm({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        is_active: user.is_active,
+        password: '',
+        password_confirmation: '',
+    });
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
 
     // Password criteria check
     const criteria = {
-        length: password.length >= 8,
-        hasUpper: /[A-Z]/.test(password),
-        hasLower: /[a-z]/.test(password),
-        hasNumber: /[0-9]/.test(password),
-        hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+        length: data.password.length >= 8,
+        hasUpper: /[A-Z]/.test(data.password),
+        hasLower: /[a-z]/.test(data.password),
+        hasNumber: /[0-9]/.test(data.password),
+        hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(data.password),
     };
 
     // Calculate score
@@ -62,27 +69,33 @@ export default function UserEdit() {
 
     // Get strength label & colors
     const getStrengthInfo = () => {
-        if (password.length === 0)
+        if (data.password.length === 0) {
             return {
                 label: 'Kosong',
                 color: 'bg-neutral-200',
                 text: 'text-neutral-400',
                 width: 'w-0',
             };
-        if (score <= 2)
+        }
+
+        if (score <= 2) {
             return {
                 label: 'Lemah',
                 color: 'bg-red-500',
                 text: 'text-red-500',
                 width: 'w-1/3',
             };
-        if (score <= 4)
+        }
+
+        if (score <= 4) {
             return {
                 label: 'Sedang',
                 color: 'bg-amber-500',
                 text: 'text-amber-500',
                 width: 'w-2/3',
             };
+        }
+
         return {
             label: 'Kuat',
             color: 'bg-emerald-500',
@@ -93,155 +106,107 @@ export default function UserEdit() {
 
     const strength = getStrengthInfo();
 
-    // Parse ID from URL and Load Data
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const pathSegments = window.location.pathname.split('/');
-            // /admin/users/{id}/edit -> id is 2nd from the right
-            const idStr = pathSegments[pathSegments.length - 2];
-            setUserId(idStr);
-
-            const saved = localStorage.getItem('bka_users');
-            let loaded: CMSUser[] = [];
-            if (saved) {
-                try {
-                    loaded = JSON.parse(saved);
-                    setUserList(loaded);
-                } catch {
-                    loaded = [];
-                }
-            }
-
-            const targetUser = loaded.find(
-                (u) => String(u.id) === String(idStr),
-            );
-            if (targetUser) {
-                setName(targetUser.name);
-                setEmail(targetUser.email);
-                setRole(targetUser.role);
-                setIsActive(targetUser.is_active);
-                setIsLoading(false);
-            } else {
-                toast.error('Akun administrator tidak ditemukan!');
-                router.visit('/admin/users');
-            }
-        }
-    }, []);
-
     // Safe lock checks
     const isEditingSelf =
-        email.toLowerCase() === currentUser?.email?.toLowerCase();
-
-    // Count active super admins in the system (for last super admin checks)
-    const activeSuperAdmins = userList.filter(
-        (u) => u.role === 'super_admin' && u.is_active,
-    );
-    const isLastActiveSuperAdmin =
-        role === 'super_admin' && isActive && activeSuperAdmins.length <= 1;
+        user.email.toLowerCase() === currentUser?.email?.toLowerCase();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!name.trim()) {
+        if (!data.name.trim()) {
             toast.error('Nama lengkap wajib diisi!');
+
             return;
         }
 
-        if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+        if (!data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)) {
             toast.error('Format email tidak valid!');
-            return;
-        }
 
-        // Duplication check (excluding current editing user)
-        if (
-            userList.some(
-                (u) =>
-                    u.email.toLowerCase() === email.toLowerCase() &&
-                    String(u.id) !== String(userId),
-            )
-        ) {
-            toast.error('Email sudah terdaftar pada administrator lain!');
             return;
         }
 
         // If trying to change role or active status for self
         if (isEditingSelf) {
-            if (role !== 'super_admin') {
+            if (data.role !== 'super_admin') {
                 toast.error(
                     'Operasi Ditolak: Anda tidak dapat menurunkan tingkat peran (demote) akun Anda sendiri.',
                 );
+
                 return;
             }
-            if (!isActive) {
+
+            if (!data.is_active) {
                 toast.error(
                     'Operasi Ditolak: Anda tidak dapat menonaktifkan akun Anda sendiri.',
                 );
+
                 return;
             }
         }
 
         // If trying to demote or deactivate the last active super admin
         if (isLastActiveSuperAdmin) {
-            const originalUser = userList.find(
-                (u) => String(u.id) === String(userId),
-            );
             // Check if they changed role to admin or set is_active to false
-            if (role !== 'super_admin' || !isActive) {
+            if (data.role !== 'super_admin' || !data.is_active) {
                 toast.error(
                     'Operasi Ditolak: Harus ada minimal 1 akun Super Admin yang aktif untuk mencegah penguncian sistem (system lock-out).',
                 );
+
                 return;
             }
         }
 
+        // If capacity check is reached when activating
+        if (data.is_active && !user.is_active && activeCount >= 10) {
+            toast.error(
+                'Batas Akun Aktif Terpenuhi: Maksimal 10 akun administrator dapat aktif secara bersamaan.',
+            );
+
+            return;
+        }
+
         // If changing password, validate password criteria
-        if (password.length > 0) {
+        if (data.password.length > 0) {
             if (score < 5) {
                 toast.error(
                     'Kata sandi baru harus memenuhi seluruh kriteria keamanan yang ditetapkan!',
                 );
+
                 return;
             }
-            if (password !== confirmPassword) {
+
+            if (data.password !== data.password_confirmation) {
                 toast.error('Konfirmasi kata sandi baru tidak cocok!');
+
                 return;
             }
         }
 
-        setIsSaving(true);
+        put(`/admin/users/${user.id}`, {
+            onSuccess: () => {
+                let logMessage = `Mengubah data administrator ${data.name.trim()} (${data.email.trim()})`;
 
-        try {
-            const updatedList = userList.map((u) => {
-                if (String(u.id) === String(userId)) {
-                    return {
-                        ...u,
-                        name: name.trim(),
-                        email: email.trim().toLowerCase(),
-                        role,
-                        is_active: isActive,
-                    };
+                if (data.password.length > 0) {
+                    logMessage += ' dan melakukan pembaruan kata sandi';
                 }
-                return u;
-            });
 
-            localStorage.setItem('bka_users', JSON.stringify(updatedList));
+                logActivity(
+                    logMessage,
+                    `Peran: ${data.role === 'super_admin' ? 'Super Admin' : 'Admin'}, Status: ${data.is_active ? 'Aktif' : 'Nonaktif'}`,
+                    'update',
+                );
 
-            let logMessage = `Mengubah data administrator ${name.trim()} (${email.trim()})`;
-            if (password.length > 0) {
-                logMessage += ' dan melakukan pembaruan kata sandi';
-            }
-            logActivity(
-                logMessage,
-                `Peran: ${role === 'super_admin' ? 'Super Admin' : 'Admin'}, Status: ${isActive ? 'Aktif' : 'Nonaktif'}`,
-                'update',
-            );
-
-            toast.success(`Data administrator "${name}" berhasil diperbarui!`);
-            router.visit('/admin/users');
-        } catch {
-            toast.error('Gagal memperbarui data administrator.');
-            setIsSaving(false);
-        }
+                toast.success(
+                    `Data administrator "${data.name}" berhasil diperbarui!`,
+                );
+            },
+            onError: (errors) => {
+                const message =
+                    Object.values(errors)[0] ||
+                    'Gagal memperbarui data administrator.';
+                toast.error(message);
+            },
+        });
     };
 
     // If NOT Super Admin, render beautiful forbidden panel
@@ -286,20 +251,9 @@ export default function UserEdit() {
         );
     }
 
-    if (isLoading) {
-        return (
-            <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-3">
-                <div className="size-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
-                <p className="text-xs font-semibold text-neutral-500">
-                    Memuat profil administrator...
-                </p>
-            </div>
-        );
-    }
-
     return (
         <>
-            <Head title={`Edit Administrator: ${name}`} />
+            <Head title={`Edit Administrator: ${data.name}`} />
 
             <div className="mx-auto w-full max-w-4xl space-y-6 p-6 md:space-y-8 md:p-8">
                 {/* Header Back Link */}
@@ -344,12 +298,19 @@ export default function UserEdit() {
                                 <input
                                     type="text"
                                     placeholder="Masukkan nama lengkap staff..."
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    value={data.name}
+                                    onChange={(e) =>
+                                        setData('name', e.target.value)
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     required
-                                    disabled={isSaving}
+                                    disabled={processing}
                                 />
+                                {errors.name && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.name}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-1.5">
@@ -359,12 +320,19 @@ export default function UserEdit() {
                                 <input
                                     type="email"
                                     placeholder="contoh: staff@bka.umri.ac.id"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={data.email}
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                     required
-                                    disabled={isSaving}
+                                    disabled={processing}
                                 />
+                                {errors.email && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.email}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-1.5">
@@ -372,20 +340,17 @@ export default function UserEdit() {
                                     Tingkat Hak Akses / Peran *
                                 </label>
                                 <select
-                                    value={role}
+                                    value={data.role}
                                     onChange={(e) =>
-                                        setRole(
+                                        setData(
+                                            'role',
                                             e.target.value as
                                                 | 'super_admin'
                                                 | 'admin',
                                         )
                                     }
-                                    className={cn(
-                                        'w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600',
-                                        isEditingSelf &&
-                                            'cursor-not-allowed bg-neutral-100/50 opacity-80',
-                                    )}
-                                    disabled={isSaving || isEditingSelf}
+                                    className="w-full cursor-not-allowed rounded-xl border border-neutral-200 bg-neutral-100/50 px-4 py-3 text-xs font-medium opacity-80 outline-none"
+                                    disabled={true}
                                 >
                                     <option value="admin">
                                         Admin Konten Biasa (Mengelola Berita &
@@ -396,11 +361,21 @@ export default function UserEdit() {
                                         Pengguna)
                                     </option>
                                 </select>
-                                {isEditingSelf && (
+                                {errors.role && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.role}
+                                    </p>
+                                )}
+                                {isEditingSelf ? (
                                     <p className="mt-1 text-[10px] font-bold text-amber-600">
                                         * Anda tidak dapat menurunkan peran
                                         tingkat akses (demote) akun Anda
                                         sendiri.
+                                    </p>
+                                ) : (
+                                    <p className="mt-1 text-[10px] text-neutral-400">
+                                        * Peran administrator bersifat readonly
+                                        setelah akun dibuat.
                                     </p>
                                 )}
                             </div>
@@ -410,16 +385,21 @@ export default function UserEdit() {
                                     Status Akun Administrator *
                                 </label>
                                 <select
-                                    value={isActive ? 'aktif' : 'nonaktif'}
+                                    value={
+                                        data.is_active ? 'aktif' : 'nonaktif'
+                                    }
                                     onChange={(e) =>
-                                        setIsActive(e.target.value === 'aktif')
+                                        setData(
+                                            'is_active',
+                                            e.target.value === 'aktif',
+                                        )
                                     }
                                     className={cn(
                                         'w-full rounded-xl border border-neutral-200 bg-neutral-50/10 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600',
                                         isEditingSelf &&
                                             'cursor-not-allowed bg-neutral-100/50 opacity-80',
                                     )}
-                                    disabled={isSaving || isEditingSelf}
+                                    disabled={processing || isEditingSelf}
                                 >
                                     <option value="aktif">
                                         Aktif & Berwenang Login
@@ -428,6 +408,11 @@ export default function UserEdit() {
                                         Nonaktif (Akses Diblokir)
                                     </option>
                                 </select>
+                                {errors.is_active && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.is_active}
+                                    </p>
+                                )}
                                 {isEditingSelf && (
                                     <p className="mt-1 text-[10px] font-bold text-amber-600">
                                         * Anda tidak dapat menonaktifkan akun
@@ -461,12 +446,12 @@ export default function UserEdit() {
                                             showPassword ? 'text' : 'password'
                                         }
                                         placeholder="Masukkan kata sandi baru..."
-                                        value={password}
+                                        value={data.password}
                                         onChange={(e) =>
-                                            setPassword(e.target.value)
+                                            setData('password', e.target.value)
                                         }
                                         className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 py-3 pr-10 pl-4 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                        disabled={isSaving}
+                                        disabled={processing}
                                     />
                                     <button
                                         type="button"
@@ -482,9 +467,14 @@ export default function UserEdit() {
                                         )}
                                     </button>
                                 </div>
+                                {errors.password && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">
+                                        {errors.password}
+                                    </p>
+                                )}
                             </div>
 
-                            {password.length > 0 && (
+                            {data.password.length > 0 && (
                                 <div className="slide-in-from-top-1.5 animate-in space-y-1.5 duration-200">
                                     <label className="text-sm font-bold text-neutral-700">
                                         Konfirmasi Kata Sandi Baru *
@@ -497,15 +487,16 @@ export default function UserEdit() {
                                                     : 'password'
                                             }
                                             placeholder="Ulangi kata sandi baru..."
-                                            value={confirmPassword}
+                                            value={data.password_confirmation}
                                             onChange={(e) =>
-                                                setConfirmPassword(
+                                                setData(
+                                                    'password_confirmation',
                                                     e.target.value,
                                                 )
                                             }
                                             className="w-full rounded-xl border border-neutral-200 bg-neutral-50/10 py-3 pr-10 pl-4 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                            required={password.length > 0}
-                                            disabled={isSaving}
+                                            required={data.password.length > 0}
+                                            disabled={processing}
                                         />
                                         <button
                                             type="button"
@@ -523,13 +514,18 @@ export default function UserEdit() {
                                             )}
                                         </button>
                                     </div>
+                                    {errors.password_confirmation && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">
+                                            {errors.password_confirmation}
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>
 
-                        {/* Right Column: Password Strength Indicator Checklist (only visible if typing new password) */}
+                        {/* Right Column: Password Strength Indicator Checklist */}
                         <div className="space-y-5 md:col-span-5 md:border-l md:border-neutral-100 md:pl-8">
-                            {password.length > 0 ? (
+                            {data.password.length > 0 ? (
                                 <div className="animate-in space-y-5 duration-200 fade-in">
                                     <div className="space-y-2">
                                         <h3 className="text-sm font-bold text-neutral-800">
@@ -715,17 +711,17 @@ export default function UserEdit() {
                             </a>
                             <button
                                 type="submit"
-                                disabled={isSaving}
+                                disabled={processing}
                                 className={cn(
                                     'flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold text-white shadow-sm transition-all outline-none',
-                                    isSaving
+                                    processing
                                         ? 'cursor-not-allowed bg-neutral-200 text-neutral-400'
                                         : 'bg-[#1B5E20] hover:bg-[#145218]',
                                 )}
                             >
                                 <Save size={14} />
                                 <span>
-                                    {isSaving
+                                    {processing
                                         ? 'Menyimpan...'
                                         : 'Simpan Perubahan'}
                                 </span>

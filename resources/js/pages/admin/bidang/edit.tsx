@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     Briefcase,
@@ -17,11 +16,36 @@ import {
     ArrowDown,
     Upload,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
 
-export default function EditBidang() {
+interface EditBidangProps {
+    bidang: {
+        id: string;
+        nama: string;
+        slug: string;
+        deskripsiSingkat: string;
+        deskripsiLengkap: string;
+        bannerUrl: string;
+        kepalaBagian: {
+            nama: string;
+            jabatan: string;
+            foto: string;
+            deskripsiTugas: string;
+        };
+        anggota: { nama: string; jabatan: string }[];
+        cta?: {
+            heading: string;
+            subCta: string;
+            btnText: string;
+            btnUrl: string;
+        };
+    };
+}
+
+export default function EditBidang({ bidang }: EditBidangProps) {
     // Current Active Tab
     const [activeTab, setActiveTab] = useState<
         'info' | 'kepala' | 'anggota' | 'cta'
@@ -40,10 +64,14 @@ export default function EditBidang() {
         (target: 'banner' | 'kepala') =>
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
-            if (!file) return;
+
+            if (!file) {
+                return;
+            }
 
             if (file.size > 10 * 1024 * 1024) {
                 toast.error('File gambar melebihi batas 10MB!');
+
                 return;
             }
 
@@ -58,88 +86,48 @@ export default function EditBidang() {
         } else if (assetPickerTarget === 'kepala') {
             setKepalaFoto(url);
         }
+
         setAssetPickerTarget(null);
     };
-
-    // Core parameters state
-    const [bidangId, setBidangId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     // ────────────────────────────────────────────────────────
     // FORM STATE
     // ────────────────────────────────────────────────────────
-    const [nama, setNama] = useState('');
-    const [slug, setSlug] = useState('');
-    const [deskripsiSingkat, setDeskripsiSingkat] = useState('');
-    const [deskripsiLengkap, setDeskripsiLengkap] = useState('');
-    const [bannerUrl, setBannerUrl] = useState('');
+    const [nama, setNama] = useState(bidang.nama);
+    const [slug, setSlug] = useState(bidang.slug);
+    const [deskripsiSingkat, setDeskripsiSingkat] = useState(
+        bidang.deskripsiSingkat,
+    );
+    const [deskripsiLengkap, setDeskripsiLengkap] = useState(
+        bidang.deskripsiLengkap || '',
+    );
+    const [bannerUrl, setBannerUrl] = useState(
+        bidang.bannerUrl ||
+            'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800',
+    );
 
     // Kepala Bagian
-    const [kepalaNama, setKepalaNama] = useState('');
-    const [kepalaJabatan, setKepalaJabatan] = useState('');
-    const [kepalaFoto, setKepalaFoto] = useState('');
-    const [kepalaTugas, setKepalaTugas] = useState('');
+    const [kepalaNama, setKepalaNama] = useState(bidang.kepalaBagian.nama);
+    const [kepalaJabatan, setKepalaJabatan] = useState(
+        bidang.kepalaBagian.jabatan,
+    );
+    const [kepalaFoto, setKepalaFoto] = useState(bidang.kepalaBagian.foto);
+    const [kepalaTugas, setKepalaTugas] = useState(
+        bidang.kepalaBagian.deskripsiTugas || '',
+    );
 
     // Anggota Staf
     const [anggotaList, setAnggotaList] = useState<
         { nama: string; jabatan: string }[]
-    >([]);
+    >(bidang.anggota || []);
 
     // CTA
-    const [ctaHeading, setCtaHeading] = useState('');
-    const [ctaSub, setCtaSub] = useState('');
-    const [ctaBtnText, setCtaBtnText] = useState('');
-    const [ctaBtnUrl, setCtaBtnUrl] = useState('');
-
-    // Load data from LocalStorage on mount
-    useEffect(() => {
-        // Parse ID from current window pathname (/admin/bidang/{id}/edit)
-        const pathSegments = window.location.pathname.split('/');
-        const id = pathSegments[pathSegments.length - 2];
-
-        if (id) {
-            setBidangId(id);
-            const stored = localStorage.getItem('bka_bidangs');
-            if (stored) {
-                try {
-                    const list = JSON.parse(stored);
-                    const item = list.find((b: any) => b.id === id);
-                    if (item) {
-                        setNama(item.nama);
-                        setSlug(item.slug);
-                        setDeskripsiSingkat(item.deskripsiSingkat);
-                        setDeskripsiLengkap(item.deskripsiLengkap || '');
-                        setBannerUrl(
-                            item.bannerUrl ||
-                                'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800',
-                        );
-
-                        setKepalaNama(item.kepalaBagian.nama);
-                        setKepalaJabatan(item.kepalaBagian.jabatan);
-                        setKepalaFoto(item.kepalaBagian.foto);
-                        setKepalaTugas(item.kepalaBagian.deskripsiTugas || '');
-
-                        setAnggotaList(item.anggota || []);
-
-                        if (item.cta) {
-                            setCtaHeading(item.cta.heading || '');
-                            setCtaSub(item.cta.subCta || '');
-                            setCtaBtnText(item.cta.btnText || 'Hubungi Kami');
-                            setCtaBtnUrl(item.cta.btnUrl || '');
-                        } else {
-                            setCtaBtnText('Hubungi Kami');
-                        }
-                    } else {
-                        toast.error('Data bidang tidak ditemukan!');
-                        router.visit('/admin/bidang');
-                    }
-                } catch (err) {
-                    toast.error('Gagal memuat data!');
-                }
-            }
-        }
-        setIsLoading(false);
-    }, []);
+    const [ctaHeading, setCtaHeading] = useState(bidang.cta?.heading || '');
+    const [ctaSub, setCtaSub] = useState(bidang.cta?.subCta || '');
+    const [ctaBtnText, setCtaBtnText] = useState(
+        bidang.cta?.btnText || 'Hubungi Kami',
+    );
+    const [ctaBtnUrl, setCtaBtnUrl] = useState(bidang.cta?.btnUrl || '');
 
     // ────────────────────────────────────────────────────────
     // AUTO SLUG GENERATION
@@ -160,8 +148,10 @@ export default function EditBidang() {
     const handleAddAnggota = () => {
         if (anggotaList.length >= 20) {
             toast.warning('Maksimal 20 anggota staf divisi tercapai!');
+
             return;
         }
+
         setAnggotaList((prev) => [...prev, { nama: '', jabatan: '' }]);
     };
 
@@ -182,8 +172,13 @@ export default function EditBidang() {
     };
 
     const handleMoveAnggota = (idx: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && idx === 0) return;
-        if (direction === 'down' && idx === anggotaList.length - 1) return;
+        if (direction === 'up' && idx === 0) {
+            return;
+        }
+
+        if (direction === 'down' && idx === anggotaList.length - 1) {
+            return;
+        }
 
         const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
         const newAnggota = [...anggotaList];
@@ -203,21 +198,28 @@ export default function EditBidang() {
         if (!nama.trim()) {
             setActiveTab('info');
             toast.error('Nama Bidang wajib diisi!');
+
             return;
         }
+
         if (!slug.trim()) {
             setActiveTab('info');
             toast.error('Slug Bidang wajib diisi!');
+
             return;
         }
+
         if (!deskripsiSingkat.trim()) {
             setActiveTab('info');
             toast.error('Deskripsi Singkat wajib diisi!');
+
             return;
         }
+
         if (!kepalaNama.trim() || !kepalaJabatan.trim()) {
             setActiveTab('kepala');
             toast.error('Nama dan Jabatan Kepala Bagian wajib diisi!');
+
             return;
         }
 
@@ -226,70 +228,36 @@ export default function EditBidang() {
             (item) => item.nama.trim() && item.jabatan.trim(),
         );
 
-        // Construct update
-        const stored = localStorage.getItem('bka_bidangs');
-        let bidangsList = [];
-        if (stored) {
-            try {
-                bidangsList = JSON.parse(stored);
-            } catch (err) {
-                bidangsList = [];
-            }
-        }
-
-        // Check if slug is unique (excluding currently edited item)
-        const isSlugTaken = bidangsList.some(
-            (b: any) => b.slug === slug && b.id !== bidangId,
-        );
-        if (isSlugTaken) {
-            setActiveTab('info');
-            toast.error('Slug sudah digunakan bidang lain! Silakan sesuaikan.');
-            return;
-        }
-
-        const currentItem = bidangsList.find((b: any) => b.id === bidangId);
-        const updatedBidang = {
-            ...currentItem,
-            nama,
-            slug,
-            deskripsiSingkat,
-            deskripsiLengkap,
-            bannerUrl,
-            kepalaBagian: {
-                nama: kepalaNama,
-                jabatan: kepalaJabatan,
-                foto: kepalaFoto,
-                deskripsiTugas: kepalaTugas,
+        // Send update to backend
+        router.put(
+            `/admin/bidang/${bidang.id}`,
+            {
+                nama,
+                slug,
+                deskripsiSingkat,
+                deskripsiLengkap,
+                bannerUrl,
+                kepalaNama,
+                kepalaJabatan,
+                kepalaFoto,
+                kepalaTugas,
+                anggota: cleanedAnggota,
+                ctaHeading,
+                ctaSub,
+                ctaBtnText,
+                ctaBtnUrl,
             },
-            anggota: cleanedAnggota,
-            cta: ctaHeading.trim()
-                ? {
-                      heading: ctaHeading,
-                      subCta: ctaSub,
-                      btnText: ctaBtnText,
-                      btnUrl: ctaBtnUrl,
-                  }
-                : undefined,
-        };
-
-        const updated = bidangsList.map((b: any) =>
-            b.id === bidangId ? updatedBidang : b,
+            {
+                onSuccess: () => {
+                    toast.success(`Data bidang "${nama}" berhasil diperbarui!`);
+                },
+                onError: (errs) => {
+                    const firstError = Object.values(errs)[0];
+                    toast.error(firstError || 'Gagal memperbarui bidang.');
+                },
+            },
         );
-        localStorage.setItem('bka_bidangs', JSON.stringify(updated));
-
-        toast.success(`Data bidang "${nama}" berhasil diperbarui!`);
-
-        // Return back using Inertia routing visit
-        router.visit('/admin/bidang');
     };
-
-    if (isLoading) {
-        return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-emerald-600"></div>
-            </div>
-        );
-    }
 
     return (
         <>
@@ -318,10 +286,21 @@ export default function EditBidang() {
                             promosional.
                         </p>
                     </div>
+                    {/* Header Save Button */}
+                    <div className="flex shrink-0 items-center gap-2">
+                        <button
+                            type="submit"
+                            form="bidang-form"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all outline-none hover:bg-emerald-700 active:scale-95"
+                        >
+                            <Check className="size-4" />
+                            Simpan Perubahan
+                        </button>
+                    </div>
                 </div>
 
                 {/* Form Shell */}
-                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[28%_1fr]">
+                <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[20%_1fr]">
                     {/* Multi-Tab Navigation Panel */}
                     <div className="flex w-full shrink-0 scrollbar-none flex-row gap-1.5 overflow-x-auto pb-2 select-none lg:w-full lg:flex-col lg:pb-0">
                         <button
@@ -375,10 +354,23 @@ export default function EditBidang() {
                             <Megaphone className="size-4.5 shrink-0" />
                             <span>4. Call to Action (CTA)</span>
                         </button>
+
+                        {/* Save Button Sidebar (Desktop) */}
+                        <div className="hidden lg:mt-6 lg:block">
+                            <button
+                                type="submit"
+                                form="bidang-form"
+                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all outline-none hover:bg-emerald-700 active:scale-95"
+                            >
+                                <Check className="size-4" />
+                                Simpan Perubahan
+                            </button>
+                        </div>
                     </div>
 
                     {/* Active Form Content */}
                     <form
+                        id="bidang-form"
                         onSubmit={handleSubmit}
                         className="w-full min-w-0 space-y-6"
                     >
@@ -997,6 +989,7 @@ export default function EditBidang() {
                             'Foto kepala divisi berhasil diunggah & dioptimasi!',
                         );
                     }
+
                     setSelectedFile(null);
                     setUploadTarget(null);
                 }}

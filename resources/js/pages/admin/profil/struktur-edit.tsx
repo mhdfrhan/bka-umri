@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import {
     Users,
     Save,
@@ -13,7 +12,11 @@ import {
     X,
     User,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
+import { ImageUploadModal } from '@/components/admin/image-upload-modal';
+import { optimizeFile } from '@/lib/image-optimizer';
 
 interface AnggotaStaf {
     id: number;
@@ -21,6 +24,7 @@ interface AnggotaStaf {
     jabatan: string;
     foto?: string;
     urutan: number;
+    isNew?: boolean;
 }
 
 const DEFAULT_BAGAN =
@@ -71,10 +75,48 @@ const DEFAULT_STAFF: AnggotaStaf[] = [
     },
 ];
 
-export default function EditStruktur() {
-    const [gambarBagan, setGambarBagan] = useState('');
-    const [anggotaList, setAnggotaList] = useState<AnggotaStaf[]>([]);
-    const [isSaving, setIsSaving] = useState(false);
+interface Props {
+    gambarBagan: string | null;
+    anggotaList: AnggotaStaf[];
+}
+
+export default function EditStruktur({ gambarBagan, anggotaList }: Props) {
+    const { data, setData, put, processing } = useForm({
+        gambarBagan: gambarBagan || DEFAULT_BAGAN,
+        anggotaList:
+            anggotaList && anggotaList.length > 0 ? anggotaList : DEFAULT_STAFF,
+    });
+
+    // Modal Asset Picker
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+
+    // Direct Upload Optimization Modal State
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
+        null,
+    );
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File gambar melebihi batas 10MB!');
+            return;
+        }
+
+        setSelectedUploadFile(file);
+        setIsUploadModalOpen(true);
+        e.target.value = '';
+    };
+
+    const handleUploadConfirm = (result: { base64: string }) => {
+        setData('gambarBagan', result.base64);
+        toast.success('Gambar bagan berhasil diunggah & dioptimasi!');
+    };
 
     // Modal Staf State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,25 +126,8 @@ export default function EditStruktur() {
         jabatan: '',
         foto: '',
         urutan: 0,
+        isNew: false,
     });
-
-    // Load initial data
-    useEffect(() => {
-        const savedData = localStorage.getItem('bka_struktur_organisasi');
-        if (savedData) {
-            try {
-                const parsed = JSON.parse(savedData);
-                setGambarBagan(parsed.gambarBagan || DEFAULT_BAGAN);
-                setAnggotaList(parsed.anggotaList || DEFAULT_STAFF);
-            } catch (e) {
-                setGambarBagan(DEFAULT_BAGAN);
-                setAnggotaList(DEFAULT_STAFF);
-            }
-        } else {
-            setGambarBagan(DEFAULT_BAGAN);
-            setAnggotaList(DEFAULT_STAFF);
-        }
-    }, []);
 
     // Open Add Staf Modal
     const handleOpenAdd = () => {
@@ -111,7 +136,8 @@ export default function EditStruktur() {
             nama: '',
             jabatan: '',
             foto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
-            urutan: anggotaList.length + 1,
+            urutan: data.anggotaList.length + 1,
+            isNew: true,
         });
         setIsModalOpen(true);
     };
@@ -124,25 +150,27 @@ export default function EditStruktur() {
             jabatan: staf.jabatan,
             foto: staf.foto || '',
             urutan: staf.urutan,
+            isNew: staf.isNew || false,
         });
         setIsModalOpen(true);
     };
 
     // Handle delete staf
     const handleDeleteStaf = (id: number) => {
-        const updated = anggotaList
+        const updated = data.anggotaList
             .filter((s) => s.id !== id)
             .map((s, idx) => ({
                 ...s,
                 urutan: idx + 1,
             }));
-        setAnggotaList(updated);
-        toast.success('Anggota staf berhasil dihapus dari daftar sementara.');
+        setData('anggotaList', updated);
+        toast.success('Anggota staf berhasil dihapus dari daftar.');
     };
 
     // Handle Save Staf Form (Modal)
     const handleSaveStafForm = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!stafForm.nama.trim() || !stafForm.jabatan.trim()) {
             toast.error('Nama dan Jabatan staf wajib diisi!');
             return;
@@ -150,73 +178,75 @@ export default function EditStruktur() {
 
         if (editingStafId !== null) {
             // Edit
-            const updated = anggotaList.map((s) =>
+            const updated = data.anggotaList.map((s) =>
                 s.id === editingStafId ? { ...s, ...stafForm } : s,
             );
-            setAnggotaList(updated);
+            setData('anggotaList', updated);
             toast.success('Data staf berhasil diperbarui!');
         } else {
             // Create
             const nextId =
-                anggotaList.length > 0
-                    ? Math.max(...anggotaList.map((s) => s.id)) + 1
+                data.anggotaList.length > 0
+                    ? Math.max(...data.anggotaList.map((s) => s.id)) + 1
                     : 1;
             const newStaf: AnggotaStaf = {
                 id: nextId,
-                ...stafForm,
-                urutan: anggotaList.length + 1,
+                nama: stafForm.nama,
+                jabatan: stafForm.jabatan,
+                foto: stafForm.foto,
+                urutan: data.anggotaList.length + 1,
+                isNew: true,
             };
-            setAnggotaList([...anggotaList, newStaf]);
-            toast.success('Staf baru ditambahkan ke daftar sementara!');
+            setData('anggotaList', [...data.anggotaList, newStaf]);
+            toast.success('Staf baru ditambahkan!');
         }
+
         setIsModalOpen(false);
     };
 
     // Sorting/Reordering Staf
     const handleMoveUp = (index: number) => {
-        if (index === 0) return;
-        const items = [...anggotaList];
+        if (index === 0) {
+            return;
+        }
+
+        const items = [...data.anggotaList];
         const temp = items[index];
         items[index] = items[index - 1];
         items[index - 1] = temp;
 
         const updated = items.map((s, idx) => ({ ...s, urutan: idx + 1 }));
-        setAnggotaList(updated);
+        setData('anggotaList', updated);
     };
 
     const handleMoveDown = (index: number) => {
-        if (index === anggotaList.length - 1) return;
-        const items = [...anggotaList];
+        if (index === data.anggotaList.length - 1) {
+            return;
+        }
+
+        const items = [...data.anggotaList];
         const temp = items[index];
         items[index] = items[index + 1];
         items[index + 1] = temp;
 
         const updated = items.map((s, idx) => ({ ...s, urutan: idx + 1 }));
-        setAnggotaList(updated);
+        setData('anggotaList', updated);
     };
 
-    // Handle Save All to LocalStorage
+    // Handle Save All to Backend
     const handleSaveAll = (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSaving(true);
 
-        try {
-            const dataToSave = {
-                gambarBagan,
-                anggotaList,
-            };
-            localStorage.setItem(
-                'bka_struktur_organisasi',
-                JSON.stringify(dataToSave),
-            );
-            toast.success(
-                'Bagan & daftar personalia BKA berhasil disimpan secara lokal!',
-            );
-        } catch (error) {
-            toast.error('Gagal menyimpan struktur organisasi.');
-        } finally {
-            setIsSaving(false);
-        }
+        put('/admin/profil/struktur', {
+            onSuccess: () => {
+                toast.success(
+                    'Bagan & daftar personalia BKA berhasil disimpan!',
+                );
+            },
+            onError: () => {
+                toast.error('Gagal menyimpan struktur organisasi.');
+            },
+        });
     };
 
     return (
@@ -282,11 +312,13 @@ export default function EditStruktur() {
                         <div className="border-t border-neutral-200 pt-4">
                             <button
                                 type="submit"
-                                disabled={isSaving}
+                                disabled={processing}
                                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
                             >
                                 <Save className="size-4.5" />
-                                {isSaving ? 'Menyimpan...' : 'Simpan Struktur'}
+                                {processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan Struktur'}
                             </button>
                         </div>
                     </div>
@@ -307,16 +339,43 @@ export default function EditStruktur() {
                                     <label className="text-sm font-semibold text-neutral-700">
                                         URL Gambar Bagan
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={gambarBagan}
-                                        onChange={(e) =>
-                                            setGambarBagan(e.target.value)
-                                        }
-                                        placeholder="Tulis tautan gambar diagram (PNG/JPG)..."
-                                        className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                    />
-                                    <span className="block text-[11px] leading-relaxed text-neutral-400">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={data.gambarBagan}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'gambarBagan',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Tulis tautan gambar diagram (PNG/JPG)..."
+                                            className="flex-1 rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setIsPickerOpen(true)
+                                            }
+                                            className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-100"
+                                        >
+                                            Pilih dari Aset
+                                        </button>
+                                    </div>
+                                    <div className="mt-3 space-y-3 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/50 p-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-neutral-600">
+                                                Unggah Gambar Langsung
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            className="w-full text-xs text-neutral-500 file:mr-3 file:rounded-xl file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-emerald-700 file:hover:bg-emerald-100"
+                                        />
+                                    </div>
+                                    <span className="mt-2 block text-[11px] leading-relaxed text-neutral-400">
                                         Rekomendasi rasio gambar lebar
                                         (landscape), background
                                         putih/transparan, resolusi minimal
@@ -326,9 +385,9 @@ export default function EditStruktur() {
 
                                 {/* Preview Bagan */}
                                 <div className="flex min-h-[160px] items-center justify-center overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50/50 p-3">
-                                    {gambarBagan ? (
+                                    {data.gambarBagan ? (
                                         <img
-                                            src={gambarBagan}
+                                            src={data.gambarBagan}
                                             alt="Preview Bagan"
                                             className="max-h-[150px] rounded-lg object-contain shadow-xs"
                                             onError={(e) => {
@@ -357,7 +416,7 @@ export default function EditStruktur() {
                                     <Users className="size-5 text-emerald-600" />
                                     <h3 className="text-base font-bold tracking-tight text-neutral-800">
                                         Daftar Anggota Staf (
-                                        {anggotaList.length})
+                                        {data.anggotaList.length})
                                     </h3>
                                 </div>
                                 <button
@@ -393,11 +452,11 @@ export default function EditStruktur() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-neutral-100 text-sm text-neutral-800">
-                                        {anggotaList
+                                        {data.anggotaList
                                             .sort((a, b) => a.urutan - b.urutan)
                                             .map((staf, index) => (
                                                 <tr
-                                                    key={staf.id}
+                                                    key={staf.id || index}
                                                     className="group hover:bg-neutral-50/40"
                                                 >
                                                     <td className="py-3 pl-3">
@@ -447,7 +506,9 @@ export default function EditStruktur() {
                                                                 type="button"
                                                                 disabled={
                                                                     index ===
-                                                                    anggotaList.length -
+                                                                    data
+                                                                        .anggotaList
+                                                                        .length -
                                                                         1
                                                                 }
                                                                 onClick={() =>
@@ -490,7 +551,7 @@ export default function EditStruktur() {
                                                 </tr>
                                             ))}
 
-                                        {anggotaList.length === 0 && (
+                                        {data.anggotaList.length === 0 && (
                                             <tr>
                                                 <td
                                                     colSpan={5}
@@ -582,20 +643,52 @@ export default function EditStruktur() {
 
                             <div className="space-y-1.5">
                                 <label className="text-sm font-semibold text-neutral-700">
-                                    URL Foto Profil (Rasio 1:1)
+                                    Foto Profil (Rasio 1:1)
                                 </label>
                                 <input
-                                    type="text"
-                                    value={stafForm.foto}
-                                    onChange={(e) =>
-                                        setStafForm((prev) => ({
-                                            ...prev,
-                                            foto: e.target.value,
-                                        }))
-                                    }
-                                    placeholder="Contoh: https://images.unsplash.com/..."
-                                    className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-sm text-neutral-600 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            if (file.size > 2 * 1024 * 1024) {
+                                                toast.error(
+                                                    'Ukuran gambar maksimal 2 MB.',
+                                                );
+                                                return;
+                                            }
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                setStafForm((prev) => ({
+                                                    ...prev,
+                                                    foto: reader.result as string,
+                                                }));
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                    className="w-full text-xs text-neutral-500 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100"
                                 />
+                                <div className="mt-2">
+                                    <input
+                                        type="text"
+                                        value={
+                                            stafForm.foto.startsWith(
+                                                'data:image/',
+                                            )
+                                                ? ''
+                                                : stafForm.foto
+                                        }
+                                        onChange={(e) =>
+                                            setStafForm((prev) => ({
+                                                ...prev,
+                                                foto: e.target.value,
+                                            }))
+                                        }
+                                        placeholder="Atau masukkan URL foto..."
+                                        className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-xs text-neutral-500 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                    />
+                                </div>
                             </div>
 
                             {/* Foto preview in modal */}
@@ -638,6 +731,22 @@ export default function EditStruktur() {
                     </div>
                 </div>
             )}
+            {/* Asset Picker Modal */}
+            <AssetPickerModal
+                isOpen={isPickerOpen}
+                onClose={() => setIsPickerOpen(false)}
+                onSelect={(url) => setData('gambarBagan', url)}
+            />
+
+            <ImageUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => {
+                    setIsUploadModalOpen(false);
+                    setSelectedUploadFile(null);
+                }}
+                file={selectedUploadFile}
+                onConfirm={handleUploadConfirm}
+            />
         </>
     );
 }

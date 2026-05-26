@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Megaphone,
     Search,
@@ -12,6 +11,7 @@ import {
     AlertCircle,
     Star,
 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface AnnouncementItem {
@@ -33,51 +33,13 @@ interface AnnouncementItem {
     }>;
 }
 
-const INITIAL_ANNOUNCEMENTS: AnnouncementItem[] = [
-    {
-        id: 1,
-        slug: 'jadwal-registrasi-keuangan-semester-ganjil-2026',
-        title: 'Jadwal & Prosedur Registrasi Keuangan Semester Ganjil TA 2026/2027',
-        excerpt:
-            'Diberitahukan kepada seluruh mahasiswa Universitas Muhammadiyah Riau bahwa registrasi keuangan semester ganjil dimulai tanggal 1 Juni s.d. 30 Juli 2026.',
-        content:
-            '<p>Diberitahukan kepada seluruh mahasiswa Universitas Muhammadiyah Riau bahwa registrasi keuangan semester ganjil dimulai tanggal 1 Juni s.d. 30 Juli 2026. Pembayaran dapat diangsur sesuai dengan ketentuan administrasi BKA.</p>',
-        date: '2026-05-22',
-        author: 'Admin BKA',
-        status: 'terpublikasi',
-        isPenting: true,
-    },
-    {
-        id: 2,
-        slug: 'panduan-pembayaran-va-mahasiswa',
-        title: 'Panduan Pembayaran Uang Kuliah Melalui Virtual Account (VA) Bank Mitra',
-        excerpt:
-            'Simak tata cara lengkap pembayaran SPP via m-banking dan ATM untuk Bank Syariah Indonesia (BSI), Bank Muamalat, Bank Bukopin, dan Bank Riau Kepri.',
-        content:
-            '<p>Simak tata cara lengkap pembayaran SPP via m-banking dan ATM untuk Bank Syariah Indonesia (BSI), Bank Muamalat, Bank Bukopin, dan Bank Riau Kepri.</p>',
-        date: '2026-05-18',
-        author: 'Bagian Keuangan',
-        status: 'terpublikasi',
-        isPenting: false,
-    },
-    {
-        id: 3,
-        slug: 'kebijakan-keringanan-biaya-kuliah-2026',
-        title: 'Pengajuan Dispensasi dan Keringanan Pembayaran SPP Mahasiswa Aktif',
-        excerpt:
-            'BKA membuka pendaftaran berkas dispensasi keringanan pembayaran kuliah hingga 15 Juni 2026 bagi mahasiswa yang memenuhi kriteria berkas pendukung.',
-        content:
-            '<p>BKA membuka pendaftaran berkas dispensasi keringanan pembayaran kuliah hingga 15 Juni 2026 bagi mahasiswa yang memenuhi kriteria berkas pendukung.</p>',
-        date: '2026-05-12',
-        author: 'Admin BKA',
-        status: 'terpublikasi',
-        isPenting: true,
-    },
-];
+interface PengumumanIndexProps {
+    announcements: AnnouncementItem[];
+}
 
-export default function PengumumanIndex() {
-    const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
-
+export default function PengumumanIndex({
+    announcements = [],
+}: PengumumanIndexProps) {
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('Semua');
@@ -90,36 +52,25 @@ export default function PengumumanIndex() {
     // Delete Modal
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
-    useEffect(() => {
-        const saved = localStorage.getItem('bka_pengumuman');
-        if (saved) {
-            try {
-                setAnnouncements(JSON.parse(saved));
-            } catch {
-                setAnnouncements(INITIAL_ANNOUNCEMENTS);
-            }
-        } else {
-            setAnnouncements(INITIAL_ANNOUNCEMENTS);
-            localStorage.setItem(
-                'bka_pengumuman',
-                JSON.stringify(INITIAL_ANNOUNCEMENTS),
-            );
-        }
-    }, []);
-
-    const saveAnnouncements = (updatedList: AnnouncementItem[]) => {
-        setAnnouncements(updatedList);
-        localStorage.setItem('bka_pengumuman', JSON.stringify(updatedList));
-    };
-
     // Confirm Delete
     const handleConfirmDelete = () => {
-        if (deletingId === null) return;
+        if (deletingId === null) {
+            return;
+        }
+
         const target = announcements.find((a) => a.id === deletingId);
-        const updated = announcements.filter((a) => a.id !== deletingId);
-        saveAnnouncements(updated);
-        setDeletingId(null);
-        toast.success(`Pengumuman "${target?.title}" berhasil dihapus.`);
+        router.delete(`/admin/pengumuman/${deletingId}`, {
+            onSuccess: () => {
+                setDeletingId(null);
+                toast.success(
+                    `Pengumuman "${target?.title}" berhasil dihapus.`,
+                );
+            },
+            onError: () => {
+                setDeletingId(null);
+                toast.error('Gagal menghapus pengumuman.');
+            },
+        });
     };
 
     // Filter Logic
@@ -130,6 +81,7 @@ export default function PengumumanIndex() {
         const matchesStatus =
             filterStatus === 'Semua' || item.status === filterStatus;
         const matchesPenting = !filterPenting || item.isPenting;
+
         return matchesSearch && matchesStatus && matchesPenting;
     });
 

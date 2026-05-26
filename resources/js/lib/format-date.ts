@@ -5,9 +5,11 @@ export function formatDate(dateString: string | Date): string {
 
     try {
         const date = new Date(dateString);
+
         if (isNaN(date.getTime())) {
             return String(dateString);
         }
+
         return new Intl.DateTimeFormat('id-ID', {
             day: 'numeric',
             month: 'long',

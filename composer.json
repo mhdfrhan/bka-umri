@@ -10,13 +10,18 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "ezyang/htmlpurifier": "*",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.7",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "spatie/laravel-permission": "*"
+        "spatie/laravel-activitylog": "*",
+        "spatie/laravel-image-optimizer": "*",
+        "spatie/laravel-medialibrary": "*",
+        "spatie/laravel-permission": "*",
+        "spatie/laravel-sluggable": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

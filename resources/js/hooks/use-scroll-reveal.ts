@@ -32,7 +32,9 @@ export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
                 observerRef.current = null;
             }
 
-            if (!element) return;
+            if (!element) {
+                return;
+            }
 
             const observer = new IntersectionObserver(
                 (entries) => {
@@ -84,20 +86,24 @@ export function useScrollRevealChildren<T extends HTMLElement = HTMLDivElement>(
                 observerRef.current.disconnect();
                 observerRef.current = null;
             }
+
             if (mutationObserverRef.current) {
                 mutationObserverRef.current.disconnect();
                 mutationObserverRef.current = null;
             }
 
-            if (!container) return;
+            if (!container) {
+                return;
+            }
 
-            let observedElements = new Set<Element>();
+            const observedElements = new Set<Element>();
 
             const observer = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
                         if (entry.isIntersecting) {
                             entry.target.classList.add('bka-visible');
+
                             if (once) {
                                 observer.unobserve(entry.target);
                                 observedElements.delete(entry.target);

@@ -50,6 +50,12 @@ const navItems = [
 ];
 
 export default function PublicNavbar() {
+    const { pengaturan } = usePage().props as any;
+    const logoUrl = pengaturan?.logo_base64 || '/assets/logo-bka.png';
+    const jamOperasional =
+        pengaturan?.jam_operasional ||
+        'Sen - Jum : 08.00 - 16.00 WIB\nSabtu : 08.00 - 13.00 WIB';
+
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -108,15 +114,14 @@ export default function PublicNavbar() {
                     <div className="flex items-center gap-1.5">
                         <MapPin size={13} className="text-[#C8A000]" />
                         <span>
-                            Lt.1 Gedung Rektorat, Jl. T. Tambusai, Pekanbaru
+                            {pengaturan?.alamat
+                                ? pengaturan.alamat.split('\n')[0]
+                                : 'Lt.1 Gedung Rektorat, Jl. T. Tambusai, Pekanbaru'}
                         </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <Clock size={13} className="text-[#C8A000]" />
-                        <span>
-                            Senin - Jum'at : 08:00 - 16:00 | Sabtu : 08.00 -
-                            13.00
-                        </span>
+                        <span>{jamOperasional.replace(/\n/g, ' | ')}</span>
                     </div>
                 </div>
             </div>
@@ -133,7 +138,7 @@ export default function PublicNavbar() {
                             className="flex shrink-0 items-center transition-transform duration-200 hover:scale-101"
                         >
                             <img
-                                src="/assets/logo-bka.png"
+                                src={logoUrl}
                                 alt="Logo BKA UMRI"
                                 className="h-12 w-auto object-contain"
                             />
@@ -367,7 +372,7 @@ export default function PublicNavbar() {
                 <div className="flex flex-col gap-6">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                         <img
-                            src="/assets/logo-bka.png"
+                            src={logoUrl}
                             alt="Logo BKA UMRI"
                             style={{ height: '42px', width: 'auto' }}
                         />
