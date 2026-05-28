@@ -402,7 +402,7 @@ export default function IndexBidang({
                                             <div className="flex items-center justify-end gap-2">
                                                 {/* Preview Link */}
                                                 <a
-                                                    href={`/profil/tentang-kami#${item.slug}`}
+                                                    href={`/bidang/${item.slug}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="rounded-lg border border-neutral-200 p-2 text-neutral-600 outline-none hover:bg-neutral-100/80"

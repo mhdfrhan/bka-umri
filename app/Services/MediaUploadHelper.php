@@ -115,13 +115,9 @@ class MediaUploadHelper
 
             if ($localPath) {
                 try {
-                    $filename = basename($localPath);
-                    $media = $model->addMediaFromString('')
-                        ->usingFileName($filename)
+                    $model->addMedia($localPath)
+                        ->preservingOriginal()
                         ->toMediaCollection($collection);
-                    
-                    $media->setCustomProperty('original_url', $data);
-                    $media->save();
                     return true;
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::warning("Failed to link local media: {$localPath}", [
@@ -171,4 +167,85 @@ class MediaUploadHelper
         // Otherwise, if it starts with http or /storage/, it is a new upload/selection!
         return str_starts_with($data, 'http') || str_starts_with($data, '/storage/');
     }
+
+    /**
+     * Extract all image URLs from a block of HTML content.
+     *
+     * @param string $content
+     * @return array
+     */
+    public static function extractImageUrls(string $content): array
+    {
+        if (empty($content)) {
+            return [];
+        }
+        
+        preg_match_all('/<img[^>]+src="([^">]+)"/i', $content, $matches);
+        return $matches[1] ?? [];
+    }
+
+    /**
+     * Delete an asset / media by its public URL.
+     *
+     * @param string $url
+     * @return void
+     */
+    public static function deleteMediaByUrl(string $url): void
+    {
+        // Remove host from URL to get path
+        $path = parse_url($url, PHP_URL_PATH);
+        if (!$path) return;
+
+        // Try to match standard Spatie media path structure: /storage/{id}/{filename} or /storage/media/{id}/{filename}
+        if (preg_match('/\/storage\/(?:media\/)?([0-9]+)\//', $path, $matches)) {
+            $mediaId = $matches[1];
+            $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId);
+            if ($media) {
+                $model = $media->model;
+                
+                // Delete Spatie media file and DB record
+                $media->delete();
+                
+                // If parent model is AsetMedia, delete the model instance too
+                if ($model instanceof \App\Models\AsetMedia) {
+                    $model->delete();
+                }
+            }
+        }
+    }
+
+    /**
+     * Compare old HTML and new HTML, and delete any local storage images that were removed.
+     *
+     * @param string|null $oldContent
+     * @param string|null $newContent
+     * @return void
+     */
+    public static function cleanupContentImages(?string $oldContent, ?string $newContent): void
+    {
+        $oldUrls = static::extractImageUrls($oldContent ?? '');
+        $newUrls = static::extractImageUrls($newContent ?? '');
+        
+        // Find URLs that are in oldContent but no longer in newContent
+        $removedUrls = array_diff($oldUrls, $newUrls);
+        
+        foreach ($removedUrls as $url) {
+            static::deleteMediaByUrl($url);
+        }
+    }
+
+    /**
+     * Delete all local storage images embedded inside an HTML content block (e.g. when deleting a post).
+     *
+     * @param string|null $content
+     * @return void
+     */
+    public static function deleteAllContentImages(?string $content): void
+    {
+        $urls = static::extractImageUrls($content ?? '');
+        foreach ($urls as $url) {
+            static::deleteMediaByUrl($url);
+        }
+    }
 }
+

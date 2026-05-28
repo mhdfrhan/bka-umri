@@ -178,4 +178,21 @@ class AsetController extends Controller
             'url' => $url,
         ]);
     }
+
+    /**
+     * Delete an image uploaded via the rich text editor, by its URL.
+     */
+    public function editorImageDelete(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|string',
+        ]);
+
+        try {
+            MediaUploadHelper::deleteMediaByUrl($request->url);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

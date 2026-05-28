@@ -7,6 +7,7 @@ import {
     Phone,
     Youtube,
     Twitter,
+    ArrowUp,
 } from 'lucide-react';
 
 const quickLinks = [
@@ -103,14 +104,14 @@ export default function PublicFooter() {
     return (
         <footer
             id="public-footer"
-            className="bka-noise-overlay relative overflow-hidden"
+            className="bka-noise-overlay relative"
             style={{
                 backgroundColor: '#081D09',
                 color: '#ffffff',
             }}
         >
             {/* Top CTA Row */}
-            <div className="border-b border-white/10 py-12">
+            <div className="border-b border-white/10 py-12 relative">
                 <div className="bka-container flex flex-col items-center justify-between gap-8 md:flex-row">
                     <div>
                         <h2 className="mb-2 font-sans text-xl font-extrabold tracking-tight text-white uppercase lg:text-2xl">
@@ -129,6 +130,20 @@ export default function PublicFooter() {
                         Hubungi Kami
                     </a>
                 </div>
+
+                {/* back to top */}
+                <button
+                    onClick={() =>
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }
+                    className="group absolute -top-6 right-10 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#C8A000] to-[#E8C840] text-white shadow-lg shadow-amber-950/20 ring-4 ring-[#081D09] transition-all duration-300 hover:-translate-y-1 hover:from-[#E8C840] hover:to-[#FFD850] hover:shadow-xl hover:shadow-amber-500/30 hover:ring-[#C8A000]/30"
+                    aria-label="Kembali ke atas"
+                >
+                    <span className="relative flex h-5 w-5 overflow-hidden flex-col items-center justify-center">
+                        <ArrowUp size={18} className="transition-all duration-300 ease-in-out transform group-hover:-translate-y-8" />
+                        <ArrowUp size={18} className="absolute transition-all duration-300 ease-in-out transform translate-y-8 group-hover:translate-y-0" />
+                    </span>
+                </button>
             </div>
 
             <div

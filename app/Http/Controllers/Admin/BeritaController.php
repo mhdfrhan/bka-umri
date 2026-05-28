@@ -187,6 +187,8 @@ class BeritaController extends Controller
                 }
             }
 
+            MediaUploadHelper::cleanupContentImages($berita->isi, $request->isi);
+
             $berita->update([
                 'judul' => $request->judul,
                 'slug' => $request->slug,
@@ -218,7 +220,14 @@ class BeritaController extends Controller
     public function destroy($id)
     {
         $berita = Berita::findOrFail($id);
-        $berita->delete();
+        
+        DB::transaction(function () use ($berita) {
+            // Delete all embedded images in rich text content
+            MediaUploadHelper::deleteAllContentImages($berita->isi);
+            
+            // Force delete the model to purge Spatie attachments & record
+            $berita->forceDelete();
+        });
 
         cache()->forget('beranda_data');
         cache()->forget('kategori_beritas');

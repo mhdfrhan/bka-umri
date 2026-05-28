@@ -761,3 +761,19 @@
 .dropdown-bounce-animation[data-state='closed'] {
     animation: dropdown-bounce-out 180ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
+
+/* ─── Tiptap/ProseMirror selected image styling ─── */
+.ProseMirror img {
+    cursor: pointer;
+    transition: outline 0.15s ease-in-out, box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.ProseMirror img:hover {
+    outline: 2px solid rgba(10, 108, 50, 0.4);
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+    outline: 3px solid #0a6c32;
+    box-shadow: 0 0 0 6px rgba(10, 108, 50, 0.25);
+    transform: scale(0.995);
+}

@@ -28,7 +28,7 @@ class BidangController extends Controller
                     'nama' => $bid->nama,
                     'slug' => $bid->slug,
                     'deskripsiSingkat' => $bid->deskripsi_singkat,
-                    'deskripsiLengkap' => $bid->deskripsi_lengkap,
+                    'deskripsiLengkap' => html_entity_decode($bid->deskripsi_lengkap),
                     'urutan' => (int)$bid->urutan,
                     'kepalaBagian' => $bid->kepalaBagian ? [
                         'nama' => $bid->kepalaBagian->nama,
@@ -45,6 +45,8 @@ class BidangController extends Controller
                         return [
                             'nama' => $ang->nama,
                             'jabatan' => $ang->jabatan,
+                            'foto' => $ang->getFirstMediaUrl('foto') ?: '',
+                            'media_sosial' => $ang->media_sosial ?? [],
                         ];
                     })->toArray(),
                     'cta' => $bid->cta_heading ? [
@@ -88,9 +90,15 @@ class BidangController extends Controller
             'kepalaJabatan' => 'required|string|max:100',
             'kepalaFoto' => 'required|string',
             'kepalaTugas' => 'nullable|string|max:500',
+            'kepalaWa' => 'nullable|string|max:200',
+            'kepalaEmail' => 'nullable|string|max:200',
+            'kepalaLinkedin' => 'nullable|string|max:300',
+            'kepalaInstagram' => 'nullable|string|max:300',
             'anggota' => 'present|array|max:20',
             'anggota.*.nama' => 'required_with:anggota.*.jabatan|string|max:100',
             'anggota.*.jabatan' => 'required_with:anggota.*.nama|string|max:100',
+            'anggota.*.foto' => 'nullable|string',
+            'anggota.*.media_sosial' => 'nullable|array',
             'ctaHeading' => 'nullable|string|max:100',
             'ctaSub' => 'nullable|string|max:100',
             'ctaBtnText' => 'nullable|string|max:30',
@@ -117,11 +125,49 @@ class BidangController extends Controller
                 MediaUploadHelper::addFromDataOrUrl($bidang, $request->bannerUrl, 'banner', 'bidang-banner');
             }
 
+            // Format Kepala Bagian Media Sosial
+            $kepalaMediaSosial = [];
+            if (!empty($request->kepalaWa)) {
+                $wa = $request->kepalaWa;
+                if (!str_starts_with($wa, 'http')) {
+                    $clean = preg_replace('/[^0-9+]/', '', $wa);
+                    if (str_starts_with($clean, '0')) {
+                        $clean = '62' . substr($clean, 1);
+                    } else {
+                        $clean = ltrim($clean, '+');
+                    }
+                    $wa = 'https://wa.me/' . $clean;
+                }
+                $kepalaMediaSosial[] = ['platform' => 'whatsapp', 'url' => $wa];
+            }
+            if (!empty($request->kepalaEmail)) {
+                $email = $request->kepalaEmail;
+                if (!str_starts_with($email, 'mailto:')) {
+                    $email = 'mailto:' . $email;
+                }
+                $kepalaMediaSosial[] = ['platform' => 'email', 'url' => $email];
+            }
+            if (!empty($request->kepalaLinkedin)) {
+                $kepalaMediaSosial[] = ['platform' => 'linkedin', 'url' => $request->kepalaLinkedin];
+            }
+            if (!empty($request->kepalaInstagram)) {
+                $ig = trim($request->kepalaInstagram);
+                if (str_starts_with($ig, '@')) {
+                    $ig = substr($ig, 1);
+                }
+                if (str_contains($ig, 'instagram.com/')) {
+                    $parts = explode('instagram.com/', $ig);
+                    $ig = rtrim(end($parts), '/');
+                }
+                $kepalaMediaSosial[] = ['platform' => 'instagram', 'url' => 'https://instagram.com/' . $ig];
+            }
+
             // Save Kepala Bagian
             $kepala = $bidang->kepalaBagian()->create([
                 'nama' => $request->kepalaNama,
                 'jabatan' => $request->kepalaJabatan,
                 'deskripsi_tugas' => $request->kepalaTugas,
+                'media_sosial' => $kepalaMediaSosial,
             ]);
 
             // Save Kepala Bagian Foto Media
@@ -133,11 +179,16 @@ class BidangController extends Controller
             if (!empty($request->anggota)) {
                 foreach ($request->anggota as $index => $ang) {
                     if (!empty($ang['nama']) && !empty($ang['jabatan'])) {
-                        $bidang->anggotas()->create([
+                        $anggota = $bidang->anggotas()->create([
                             'nama' => $ang['nama'],
                             'jabatan' => $ang['jabatan'],
                             'urutan' => $index + 1,
+                            'media_sosial' => $ang['media_sosial'] ?? [],
                         ]);
+
+                        if (!empty($ang['foto'])) {
+                            MediaUploadHelper::addFromDataOrUrl($anggota, $ang['foto'], 'foto', 'anggota-staf');
+                        }
                     }
                 }
             }
@@ -158,23 +209,27 @@ class BidangController extends Controller
             'nama' => $bid->nama,
             'slug' => $bid->slug,
             'deskripsiSingkat' => $bid->deskripsi_singkat,
-            'deskripsiLengkap' => $bid->deskripsi_lengkap,
+            'deskripsiLengkap' => html_entity_decode($bid->deskripsi_lengkap),
             'bannerUrl' => $bid->getFirstMediaUrl('banner') ?: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800',
             'kepalaBagian' => $bid->kepalaBagian ? [
                 'nama' => $bid->kepalaBagian->nama,
                 'jabatan' => $bid->kepalaBagian->jabatan,
                 'foto' => $bid->kepalaBagian->getFirstMediaUrl('foto') ?: 'https://smart.umri.ac.id/application/modules/personalia/assets/uploads/foto/default.jpg',
                 'deskripsiTugas' => $bid->kepalaBagian->deskripsi_tugas ?? '',
+                'media_sosial' => $bid->kepalaBagian->media_sosial ?? [],
             ] : [
                 'nama' => '',
                 'jabatan' => '',
                 'foto' => 'https://smart.umri.ac.id/application/modules/personalia/assets/uploads/foto/default.jpg',
                 'deskripsiTugas' => '',
+                'media_sosial' => [],
             ],
             'anggota' => $bid->anggotas->map(function ($ang) {
                 return [
                     'nama' => $ang->nama,
                     'jabatan' => $ang->jabatan,
+                    'foto' => $ang->getFirstMediaUrl('foto') ?: '',
+                    'media_sosial' => $ang->media_sosial ?? [],
                 ];
             })->toArray(),
             'cta' => $bid->cta_heading ? [
@@ -207,9 +262,15 @@ class BidangController extends Controller
             'kepalaJabatan' => 'required|string|max:100',
             'kepalaFoto' => 'required|string',
             'kepalaTugas' => 'nullable|string|max:500',
+            'kepalaWa' => 'nullable|string|max:200',
+            'kepalaEmail' => 'nullable|string|max:200',
+            'kepalaLinkedin' => 'nullable|string|max:300',
+            'kepalaInstagram' => 'nullable|string|max:300',
             'anggota' => 'present|array|max:20',
             'anggota.*.nama' => 'required_with:anggota.*.jabatan|string|max:100',
             'anggota.*.jabatan' => 'required_with:anggota.*.nama|string|max:100',
+            'anggota.*.foto' => 'nullable|string',
+            'anggota.*.media_sosial' => 'nullable|array',
             'ctaHeading' => 'nullable|string|max:100',
             'ctaSub' => 'nullable|string|max:100',
             'ctaBtnText' => 'nullable|string|max:30',
@@ -238,6 +299,43 @@ class BidangController extends Controller
                 }
             }
 
+            // Format Kepala Bagian Media Sosial
+            $kepalaMediaSosial = [];
+            if (!empty($request->kepalaWa)) {
+                $wa = $request->kepalaWa;
+                if (!str_starts_with($wa, 'http')) {
+                    $clean = preg_replace('/[^0-9+]/', '', $wa);
+                    if (str_starts_with($clean, '0')) {
+                        $clean = '62' . substr($clean, 1);
+                    } else {
+                        $clean = ltrim($clean, '+');
+                    }
+                    $wa = 'https://wa.me/' . $clean;
+                }
+                $kepalaMediaSosial[] = ['platform' => 'whatsapp', 'url' => $wa];
+            }
+            if (!empty($request->kepalaEmail)) {
+                $email = $request->kepalaEmail;
+                if (!str_starts_with($email, 'mailto:')) {
+                    $email = 'mailto:' . $email;
+                }
+                $kepalaMediaSosial[] = ['platform' => 'email', 'url' => $email];
+            }
+            if (!empty($request->kepalaLinkedin)) {
+                $kepalaMediaSosial[] = ['platform' => 'linkedin', 'url' => $request->kepalaLinkedin];
+            }
+            if (!empty($request->kepalaInstagram)) {
+                $ig = trim($request->kepalaInstagram);
+                if (str_starts_with($ig, '@')) {
+                    $ig = substr($ig, 1);
+                }
+                if (str_contains($ig, 'instagram.com/')) {
+                    $parts = explode('instagram.com/', $ig);
+                    $ig = rtrim(end($parts), '/');
+                }
+                $kepalaMediaSosial[] = ['platform' => 'instagram', 'url' => 'https://instagram.com/' . $ig];
+            }
+
             // Update Kepala Bagian
             $kepala = $bidang->kepalaBagian()->updateOrCreate(
                 ['bidang_id' => $bidang->id],
@@ -245,6 +343,7 @@ class BidangController extends Controller
                     'nama' => $request->kepalaNama,
                     'jabatan' => $request->kepalaJabatan,
                     'deskripsi_tugas' => $request->kepalaTugas,
+                    'media_sosial' => $kepalaMediaSosial,
                 ]
             );
 
@@ -258,17 +357,26 @@ class BidangController extends Controller
                 }
             }
 
-            // Sync Anggotas: delete all and recreate
-            $bidang->anggotas()->delete();
+            // Sync Anggotas: delete all (with media cleanup) and recreate
+            $existingAnggotas = $bidang->anggotas()->get();
+            foreach ($existingAnggotas as $oldAnggota) {
+                $oldAnggota->clearMediaCollection('foto');
+                $oldAnggota->delete();
+            }
 
             if (!empty($request->anggota)) {
                 foreach ($request->anggota as $index => $ang) {
                     if (!empty($ang['nama']) && !empty($ang['jabatan'])) {
-                        $bidang->anggotas()->create([
+                        $anggota = $bidang->anggotas()->create([
                             'nama' => $ang['nama'],
                             'jabatan' => $ang['jabatan'],
                             'urutan' => $index + 1,
+                            'media_sosial' => $ang['media_sosial'] ?? [],
                         ]);
+
+                        if (!empty($ang['foto'])) {
+                            MediaUploadHelper::addFromDataOrUrl($anggota, $ang['foto'], 'foto', 'anggota-staf');
+                        }
                     }
                 }
             }
@@ -282,10 +390,26 @@ class BidangController extends Controller
      */
     public function destroy($id)
     {
-        $bidang = Bidang::findOrFail($id);
-        $bidang->delete();
+        $bidang = Bidang::with(['kepalaBagian', 'anggotas'])->findOrFail($id);
 
-        // Adjust urutan
+        DB::transaction(function () use ($bidang) {
+            // Clear media on all anggota
+            foreach ($bidang->anggotas as $anggota) {
+                $anggota->clearMediaCollection('foto');
+                $anggota->delete();
+            }
+
+            // Clear kepala bagian foto
+            if ($bidang->kepalaBagian) {
+                $bidang->kepalaBagian->clearMediaCollection('foto');
+                $bidang->kepalaBagian->delete();
+            }
+
+            // Force delete the bidang (also clears banner media via Spatie)
+            $bidang->forceDelete();
+        });
+
+        // Adjust urutan on remaining bidangs
         $bidangs = Bidang::orderBy('urutan')->get();
         foreach ($bidangs as $index => $b) {
             $b->update(['urutan' => $index + 1]);

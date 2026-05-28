@@ -4,6 +4,7 @@ import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
 import ImageExtension from "@tiptap/extension-image"
+import { NodeSelection } from "@tiptap/pm/state"
 import { cn } from "@/lib/utils"
 import {
   BoldIcon,
@@ -48,6 +49,8 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
     e.target.value = "" // Reset
   }
 
+  const previousContentRef = React.useRef<string>(value)
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -77,9 +80,54 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
           "focus:ring-0"
         ),
       },
+      handleClickOn(view, pos, node, nodePos, event, direct) {
+        if (node.type.name === "image") {
+          const selection = NodeSelection.create(view.state.doc, nodePos);
+          view.dispatch(view.state.tr.setSelection(selection));
+          return true;
+        }
+        return false;
+      },
     },
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      const newHtml = editor.getHTML()
+
+      // Detect removed images and delete them from server storage immediately
+      const extractSrcs = (html: string): string[] => {
+        const srcs: string[] = []
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(html, 'text/html')
+        doc.querySelectorAll('img').forEach(img => {
+          const src = img.getAttribute('src')
+          if (src && (src.startsWith('/storage/') || src.includes('/storage/'))) {
+            srcs.push(src)
+          }
+        })
+        return srcs
+      }
+
+      const oldSrcs = extractSrcs(previousContentRef.current)
+      const newSrcs = extractSrcs(newHtml)
+      const removedSrcs = oldSrcs.filter(src => !newSrcs.includes(src))
+
+      if (removedSrcs.length > 0) {
+        const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+        removedSrcs.forEach(url => {
+          fetch('/admin/editor-image', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify({ url }),
+          }).catch(() => {
+            // Silent fail — cleanup will happen again on save
+          })
+        })
+      }
+
+      previousContentRef.current = newHtml
+      onChange(newHtml)
     },
   })
 

@@ -34,6 +34,8 @@ class BidangController extends Controller
                 return [
                     'nama' => $ang->nama,
                     'jabatan' => $ang->jabatan,
+                    'foto' => $ang->getFirstMediaUrl('foto') ?: null,
+                    'socialMedia' => $ang->media_sosial ?? [],
                 ];
             })->toArray(),
             'cta' => $bid->cta_heading ? [

@@ -35,6 +35,12 @@ Route::post('/kontak', [KontakController::class, 'store'])->name('public.kontak.
 // Pemeliharaan Sistem / Maintenance Page (503)
 Route::inertia('/maintenance', 'error/generic', ['status' => 503])->name('public.maintenance');
 
+// Chatbot Public API
+Route::post('/api/chatbot/send', [\App\Http\Controllers\Public\ChatbotController::class, 'send'])->name('api.chatbot.send');
+Route::post('/api/chatbot/new-session', [\App\Http\Controllers\Public\ChatbotController::class, 'newSession'])->name('api.chatbot.new-session');
+Route::get('/api/chatbot/faqs', [\App\Http\Controllers\Public\ChatbotController::class, 'faqs'])->name('api.chatbot.faqs');
+
+
 // ──────────────────────────────────────────────────────────────
 // Route Admin & Super Admin
 // ──────────────────────────────────────────────────────────────

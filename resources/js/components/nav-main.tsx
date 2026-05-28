@@ -85,14 +85,16 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                         <div className="collapsible-dropdown-inner">
                                             <SidebarMenuSub className="mt-1 ml-5 gap-1 border-l border-neutral-100 pl-2">
                                                 {item.items.map((subItem) => {
+                                                    const subItemUrl = toUrl(subItem.href);
                                                     const isSubActive =
-                                                        subItem.href ===
-                                                        '/admin'
-                                                            ? isCurrentUrl(
-                                                                  subItem.href,
-                                                              )
-                                                            : isCurrentOrParentUrl(
-                                                                  subItem.href,
+                                                        subItem.href === '/admin'
+                                                            ? isCurrentUrl(subItem.href)
+                                                            : isCurrentOrParentUrl(subItem.href) &&
+                                                              !item.items?.some(
+                                                                  (otherSub) =>
+                                                                      otherSub.href !== subItem.href &&
+                                                                      toUrl(otherSub.href).length > subItemUrl.length &&
+                                                                      isCurrentOrParentUrl(otherSub.href)
                                                               );
 
                                                     return (

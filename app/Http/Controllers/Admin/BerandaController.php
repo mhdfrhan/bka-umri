@@ -167,6 +167,9 @@ class BerandaController extends Controller
     public function destroyBanner($id)
     {
         $banner = Banner::findOrFail($id);
+        
+        // Clear banner image from storage before deleting the record
+        $banner->clearMediaCollection('gambar');
         $banner->delete();
 
         // Adjust urutan

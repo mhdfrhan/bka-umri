@@ -65,6 +65,7 @@ Route::middleware(['auth', 'verified', 'check_active', 'admin'])
         // Kelola Aset Media
         Route::get('/aset/pilihan', [AsetController::class, 'apiList'])->name('admin.aset.apiList');
         Route::post('/editor-upload', [AsetController::class, 'editorUpload'])->name('admin.editorUpload');
+        Route::delete('/editor-image', [AsetController::class, 'editorImageDelete'])->name('admin.editorImageDelete');
         Route::resource('aset', AsetController::class)->names('admin.aset');
 
         // Kelola Dokumen Penting / Lampiran
@@ -85,4 +86,23 @@ Route::middleware(['auth', 'verified', 'check_active', 'admin'])
         Route::post('/settings', [PengaturanController::class, 'updateSettings'])->name('admin.settings.update');
         Route::post('/settings/inbox/{id}/toggle-read', [PengaturanController::class, 'toggleRead'])->name('admin.settings.inbox.toggle-read');
         Route::delete('/settings/inbox/{id}', [PengaturanController::class, 'destroyMessage'])->name('admin.settings.inbox.destroy');
+
+        // Kelola Chatbot AI
+        Route::prefix('chatbot')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ChatbotSettingController::class, 'index'])->name('admin.chatbot.index');
+            Route::post('/settings', [\App\Http\Controllers\Admin\ChatbotSettingController::class, 'updateSettings'])->name('admin.chatbot.settings.update');
+            Route::post('/test', [\App\Http\Controllers\Admin\ChatbotSettingController::class, 'testConnection'])->name('admin.chatbot.test');
+            Route::get('/monitoring', [\App\Http\Controllers\Admin\ChatbotMonitoringController::class, 'index'])->name('admin.chatbot.monitoring');
+            Route::get('/monitoring/conversations', [\App\Http\Controllers\Admin\ChatbotMonitoringController::class, 'conversations'])->name('admin.chatbot.monitoring.conversations');
+            Route::get('/monitoring/conversations/{id}', [\App\Http\Controllers\Admin\ChatbotMonitoringController::class, 'showConversation'])->name('admin.chatbot.monitoring.conversation');
+            Route::delete('/monitoring/conversations', [\App\Http\Controllers\Admin\ChatbotMonitoringController::class, 'clearConversations'])->name('admin.chatbot.monitoring.clear');
+            Route::get('/monitoring/api/stats', [\App\Http\Controllers\Admin\ChatbotMonitoringController::class, 'apiStats'])->name('admin.chatbot.monitoring.api-stats');
+
+            // FAQ CRUD routes
+            Route::get('/faqs', [\App\Http\Controllers\Admin\ChatbotFaqController::class, 'index'])->name('admin.chatbot.faqs.index');
+            Route::post('/faqs', [\App\Http\Controllers\Admin\ChatbotFaqController::class, 'store'])->name('admin.chatbot.faqs.store');
+            Route::put('/faqs/{id}', [\App\Http\Controllers\Admin\ChatbotFaqController::class, 'update'])->name('admin.chatbot.faqs.update');
+            Route::delete('/faqs/{id}', [\App\Http\Controllers\Admin\ChatbotFaqController::class, 'destroy'])->name('admin.chatbot.faqs.destroy');
+            Route::post('/faqs/{id}/reorder', [\App\Http\Controllers\Admin\ChatbotFaqController::class, 'reorder'])->name('admin.chatbot.faqs.reorder');
+        });
     });

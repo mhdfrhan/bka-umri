@@ -169,6 +169,8 @@ class PengumumanController extends Controller
         }
 
         DB::transaction(function () use ($request, $pengumuman) {
+            MediaUploadHelper::cleanupContentImages($pengumuman->isi, $request->isi);
+
             $pengumuman->update([
                 'judul' => $request->judul,
                 'slug' => $request->slug,
@@ -220,7 +222,14 @@ class PengumumanController extends Controller
     public function destroy($id)
     {
         $pengumuman = Pengumuman::findOrFail($id);
-        $pengumuman->delete();
+        
+        DB::transaction(function () use ($pengumuman) {
+            // Delete all embedded images in rich text content
+            MediaUploadHelper::deleteAllContentImages($pengumuman->isi);
+            
+            // Force delete the model to purge Spatie attachments (thumbnail and lampirans)
+            $pengumuman->forceDelete();
+        });
 
         return redirect()->route('admin.pengumuman.index')->with('success', 'Pengumuman berhasil dihapus.');
     }

@@ -34,8 +34,9 @@ interface EditBidangProps {
             jabatan: string;
             foto: string;
             deskripsiTugas: string;
+            media_sosial?: { platform: string; url: string }[];
         };
-        anggota: { nama: string; jabatan: string }[];
+        anggota: { nama: string; jabatan: string; foto?: string; media_sosial?: { platform: string; url: string }[] }[];
         cta?: {
             heading: string;
             subCta: string;
@@ -45,6 +46,58 @@ interface EditBidangProps {
     };
 }
 
+const getSocialUrl = (list: { platform: string; url: string }[] | undefined, platform: string) => {
+    const raw = list?.find(item => item.platform === platform)?.url || '';
+    if (platform === 'email' && raw.startsWith('mailto:')) {
+        return raw.slice(7);
+    }
+    if (platform === 'instagram' && raw.includes('instagram.com/')) {
+        const parts = raw.split('instagram.com/');
+        return parts[parts.length - 1].replace(/\/+$/, '');
+    }
+    return raw;
+};
+
+const updateSocialUrl = (list: { platform: string; url: string }[] | undefined, platform: string, val: string) => {
+    const newList = [...(list || [])];
+    const index = newList.findIndex(item => item.platform === platform);
+    
+    let formattedUrl = val;
+    if (val && platform === 'whatsapp') {
+        if (!val.startsWith('http')) {
+            let clean = val.replace(/[^0-9+]/g, '');
+            if (clean.startsWith('0')) {
+                clean = '62' + clean.slice(1);
+            } else if (clean.startsWith('+')) {
+                clean = clean.slice(1);
+            }
+            formattedUrl = `https://wa.me/${clean}`;
+        }
+    } else if (val && platform === 'email') {
+        if (!val.startsWith('mailto:')) {
+            formattedUrl = `mailto:${val}`;
+        }
+    } else if (val && platform === 'instagram') {
+        let username = val.trim().replace(/^@/, '');
+        if (username.includes('instagram.com/')) {
+            const parts = username.split('instagram.com/');
+            username = parts[parts.length - 1].replace(/\/+$/, '');
+        }
+        formattedUrl = `https://instagram.com/${username}`;
+    }
+
+    if (index > -1) {
+        if (val) {
+            newList[index] = { platform, url: formattedUrl };
+        } else {
+            newList.splice(index, 1);
+        }
+    } else if (val) {
+        newList.push({ platform, url: formattedUrl });
+    }
+    return newList;
+};
+
 export default function EditBidang({ bidang }: EditBidangProps) {
     // Current Active Tab
     const [activeTab, setActiveTab] = useState<
@@ -53,15 +106,15 @@ export default function EditBidang({ bidang }: EditBidangProps) {
 
     // Modals & Upload State
     const [assetPickerTarget, setAssetPickerTarget] = useState<
-        'banner' | 'kepala' | null
+        'banner' | 'kepala' | number | null
     >(null);
     const [uploadTarget, setUploadTarget] = useState<
-        'banner' | 'kepala' | null
+        'banner' | 'kepala' | number | null
     >(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const handleFileChange =
-        (target: 'banner' | 'kepala') =>
+        (target: 'banner' | 'kepala' | number) =>
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
 
@@ -85,6 +138,8 @@ export default function EditBidang({ bidang }: EditBidangProps) {
             setBannerUrl(url);
         } else if (assetPickerTarget === 'kepala') {
             setKepalaFoto(url);
+        } else if (typeof assetPickerTarget === 'number') {
+            handleAnggotaChange(assetPickerTarget, 'foto', url);
         }
 
         setAssetPickerTarget(null);
@@ -116,9 +171,29 @@ export default function EditBidang({ bidang }: EditBidangProps) {
         bidang.kepalaBagian.deskripsiTugas || '',
     );
 
+    // Kepala Bagian Media Sosial
+    const [kepalaWa, setKepalaWa] = useState(() => {
+        return bidang.kepalaBagian.media_sosial?.find(item => item.platform === 'whatsapp')?.url || '';
+    });
+    const [kepalaEmail, setKepalaEmail] = useState(() => {
+        const raw = bidang.kepalaBagian.media_sosial?.find(item => item.platform === 'email')?.url || '';
+        return raw.startsWith('mailto:') ? raw.slice(7) : raw;
+    });
+    const [kepalaLinkedin, setKepalaLinkedin] = useState(() => {
+        return bidang.kepalaBagian.media_sosial?.find(item => item.platform === 'linkedin')?.url || '';
+    });
+    const [kepalaInstagram, setKepalaInstagram] = useState(() => {
+        const raw = bidang.kepalaBagian.media_sosial?.find(item => item.platform === 'instagram')?.url || '';
+        if (raw.includes('instagram.com/')) {
+            const parts = raw.split('instagram.com/');
+            return parts[parts.length - 1].replace(/\/+$/, '');
+        }
+        return raw;
+    });
+
     // Anggota Staf
     const [anggotaList, setAnggotaList] = useState<
-        { nama: string; jabatan: string }[]
+        { nama: string; jabatan: string; foto?: string; media_sosial?: { platform: string; url: string }[] }[]
     >(bidang.anggota || []);
 
     // CTA
@@ -152,7 +227,7 @@ export default function EditBidang({ bidang }: EditBidangProps) {
             return;
         }
 
-        setAnggotaList((prev) => [...prev, { nama: '', jabatan: '' }]);
+        setAnggotaList((prev) => [...prev, { nama: '', jabatan: '', foto: '' }]);
     };
 
     const handleRemoveAnggota = (idx: number) => {
@@ -161,7 +236,7 @@ export default function EditBidang({ bidang }: EditBidangProps) {
 
     const handleAnggotaChange = (
         idx: number,
-        field: 'nama' | 'jabatan',
+        field: 'nama' | 'jabatan' | 'foto',
         val: string,
     ) => {
         setAnggotaList((prev) =>
@@ -241,6 +316,10 @@ export default function EditBidang({ bidang }: EditBidangProps) {
                 kepalaJabatan,
                 kepalaFoto,
                 kepalaTugas,
+                kepalaWa,
+                kepalaEmail,
+                kepalaLinkedin,
+                kepalaInstagram,
                 anggota: cleanedAnggota,
                 ctaHeading,
                 ctaSub,
@@ -677,6 +756,56 @@ export default function EditBidang({ bidang }: EditBidangProps) {
                                     />
                                 </div>
 
+                                {/* Media Sosial Kepala (Opsional) */}
+                                <div className="border-t border-neutral-100 pt-5 mt-5">
+                                    <h3 className="text-sm font-bold text-neutral-800 mb-3 flex items-center gap-1.5">
+                                        <Sparkles className="size-4 text-emerald-600" />
+                                        Media Sosial Kepala Bagian (Opsional)
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-neutral-600">WhatsApp (Nomor atau Link)</label>
+                                            <input
+                                                type="text"
+                                                value={kepalaWa}
+                                                onChange={(e) => setKepalaWa(e.target.value)}
+                                                placeholder="Contoh: 08123456789 atau https://wa.me/..."
+                                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-neutral-600">Email Address</label>
+                                            <input
+                                                type="email"
+                                                value={kepalaEmail}
+                                                onChange={(e) => setKepalaEmail(e.target.value)}
+                                                placeholder="Contoh: nama@umri.ac.id"
+                                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-neutral-600">LinkedIn URL</label>
+                                            <input
+                                                type="text"
+                                                value={kepalaLinkedin}
+                                                onChange={(e) => setKepalaLinkedin(e.target.value)}
+                                                placeholder="Contoh: https://linkedin.com/in/username"
+                                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-neutral-600">Instagram URL</label>
+                                            <input
+                                                type="text"
+                                                value={kepalaInstagram}
+                                                onChange={(e) => setKepalaInstagram(e.target.value)}
+                                                placeholder="Contoh: https://instagram.com/username"
+                                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Buttons footer */}
                                 <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
                                     <button
@@ -777,43 +906,133 @@ export default function EditBidang({ bidang }: EditBidangProps) {
                                                 </button>
                                             </div>
 
-                                            {/* Fields */}
-                                            <div className="grid w-full flex-1 grid-cols-1 gap-4 pt-4 md:grid-cols-2 md:pt-0">
-                                                <div className="space-y-1">
-                                                    <label className="text-xs font-semibold text-neutral-500 uppercase">
-                                                        Nama Lengkap Staf
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={item.nama}
-                                                        onChange={(e) =>
-                                                            handleAnggotaChange(
-                                                                idx,
-                                                                'nama',
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        placeholder="Contoh: Rika Amalia"
-                                                        className="w-full rounded-lg border border-neutral-200 bg-white p-2.5 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600"
+                                            {/* Foto Staf */}
+                                            <div className="flex flex-col items-center gap-2 shrink-0 md:border-r md:border-neutral-200/50 md:pr-4">
+                                                <div className="size-16 overflow-hidden rounded-full border border-neutral-200 bg-neutral-50 select-none shadow-inner">
+                                                    <img
+                                                        src={item.foto || 'https://placehold.co/80x80/E8F5E9/1B5E20?text=Staf'}
+                                                        alt="Foto Staf"
+                                                        className="size-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/80x80/E8F5E9/1B5E20?text=Staf';
+                                                        }}
                                                     />
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-xs font-semibold text-neutral-500 uppercase">
-                                                        Jabatan / Peran Staf
+                                                <div className="flex gap-1.5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAssetPickerTarget(idx)}
+                                                        className="rounded-lg bg-white border border-neutral-200 p-1.5 text-neutral-600 hover:text-emerald-700 shadow-3xs hover:bg-neutral-50"
+                                                        title="Pilih dari Aset"
+                                                    >
+                                                        <ImageIcon className="size-3.5" />
+                                                    </button>
+                                                    <label className="cursor-pointer rounded-lg bg-emerald-600 p-1.5 text-white hover:bg-emerald-700 shadow-3xs flex items-center justify-center">
+                                                        <Upload className="size-3.5" />
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={handleFileChange(idx)}
+                                                        />
                                                     </label>
-                                                    <input
-                                                        type="text"
-                                                        value={item.jabatan}
-                                                        onChange={(e) =>
-                                                            handleAnggotaChange(
-                                                                idx,
-                                                                'jabatan',
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        placeholder="Contoh: Staf Kasir & Pelayanan Pembayaran"
-                                                        className="w-full rounded-lg border border-neutral-200 bg-white p-2.5 text-sm text-neutral-700 transition-all outline-none focus:border-emerald-600"
-                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Fields */}
+                                            <div className="w-full flex-1 space-y-3 pt-4 md:pt-0">
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-semibold text-neutral-500 uppercase">
+                                                            Nama Lengkap Staf
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={item.nama}
+                                                            onChange={(e) =>
+                                                                handleAnggotaChange(
+                                                                    idx,
+                                                                    'nama',
+                                                                    e.target.value,
+                                                                )
+                                                            }
+                                                            placeholder="Contoh: Rika Amalia"
+                                                            className="w-full rounded-lg border border-neutral-200 bg-white p-2.5 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-semibold text-neutral-500 uppercase">
+                                                            Jabatan / Peran Staf
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={item.jabatan}
+                                                            onChange={(e) =>
+                                                                handleAnggotaChange(
+                                                                    idx,
+                                                                    'jabatan',
+                                                                    e.target.value,
+                                                                )
+                                                            }
+                                                            placeholder="Contoh: Staf Kasir & Pelayanan Pembayaran"
+                                                            className="w-full rounded-lg border border-neutral-200 bg-white p-2.5 text-sm text-neutral-700 transition-all outline-none focus:border-emerald-600"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Medsos Staf (Optional Inputs) */}
+                                                <div className="border-t border-neutral-200/55 pt-2.5 mt-2">
+                                                    <div className="text-xs font-bold text-neutral-500 uppercase mb-2">Media Sosial Staf (Opsional)</div>
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                                                        <div>
+                                                            <input
+                                                                type="text"
+                                                                value={getSocialUrl(item.media_sosial, 'whatsapp')}
+                                                                onChange={(e) => {
+                                                                    const updated = updateSocialUrl(item.media_sosial, 'whatsapp', e.target.value);
+                                                                    handleAnggotaChange(idx, 'media_sosial' as any, updated as any);
+                                                                }}
+                                                                placeholder="WhatsApp (cth: 0812...)"
+                                                                className="w-full rounded-lg border border-neutral-200 bg-white p-2 text-xs text-neutral-750 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <input
+                                                                type="text"
+                                                                value={getSocialUrl(item.media_sosial, 'email')}
+                                                                onChange={(e) => {
+                                                                    const updated = updateSocialUrl(item.media_sosial, 'email', e.target.value);
+                                                                    handleAnggotaChange(idx, 'media_sosial' as any, updated as any);
+                                                                }}
+                                                                placeholder="Email (cth: a@b.com)"
+                                                                className="w-full rounded-lg border border-neutral-200 bg-white p-2 text-xs text-neutral-750 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <input
+                                                                type="text"
+                                                                value={getSocialUrl(item.media_sosial, 'linkedin')}
+                                                                onChange={(e) => {
+                                                                    const updated = updateSocialUrl(item.media_sosial, 'linkedin', e.target.value);
+                                                                    handleAnggotaChange(idx, 'media_sosial' as any, updated as any);
+                                                                }}
+                                                                placeholder="LinkedIn URL"
+                                                                className="w-full rounded-lg border border-neutral-200 bg-white p-2 text-xs text-neutral-755 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <input
+                                                                type="text"
+                                                                value={getSocialUrl(item.media_sosial, 'instagram')}
+                                                                onChange={(e) => {
+                                                                    const updated = updateSocialUrl(item.media_sosial, 'instagram', e.target.value);
+                                                                    handleAnggotaChange(idx, 'media_sosial' as any, updated as any);
+                                                                }}
+                                                                placeholder="Instagram URL"
+                                                                className="w-full rounded-lg border border-neutral-200 bg-white p-2 text-xs text-neutral-755 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -987,6 +1206,11 @@ export default function EditBidang({ bidang }: EditBidangProps) {
                         setKepalaFoto(result.base64);
                         toast.success(
                             'Foto kepala divisi berhasil diunggah & dioptimasi!',
+                        );
+                    } else if (typeof uploadTarget === 'number') {
+                        handleAnggotaChange(uploadTarget, 'foto', result.base64);
+                        toast.success(
+                            'Foto anggota staf berhasil diunggah & dioptimasi!',
                         );
                     }
 

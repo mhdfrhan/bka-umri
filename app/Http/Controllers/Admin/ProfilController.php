@@ -45,6 +45,9 @@ class ProfilController extends Controller
         ]);
 
         $halaman = HalamanStatis::where('slug', 'tentang-kami')->firstOrFail();
+        
+        MediaUploadHelper::cleanupContentImages($halaman->konten, $request->konten);
+        
         $halaman->update([
             'konten' => RichTextSanitizer::sanitize($request->konten),
         ]);
@@ -88,6 +91,9 @@ class ProfilController extends Controller
         DB::transaction(function () use ($request) {
             // Update Visi
             $halaman = HalamanStatis::where('slug', 'visi-misi')->firstOrFail();
+            
+            MediaUploadHelper::cleanupContentImages($halaman->konten, $request->visi);
+            
             $halaman->update([
                 'konten' => RichTextSanitizer::sanitize($request->visi),
             ]);
@@ -181,8 +187,12 @@ class ProfilController extends Controller
             // Collect IDs that are still present
             $sentIds = collect($anggotaList)->pluck('id')->filter()->toArray();
 
-            // Delete missing staff members
-            StrukturAnggota::whereNotIn('id', $sentIds)->delete();
+            // Delete missing staff members (using Eloquent to correctly trigger Spatie Media deletion)
+            $orphanedAnggotas = StrukturAnggota::whereNotIn('id', $sentIds)->get();
+            foreach ($orphanedAnggotas as $ang) {
+                $ang->clearMediaCollection('foto');
+                $ang->delete();
+            }
 
             // Create/Update members
             foreach ($anggotaList as $item) {

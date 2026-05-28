@@ -213,6 +213,7 @@ class DokumentasiController extends Controller
             // 1. Delete photos that are no longer present in request
             foreach ($existingPhotos as $photo) {
                 if (!in_array($photo->getFirstMediaUrl('foto'), $updatedUrls)) {
+                    $photo->clearMediaCollection('foto');
                     $photo->delete();
                 }
             }
@@ -258,8 +259,18 @@ class DokumentasiController extends Controller
      */
     public function destroy($id)
     {
-        $album = Album::findOrFail($id);
-        $album->delete();
+        $album = Album::with('fotos')->findOrFail($id);
+
+        DB::transaction(function () use ($album) {
+            // Clear all individual photo media from storage
+            foreach ($album->fotos as $foto) {
+                $foto->clearMediaCollection('foto');
+                $foto->delete();
+            }
+
+            // Force delete the album (also clears cover media via Spatie)
+            $album->forceDelete();
+        });
 
         return redirect()->route('admin.dokumentasi.index')->with('success', 'Album berhasil dihapus.');
     }

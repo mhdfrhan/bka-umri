@@ -15,6 +15,7 @@ import {
     Cpu,
     ShieldAlert,
     Globe,
+    Bot,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -119,6 +120,25 @@ const mainNavItems: NavItem[] = [
         icon: Cpu,
         badge: 'Super',
         superAdminOnly: true,
+    },
+    {
+        title: 'Chatbot AI',
+        href: '#',
+        icon: Bot,
+        items: [
+            {
+                title: 'Pengaturan',
+                href: '/admin/chatbot',
+            },
+            {
+                title: 'Kelola FAQ',
+                href: '/admin/chatbot/faqs',
+            },
+            {
+                title: 'Monitoring',
+                href: '/admin/chatbot/monitoring',
+            },
+        ],
     },
     {
         title: 'Pengaturan Web',
