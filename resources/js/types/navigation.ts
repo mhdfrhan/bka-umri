@@ -13,4 +13,5 @@ export type NavItem = {
     isActive?: boolean;
     badge?: string;
     items?: NavItem[];
+    superAdminOnly?: boolean;
 };

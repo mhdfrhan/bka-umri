@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     LayoutDashboard,
     Home,
@@ -25,7 +25,7 @@ import {
     SidebarHeader,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { NavItem, Auth } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
@@ -97,24 +97,28 @@ const mainNavItems: NavItem[] = [
         href: '/admin/users',
         icon: Users,
         badge: 'Super',
+        superAdminOnly: true,
     },
     {
         title: 'Log Aktivitas',
         href: '/admin/logs',
         icon: Activity,
         badge: 'Super',
+        superAdminOnly: true,
     },
     {
         title: 'Audit Keamanan',
         href: '/admin/security-audit',
         icon: ShieldAlert,
         badge: 'Super',
+        superAdminOnly: true,
     },
     {
         title: 'Performa Server',
         href: '/admin/monitoring',
         icon: Cpu,
         badge: 'Super',
+        superAdminOnly: true,
     },
     {
         title: 'Pengaturan Web',
@@ -125,6 +129,23 @@ const mainNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props as unknown as { auth: Auth };
+    const isSuperAdmin = auth?.user?.roles?.includes('super_admin');
+
+    const filteredNavItems = mainNavItems
+        .filter((item) => {
+            if (item.superAdminOnly && !isSuperAdmin) {
+                return false;
+            }
+            return true;
+        })
+        .map((item) => {
+            if (item.badge === 'Super' && !isSuperAdmin) {
+                return { ...item, badge: undefined };
+            }
+            return item;
+        });
+
     return (
         <Sidebar collapsible="icon" className="border-r border-neutral-200">
             <SidebarHeader className="flex items-center justify-start border-b border-neutral-100 p-4 transition-all duration-300 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
@@ -138,7 +159,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent className="py-4">
-                <NavMain items={mainNavItems} />
+                <NavMain items={filteredNavItems} />
             </SidebarContent>
 
             <SidebarFooter className="border-t border-neutral-100 p-4 transition-all duration-300 group-data-[collapsible=icon]:p-2">

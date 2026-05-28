@@ -520,22 +520,24 @@ export default function WebSettingsCMS({
                             <span>Media Sosial</span>
                         </button>
 
-                        <button
-                            onClick={() => setActiveTab('sistem')}
-                            className={`flex w-full items-center justify-between rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
-                                activeTab === 'sistem'
-                                    ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
-                                    : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
-                            }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Globe size={16} />
-                                <span>Pengaturan Sistem</span>
-                            </div>
-                            <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[9px] font-extrabold text-amber-700 uppercase">
-                                Super
-                            </span>
-                        </button>
+                        {isSuperAdmin && (
+                            <button
+                                onClick={() => setActiveTab('sistem')}
+                                className={`flex w-full items-center justify-between rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
+                                    activeTab === 'sistem'
+                                        ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
+                                        : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Globe size={16} />
+                                    <span>Pengaturan Sistem</span>
+                                </div>
+                                <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[9px] font-extrabold text-amber-700 uppercase">
+                                    Super
+                                </span>
+                            </button>
+                        )}
 
                         <button
                             onClick={() => setActiveTab('pemberitahuan')}
