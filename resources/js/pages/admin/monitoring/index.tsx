@@ -816,7 +816,7 @@ export default function PerformanceMonitoring({
                         className={cn(
                             'cursor-pointer border-b-2 px-4 py-3 text-xs font-bold transition-all',
                             activeTab === 'monitoring'
-                                ? 'border-[#1B5E20] text-[#1B5E20]'
+                                ? 'border-[#0a6c32] text-[#0a6c32]'
                                 : 'border-transparent text-neutral-500 hover:text-neutral-800',
                         )}
                     >
@@ -828,7 +828,7 @@ export default function PerformanceMonitoring({
                         className={cn(
                             'cursor-pointer border-b-2 px-4 py-3 text-xs font-bold transition-all',
                             activeTab === 'operations'
-                                ? 'border-[#1B5E20] text-[#1B5E20]'
+                                ? 'border-[#0a6c32] text-[#0a6c32]'
                                 : 'border-transparent text-neutral-500 hover:text-neutral-800',
                         )}
                     >
@@ -840,7 +840,7 @@ export default function PerformanceMonitoring({
                         className={cn(
                             'cursor-pointer border-b-2 px-4 py-3 text-xs font-bold transition-all',
                             activeTab === 'errors'
-                                ? 'border-[#1B5E20] text-[#1B5E20]'
+                                ? 'border-[#0a6c32] text-[#0a6c32]'
                                 : 'border-transparent text-neutral-500 hover:text-neutral-800',
                         )}
                     >
@@ -894,7 +894,7 @@ export default function PerformanceMonitoring({
                                             stroke={
                                                 latestCpu >= 85
                                                     ? '#c62828'
-                                                    : '#1b5e20'
+                                                    : '#0a6c32'
                                             }
                                             strokeWidth="2.5"
                                             strokeLinecap="round"
@@ -1234,7 +1234,7 @@ export default function PerformanceMonitoring({
                                             'flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold shadow-sm transition-all outline-none',
                                             isMaintenanceMode
                                                 ? 'border-amber-700 bg-amber-600 text-white hover:bg-amber-700'
-                                                : 'border-[#1B5E20] bg-[#1B5E20] text-white hover:bg-[#145218]',
+                                                : 'border-[#0a6c32] bg-[#0a6c32] text-white hover:bg-[#085627]',
                                         )}
                                     >
                                         <Settings
@@ -1529,7 +1529,7 @@ export default function PerformanceMonitoring({
                                                 'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[10px] font-bold shadow-2xs transition-all outline-none',
                                                 isOptimizing
                                                     ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
-                                                    : 'bg-[#1B5E20] text-white hover:bg-[#145218]',
+                                                    : 'bg-[#0a6c32] text-white hover:bg-[#085627]',
                                             )}
                                         >
                                             <Download size={11} />

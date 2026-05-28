@@ -34,7 +34,7 @@ export default function PengumumanSection({
     return (
         <section
             id="pengumuman-terbaru"
-            className="bka-section bka-noise-overlay relative overflow-hidden bg-[#E8F5E9]"
+            className="bka-section bka-noise-overlay relative overflow-hidden bg-[#e6f4ea]"
         >
             {/* Rich multi-color radial gradient mesh overlay */}
             <div
@@ -42,7 +42,7 @@ export default function PengumumanSection({
                 className="pointer-events-none absolute inset-0 opacity-40 select-none"
                 style={{
                     backgroundImage:
-                        'radial-gradient(circle at 10% 20%, rgba(27,94,32,0.06) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(200,160,0,0.05) 0%, transparent 50%)',
+                        'radial-gradient(circle at 10% 20%, rgba(10,108,50,0.06) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(200,160,0,0.05) 0%, transparent 50%)',
                 }}
             />
 
@@ -57,7 +57,7 @@ export default function PengumumanSection({
                         />
 
                         {/* Info panel - desktop only */}
-                        <div className="mt-4 hidden rounded-2xl bg-[#1B5E20] p-6 shadow-[0_15px_35px_rgba(27,94,32,0.12)] lg:block">
+                        <div className="mt-4 hidden rounded-2xl bg-[#0a6c32] p-6 shadow-[0_15px_35px_rgba(10,108,50,0.12)] lg:block">
                             {/* Subtle inner pattern */}
                             <div
                                 aria-hidden="true"

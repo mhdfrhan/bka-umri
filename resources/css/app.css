@@ -72,10 +72,10 @@
     --color-sidebar-ring: var(--sidebar-ring);
 
     /* ─── BKA UMRI Design System ─── */
-    --bka-primary: #1b5e20;
-    --bka-primary-hover: #145218;
-    --bka-primary-light: #2e7d46;
-    --bka-primary-subtle: #e8f5e9;
+    --bka-primary: #0a6c32;
+    --bka-primary-hover: #085627;
+    --bka-primary-light: #048d46;
+    --bka-primary-subtle: #e6f4ea;
     --bka-accent: #c8a000;
     --bka-accent-light: #fff8dc;
     --bka-text-primary: #1a1a1a;
@@ -97,11 +97,11 @@
     --card-foreground: #1a1a1a;
     --popover: #ffffff;
     --popover-foreground: #1a1a1a;
-    --primary: #1b5e20;
+    --primary: #0a6c32;
     --primary-foreground: #ffffff;
     --secondary: #ffffff;
-    --secondary-foreground: #1b5e20;
-    --muted: #e8f5e9;
+    --secondary-foreground: #0a6c32;
+    --muted: #e6f4ea;
     --muted-foreground: #5c6b73;
     --accent: #c8a000;
     --accent-foreground: #ffffff;
@@ -109,21 +109,21 @@
     --destructive-foreground: #ffffff;
     --border: #dde5dd;
     --input: #dde5dd;
-    --ring: #2e7d46;
-    --chart-1: #1b5e20;
-    --chart-2: #2e7d46;
+    --ring: #048d46;
+    --chart-1: #0a6c32;
+    --chart-2: #048d46;
     --chart-3: #c8a000;
     --chart-4: #f57f17;
     --chart-5: #c62828;
     --radius: 0.75rem; /* 12px for cards */
     --sidebar: #ffffff;
     --sidebar-foreground: #1a1a1a;
-    --sidebar-primary: #1b5e20;
+    --sidebar-primary: #0a6c32;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #e8f5e9;
-    --sidebar-accent-foreground: #1b5e20;
+    --sidebar-accent: #e6f4ea;
+    --sidebar-accent-foreground: #0a6c32;
     --sidebar-border: #dde5dd;
-    --sidebar-ring: #2e7d46;
+    --sidebar-ring: #048d46;
 }
 
 .dark {
@@ -229,7 +229,7 @@
     .bka-btn-primary:hover {
         background-color: var(--bka-primary-hover);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
+        box-shadow: 0 4px 12px rgba(10, 108, 50, 0.25);
     }
 
     .bka-btn-primary:active {
@@ -621,7 +621,7 @@
 
 /* Gradient text utility */
 .bka-gradient-text {
-    background: linear-gradient(135deg, #1b5e20 0%, #2e7d46 50%, #c8a000 100%);
+    background: linear-gradient(135deg, #0a6c32 0%, #048d46 50%, #c8a000 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -678,7 +678,7 @@
 /* Dot pattern overlay */
 .bka-dots-pattern {
     background-image: radial-gradient(
-        rgba(27, 94, 32, 0.06) 1px,
+        rgba(10, 108, 50, 0.06) 1px,
         transparent 1px
     );
     background-size: 20px 20px;

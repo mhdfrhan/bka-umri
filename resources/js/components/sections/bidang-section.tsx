@@ -43,7 +43,7 @@ export default function BidangSection({ bidangList }: BidangSectionProps) {
                 className="pointer-events-none absolute top-1/2 -left-40 h-[350px] w-[350px] rounded-full opacity-[0.03] select-none"
                 style={{
                     background:
-                        'radial-gradient(circle, #1B5E20 0%, transparent 70%)',
+                        'radial-gradient(circle, #0a6c32 0%, transparent 70%)',
                 }}
             />
 
@@ -75,7 +75,7 @@ export default function BidangSection({ bidangList }: BidangSectionProps) {
                                 <div
                                     className={`group relative flex h-full min-h-[380px] flex-col justify-between overflow-hidden rounded-3xl p-8 transition-all duration-300 lg:p-10 ${
                                         isFirst
-                                            ? 'border-none bg-gradient-to-br from-[#1B5E20] to-[#0A3B11] text-white shadow-[0_24px_50px_rgba(27,94,32,0.18)]'
+                                            ? 'border-none bg-gradient-to-br from-[#0a6c32] to-[#0A3B11] text-white shadow-[0_24px_50px_rgba(10,108,50,0.18)]'
                                             : 'border border-[#DDE5DD] bg-[#FAFBFA] shadow-[0_10px_35px_rgba(0,0,0,0.02)] hover:border-[#B5C5B5]'
                                     } bka-cascade-card`}
                                 >
@@ -90,7 +90,7 @@ export default function BidangSection({ bidangList }: BidangSectionProps) {
                                         style={{
                                             background: isFirst
                                                 ? 'radial-gradient(circle at 100% 100%, rgba(200,160,0,0.15) 0%, transparent 70%)'
-                                                : 'radial-gradient(circle at 100% 100%, rgba(27,94,32,0.06) 0%, transparent 70%)',
+                                                : 'radial-gradient(circle at 100% 100%, rgba(10,108,50,0.06) 0%, transparent 70%)',
                                         }}
                                     />
 
@@ -99,7 +99,7 @@ export default function BidangSection({ bidangList }: BidangSectionProps) {
                                         className={`pointer-events-none absolute -right-4 -bottom-6 text-[120px] leading-none font-black transition-transform duration-500 select-none group-hover:scale-105 lg:text-[140px] ${
                                             isFirst
                                                 ? 'text-white/[0.04]'
-                                                : 'text-[#1B5E20]/[0.04]'
+                                                : 'text-[#0a6c32]/[0.04]'
                                         }`}
                                     >
                                         {String(idx + 1).padStart(2, '0')}
@@ -112,7 +112,7 @@ export default function BidangSection({ bidangList }: BidangSectionProps) {
                                                 className={`rounded-2xl p-3.5 transition-transform duration-300 group-hover:scale-105 ${
                                                     isFirst
                                                         ? 'bg-white/10 text-white'
-                                                        : 'bg-[#E8F5E9] text-[#1B5E20]'
+                                                        : 'bg-[#e6f4ea] text-[#0a6c32]'
                                                 }`}
                                             >
                                                 <Icon size={28} />
@@ -199,7 +199,7 @@ export default function BidangSection({ bidangList }: BidangSectionProps) {
                                             className={`group/link inline-flex items-center gap-2 text-[14px] font-bold transition-all duration-200 ${
                                                 isFirst
                                                     ? 'text-white hover:text-[#C8A000]'
-                                                    : 'text-[#1B5E20] hover:text-[#1B5E20]/80'
+                                                    : 'text-[#0a6c32] hover:text-[#0a6c32]/80'
                                             }`}
                                         >
                                             Selengkapnya

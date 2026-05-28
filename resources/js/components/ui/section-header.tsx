@@ -11,7 +11,7 @@ export default function SectionHeader({ label, title, description, align = 'left
     return (
         <div className={isCenter ? 'mb-10 text-center' : 'mb-10 text-left'}>
             {label && (
-                <span className="mb-3 inline-block rounded-full bg-[#E8F5E9] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[#1B5E20]">
+                <span className="mb-3 inline-block rounded-full bg-[#e6f4ea] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[#0a6c32]">
                     {label}
                 </span>
             )}

@@ -75,7 +75,7 @@ export default function CtaDokumentasi() {
                     className="bka-reveal flex flex-wrap items-end justify-between gap-6"
                 >
                     <div>
-                        <span className="mb-3 inline-block rounded-full bg-[#E8F5E9] px-3.5 py-1 text-[11px] font-bold tracking-[0.1em] text-[#1B5E20] uppercase">
+                        <span className="mb-3 inline-block rounded-full bg-[#e6f4ea] px-3.5 py-1 text-[11px] font-bold tracking-[0.1em] text-[#0a6c32] uppercase">
                             Galeri
                         </span>
                         <h2 className="mb-2 text-2xl font-extrabold tracking-tight text-[#1A1A1A] lg:text-3xl">
@@ -88,7 +88,7 @@ export default function CtaDokumentasi() {
                     </div>
                     <a
                         href="/dokumentasi"
-                        className="group hidden shrink-0 items-center gap-1.5 text-sm font-bold text-[#1B5E20] no-underline transition-all duration-200 hover:gap-2.5 lg:inline-flex"
+                        className="group hidden shrink-0 items-center gap-1.5 text-sm font-bold text-[#0a6c32] no-underline transition-all duration-200 hover:gap-2.5 lg:inline-flex"
                     >
                         Lihat Semua Galeri
                         <ArrowRight
@@ -123,7 +123,7 @@ export default function CtaDokumentasi() {
                             <div
                                 key={`half1-${idx}`}
                                 onClick={() => setSelectedImage(img)}
-                                className="group relative h-[240px] w-[360px] shrink-0 overflow-hidden rounded-2xl border border-[#1B5E20]/10 shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_20px_40px_rgba(27,94,32,0.1)] md:h-[280px] md:w-[420px]"
+                                className="group relative h-[240px] w-[360px] shrink-0 overflow-hidden rounded-2xl border border-[#0a6c32]/10 shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_20px_40px_rgba(10,108,50,0.1)] md:h-[280px] md:w-[420px]"
                             >
                                 <img
                                     src={img.src}
@@ -152,7 +152,7 @@ export default function CtaDokumentasi() {
                             <div
                                 key={`half2-${idx}`}
                                 onClick={() => setSelectedImage(img)}
-                                className="group relative h-[240px] w-[360px] shrink-0 overflow-hidden rounded-2xl border border-[#1B5E20]/10 shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_20px_40px_rgba(27,94,32,0.1)] md:h-[280px] md:w-[420px]"
+                                className="group relative h-[240px] w-[360px] shrink-0 overflow-hidden rounded-2xl border border-[#0a6c32]/10 shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_20px_40px_rgba(10,108,50,0.1)] md:h-[280px] md:w-[420px]"
                             >
                                 <img
                                     src={img.src}
@@ -197,7 +197,7 @@ export default function CtaDokumentasi() {
                         {/* Content Info Column */}
                         <div className="flex flex-1 flex-col justify-between p-6 font-sans md:w-2/5 md:p-9">
                             <div>
-                                <span className="mb-4 inline-block rounded bg-[#1B5E20] px-3 py-1 text-[10px] font-extrabold tracking-wider text-white uppercase">
+                                <span className="mb-4 inline-block rounded bg-[#0a6c32] px-3 py-1 text-[10px] font-extrabold tracking-wider text-white uppercase">
                                     {selectedImage.category}
                                 </span>
                                 <h3 className="mb-3 text-lg leading-snug font-extrabold text-neutral-900 md:text-xl">

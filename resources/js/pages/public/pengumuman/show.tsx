@@ -152,7 +152,7 @@ export default function PengumumanShow({
                     >
                         {/* Prose Content */}
                         <div
-                            className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-xl prose-a:text-[#1B5E20] prose-a:no-underline hover:prose-a:underline prose-li:marker:text-[#C8A000]"
+                            className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-xl prose-a:text-[#0a6c32] prose-a:no-underline hover:prose-a:underline prose-li:marker:text-[#C8A000]"
                             dangerouslySetInnerHTML={{
                                 __html: announcement.content,
                             }}
@@ -172,16 +172,16 @@ export default function PengumumanShow({
                                                     key={idx}
                                                     href={file.url}
                                                     download={file.name}
-                                                    className="group flex items-center justify-between rounded-xl border border-transparent bg-white p-4 shadow-sm transition-all duration-200 hover:border-[#1B5E20] hover:shadow-md"
+                                                    className="group flex items-center justify-between rounded-xl border border-transparent bg-white p-4 shadow-sm transition-all duration-200 hover:border-[#0a6c32] hover:shadow-md"
                                                 >
                                                     <div className="flex items-center gap-4">
-                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E8F5E9] text-[#1B5E20]">
+                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e6f4ea] text-[#0a6c32]">
                                                             <FileText
                                                                 size={20}
                                                             />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="truncate text-sm font-bold text-[#1A1A1A] group-hover:text-[#1B5E20]">
+                                                            <p className="truncate text-sm font-bold text-[#1A1A1A] group-hover:text-[#0a6c32]">
                                                                 {file.name}
                                                             </p>
                                                             <p className="text-xs text-[#9EAAB2]">
@@ -190,7 +190,7 @@ export default function PengumumanShow({
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F7F9F7] text-[#1B5E20] transition-colors group-hover:bg-[#1B5E20] group-hover:text-white">
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F7F9F7] text-[#0a6c32] transition-colors group-hover:bg-[#0a6c32] group-hover:text-white">
                                                         <Download size={16} />
                                                     </div>
                                                 </a>
@@ -204,7 +204,7 @@ export default function PengumumanShow({
                         <div className="mt-12 flex flex-col items-center justify-between gap-6 border-t border-[#DDE5DD] pt-8 md:flex-row">
                             <Link
                                 href="/pengumuman"
-                                className="group inline-flex items-center gap-2 text-sm font-semibold text-[#5C6B73] no-underline transition-all duration-200 hover:gap-3 hover:text-[#1B5E20]"
+                                className="group inline-flex items-center gap-2 text-sm font-semibold text-[#5C6B73] no-underline transition-all duration-200 hover:gap-3 hover:text-[#0a6c32]"
                             >
                                 <ArrowLeft
                                     size={16}
@@ -221,7 +221,7 @@ export default function PengumumanShow({
                                     <button
                                         onClick={handleShareWhatsApp}
                                         aria-label="Share on WhatsApp"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke WhatsApp"
                                     >
                                         <svg
@@ -234,7 +234,7 @@ export default function PengumumanShow({
                                     <button
                                         onClick={handleShareFacebook}
                                         aria-label="Share on Facebook"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke Facebook"
                                     >
                                         <Facebook size={16} />
@@ -242,7 +242,7 @@ export default function PengumumanShow({
                                     <button
                                         onClick={handleShareTwitter}
                                         aria-label="Share on Twitter"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke Twitter / X"
                                     >
                                         <Twitter size={16} />
@@ -250,7 +250,7 @@ export default function PengumumanShow({
                                     <button
                                         onClick={handleShareLinkedIn}
                                         aria-label="Share on LinkedIn"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke LinkedIn"
                                     >
                                         <Linkedin size={16} />
@@ -258,7 +258,7 @@ export default function PengumumanShow({
                                     <button
                                         onClick={handleCopyLink}
                                         aria-label="Copy Link"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Salin Tautan Pengumuman"
                                     >
                                         <LinkIcon size={16} />

@@ -101,7 +101,7 @@ export default function LampiranIndex({
             </PageHero>
 
             {/* Search Filter Bar */}
-            <section className="border-b border-[#E8F5E9] bg-white py-8">
+            <section className="border-b border-[#e6f4ea] bg-white py-8">
                 <div className="bka-container">
                     <div
                         ref={filterRef}
@@ -124,7 +124,7 @@ export default function LampiranIndex({
                                 placeholder="Cari kategori dokumen..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full rounded-xl border border-[#DDE5DD] bg-white py-2.5 pr-4 pl-11 text-[14px] text-[#1A1A1A] transition-colors focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] focus:outline-none"
+                                className="w-full rounded-xl border border-[#DDE5DD] bg-white py-2.5 pr-4 pl-11 text-[14px] text-[#1A1A1A] transition-colors focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32] focus:outline-none"
                             />
                             <Search
                                 size={18}
@@ -150,10 +150,10 @@ export default function LampiranIndex({
                                 >
                                     {/* Top Line Header with Folder Icon & Badge */}
                                     <div className="mb-5 flex items-center justify-between">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E8F5E9] text-[#1B5E20] transition-colors duration-300 group-hover:bg-[#1B5E20] group-hover:text-white">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e6f4ea] text-[#0a6c32] transition-colors duration-300 group-hover:bg-[#0a6c32] group-hover:text-white">
                                             <FolderOpen size={22} />
                                         </div>
-                                        <div className="flex items-center gap-1.5 rounded-lg border border-[#E8F5E9] bg-[#F7F9F7] px-2.5 py-1.5 text-xs font-bold text-[#5C6B73]">
+                                        <div className="flex items-center gap-1.5 rounded-lg border border-[#e6f4ea] bg-[#F7F9F7] px-2.5 py-1.5 text-xs font-bold text-[#5C6B73]">
                                             <FileText
                                                 size={13}
                                                 className="text-[#C8A000]"
@@ -165,7 +165,7 @@ export default function LampiranIndex({
                                     </div>
 
                                     {/* Category Title */}
-                                    <h3 className="mb-3 text-lg leading-snug font-bold text-[#1A1A1A] transition-colors group-hover:text-[#1B5E20]">
+                                    <h3 className="mb-3 text-lg leading-snug font-bold text-[#1A1A1A] transition-colors group-hover:text-[#0a6c32]">
                                         <Link href={`/lampiran/${cat.slug}`}>
                                             {cat.nama}
                                         </Link>
@@ -180,7 +180,7 @@ export default function LampiranIndex({
                                     <div className="mt-auto border-t border-[#F1F3F1] pt-4">
                                         <Link
                                             href={`/lampiran/${cat.slug}`}
-                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1B5E20] transition-colors hover:text-[#145218]"
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0a6c32] transition-colors hover:text-[#085627]"
                                         >
                                             <span>Buka Berkas Kategori</span>
                                             <ArrowRight
@@ -195,7 +195,7 @@ export default function LampiranIndex({
                     ) : (
                         /* Empty State Container */
                         <div className="mx-auto flex max-w-xl flex-col items-center justify-center rounded-3xl border border-[#DDE5DD] bg-white px-6 py-20 text-center">
-                            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F5E9] text-[#1B5E20]">
+                            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#e6f4ea] text-[#0a6c32]">
                                 <FolderOpen size={28} />
                             </div>
                             <h3 className="mb-2 text-xl font-bold text-[#1A1A1A]">
@@ -209,7 +209,7 @@ export default function LampiranIndex({
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    className="rounded-xl bg-[#1B5E20] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#145218]"
+                                    className="rounded-xl bg-[#0a6c32] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#085627]"
                                 >
                                     Reset Pencarian
                                 </button>

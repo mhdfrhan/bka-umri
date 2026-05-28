@@ -79,7 +79,7 @@ export default function DokumentasiShow({ album }: DokumentasiShowProps) {
                 </p>
                 <Link
                     href="/dokumentasi"
-                    className="mt-4 font-semibold text-[#1B5E20] hover:underline"
+                    className="mt-4 font-semibold text-[#0a6c32] hover:underline"
                 >
                     Kembali ke Galeri
                 </Link>
@@ -122,7 +122,7 @@ export default function DokumentasiShow({ album }: DokumentasiShowProps) {
                 <div className="bka-container flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Link
                         href="/dokumentasi"
-                        className="inline-flex items-center gap-2 text-xs font-bold text-[#5C6B73] transition-colors hover:text-[#1B5E20]"
+                        className="inline-flex items-center gap-2 text-xs font-bold text-[#5C6B73] transition-colors hover:text-[#0a6c32]"
                     >
                         <ArrowLeft size={14} />
                         <span>Kembali ke Galeri</span>
@@ -140,7 +140,7 @@ export default function DokumentasiShow({ album }: DokumentasiShowProps) {
                             ref={headerRef}
                             className="bka-reveal mb-6 flex flex-wrap items-center gap-3"
                         >
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F5E9] px-3.5 py-1 text-xs font-bold text-[#1B5E20]">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e6f4ea] px-3.5 py-1 text-xs font-bold text-[#0a6c32]">
                                 <Camera size={13} />
                                 <span>{slides.length} Dokumentasi</span>
                             </span>
@@ -148,7 +148,7 @@ export default function DokumentasiShow({ album }: DokumentasiShowProps) {
                                 className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold text-white shadow-xs ${
                                     album.kategori === 'Aset'
                                         ? 'bg-[#C8A000]'
-                                        : 'bg-[#1B5E20]'
+                                        : 'bg-[#0a6c32]'
                                 }`}
                             >
                                 <span>{album.kategori}</span>
@@ -191,21 +191,21 @@ export default function DokumentasiShow({ album }: DokumentasiShowProps) {
                             </span>
                             <button
                                 onClick={handleShareWhatsApp}
-                                className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#E8F5E9] px-4 text-xs font-bold text-[#1B5E20] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#e6f4ea] px-4 text-xs font-bold text-[#0a6c32] transition-colors hover:bg-[#0a6c32] hover:text-white"
                             >
                                 <Share2 size={13} />
                                 <span>WhatsApp</span>
                             </button>
                             <button
                                 onClick={handleShareFacebook}
-                                className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#F7F9F7] px-4 text-xs font-bold text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#F7F9F7] px-4 text-xs font-bold text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                             >
                                 <Facebook size={13} />
                                 <span>Facebook</span>
                             </button>
                             <button
                                 onClick={handleCopyLink}
-                                className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#F7F9F7] px-4 text-xs font-bold text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#F7F9F7] px-4 text-xs font-bold text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                 title="Salin Tautan Album"
                             >
                                 <LinkIcon size={13} />
@@ -265,7 +265,7 @@ export default function DokumentasiShow({ album }: DokumentasiShowProps) {
                         </>
                     ) : (
                         <div className="mx-auto flex max-w-md flex-col items-center justify-center rounded-3xl border border-[#DDE5DD] bg-white px-6 py-20 text-center">
-                            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F5E9] text-[#1B5E20]">
+                            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#e6f4ea] text-[#0a6c32]">
                                 <Camera size={24} />
                             </div>
                             <h3 className="mb-1 text-lg font-bold text-[#1A1A1A]">

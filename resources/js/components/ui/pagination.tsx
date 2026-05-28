@@ -62,8 +62,8 @@ export function Pagination({ links, className }: PaginationProps) {
                   className={cn(
                     "flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-[#1B5E20] text-white shadow-sm hover:bg-[#145218]"
-                      : "text-[#5C6B73] hover:bg-[#E8F5E9] hover:text-[#1B5E20]",
+                      ? "bg-[#0a6c32] text-white shadow-sm hover:bg-[#085627]"
+                      : "text-[#5C6B73] hover:bg-[#e6f4ea] hover:text-[#0a6c32]",
                     isFirst || isLast ? "px-2 sm:px-3" : ""
                   )}
                   aria-current={isActive ? "page" : undefined}

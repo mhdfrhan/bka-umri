@@ -104,7 +104,7 @@ export default function BeritaIndex({
             </PageHero>
 
             {/* Filter & Search */}
-            <section className="border-b border-[#E8F5E9] bg-white pt-10 pb-6">
+            <section className="border-b border-[#e6f4ea] bg-white pt-10 pb-6">
                 <div className="bka-container">
                     <div
                         ref={filterRef}
@@ -118,8 +118,8 @@ export default function BeritaIndex({
                                     onClick={() => handleCategoryChange(cat)}
                                     className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
                                         activeCategory === cat
-                                            ? 'bg-[#1B5E20] text-white shadow-md'
-                                            : 'bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#E8F5E9] hover:text-[#1B5E20]'
+                                            ? 'bg-[#0a6c32] text-white shadow-md'
+                                            : 'bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#e6f4ea] hover:text-[#0a6c32]'
                                     }`}
                                 >
                                     {cat}
@@ -137,7 +137,7 @@ export default function BeritaIndex({
                                 placeholder="Cari berita..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full rounded-xl border border-[#DDE5DD] bg-white py-2.5 pr-4 pl-11 text-[14px] text-[#1A1A1A] transition-colors focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] focus:outline-none"
+                                className="w-full rounded-xl border border-[#DDE5DD] bg-white py-2.5 pr-4 pl-11 text-[14px] text-[#1A1A1A] transition-colors focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32] focus:outline-none"
                             />
                             <Search
                                 size={18}

@@ -68,7 +68,7 @@ export default function Forbidden() {
                                 </Link>
                                 <Link
                                     href="/login"
-                                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#1B5E20] px-6 py-3.5 text-xs font-bold text-white shadow-md shadow-emerald-800/10 transition-all hover:bg-[#145218] sm:w-auto"
+                                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0a6c32] px-6 py-3.5 text-xs font-bold text-white shadow-md shadow-emerald-800/10 transition-all hover:bg-[#085627] sm:w-auto"
                                 >
                                     <LogIn size={14} />
                                     <span>Masuk Administrator</span>

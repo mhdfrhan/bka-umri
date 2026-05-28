@@ -481,7 +481,7 @@ export default function WebSettingsCMS({
                 <div className="flex flex-col gap-2 border-b border-neutral-100 pb-5 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
-                            <Settings2 className="text-[#1B5E20]" size={28} />
+                            <Settings2 className="text-[#0a6c32]" size={28} />
                             Pengaturan Web & Inbox Dashboard
                         </h1>
                         <p className="mt-1 text-sm text-neutral-500">
@@ -500,7 +500,7 @@ export default function WebSettingsCMS({
                             onClick={() => setActiveTab('kontak')}
                             className={`flex w-full items-center gap-3 rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
                                 activeTab === 'kontak'
-                                    ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
+                                    ? 'border-[#0a6c32] bg-emerald-50/20 text-[#0a6c32] shadow-xs'
                                     : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
                             }`}
                         >
@@ -512,7 +512,7 @@ export default function WebSettingsCMS({
                             onClick={() => setActiveTab('sosmed')}
                             className={`flex w-full items-center gap-3 rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
                                 activeTab === 'sosmed'
-                                    ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
+                                    ? 'border-[#0a6c32] bg-emerald-50/20 text-[#0a6c32] shadow-xs'
                                     : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
                             }`}
                         >
@@ -525,7 +525,7 @@ export default function WebSettingsCMS({
                                 onClick={() => setActiveTab('sistem')}
                                 className={`flex w-full items-center justify-between rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
                                     activeTab === 'sistem'
-                                        ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
+                                        ? 'border-[#0a6c32] bg-emerald-50/20 text-[#0a6c32] shadow-xs'
                                         : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
                                 }`}
                             >
@@ -543,7 +543,7 @@ export default function WebSettingsCMS({
                             onClick={() => setActiveTab('pemberitahuan')}
                             className={`flex w-full items-center gap-3 rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
                                 activeTab === 'pemberitahuan'
-                                    ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
+                                    ? 'border-[#0a6c32] bg-emerald-50/20 text-[#0a6c32] shadow-xs'
                                     : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
                             }`}
                         >
@@ -555,7 +555,7 @@ export default function WebSettingsCMS({
                             onClick={() => setActiveTab('inbox')}
                             className={`flex w-full items-center justify-between rounded-2xl border p-4.5 text-left text-xs font-bold transition-all ${
                                 activeTab === 'inbox'
-                                    ? 'border-[#1B5E20] bg-emerald-50/20 text-[#1B5E20] shadow-xs'
+                                    ? 'border-[#0a6c32] bg-emerald-50/20 text-[#0a6c32] shadow-xs'
                                     : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'
                             }`}
                         >
@@ -604,7 +604,7 @@ export default function WebSettingsCMS({
                                                     telepon: e.target.value,
                                                 }))
                                             }
-                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                             required
                                         />
                                     </div>
@@ -622,7 +622,7 @@ export default function WebSettingsCMS({
                                                     email: e.target.value,
                                                 }))
                                             }
-                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                             required
                                         />
                                     </div>
@@ -640,7 +640,7 @@ export default function WebSettingsCMS({
                                                 }))
                                             }
                                             rows={3}
-                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                             required
                                         />
                                     </div>
@@ -659,7 +659,7 @@ export default function WebSettingsCMS({
                                                 }))
                                             }
                                             rows={2}
-                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                             required
                                         />
                                     </div>
@@ -678,7 +678,7 @@ export default function WebSettingsCMS({
                                                 }))
                                             }
                                             rows={3}
-                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 font-mono text-[11px] outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 font-mono text-[11px] outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                             required
                                         />
                                         <p className="mt-0.5 text-[10px] leading-normal text-neutral-400">
@@ -691,7 +691,7 @@ export default function WebSettingsCMS({
                                 <div className="mt-4 flex items-center justify-end border-t border-neutral-100 pt-4">
                                     <button
                                         type="submit"
-                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B5E20] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#145218]"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0a6c32] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
                                     >
                                         <Save size={14} />
                                         <span>Simpan Perubahan Kontak</span>
@@ -719,7 +719,7 @@ export default function WebSettingsCMS({
                                     <button
                                         type="button"
                                         onClick={handleAddSosmed}
-                                        className="inline-flex items-center gap-1 rounded-xl bg-[#1B5E20] px-3 py-2 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-[#145218]"
+                                        className="inline-flex items-center gap-1 rounded-xl bg-[#0a6c32] px-3 py-2 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
                                     >
                                         <Plus size={13} />
                                         <span>Tambah Tautan</span>
@@ -745,7 +745,7 @@ export default function WebSettingsCMS({
                                                                         .value,
                                                                 )
                                                             }
-                                                            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-bold outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                                            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-bold outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                                         >
                                                             <option value="Facebook">
                                                                 Facebook
@@ -780,7 +780,7 @@ export default function WebSettingsCMS({
                                                                         .value,
                                                                 )
                                                             }
-                                                            className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                                            className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                                             required
                                                         />
                                                     </div>
@@ -820,7 +820,7 @@ export default function WebSettingsCMS({
                                 <div className="mt-4 flex items-center justify-end border-t border-neutral-100 pt-4">
                                     <button
                                         type="submit"
-                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B5E20] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#145218]"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0a6c32] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
                                     >
                                         <Save size={14} />
                                         <span>Simpan Perubahan Tautan</span>
@@ -886,7 +886,7 @@ export default function WebSettingsCMS({
                                                         e.target.value,
                                                 }))
                                             }
-                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] disabled:bg-neutral-50 disabled:text-neutral-500"
+                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32] disabled:bg-neutral-50 disabled:text-neutral-500"
                                             disabled={!isSuperAdmin}
                                             required
                                         />
@@ -907,7 +907,7 @@ export default function WebSettingsCMS({
                                                 }))
                                             }
                                             rows={3}
-                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] disabled:bg-neutral-50 disabled:text-neutral-500"
+                                            className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32] disabled:bg-neutral-50 disabled:text-neutral-500"
                                             maxLength={160}
                                             disabled={!isSuperAdmin}
                                             required
@@ -1042,7 +1042,7 @@ export default function WebSettingsCMS({
                                 <div className="mt-4 flex items-center justify-end border-t border-neutral-100 pt-4">
                                     <button
                                         type="submit"
-                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B5E20] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#145218] disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0a6c32] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#085627] disabled:cursor-not-allowed disabled:opacity-50"
                                         disabled={!isSuperAdmin}
                                     >
                                         <Save size={14} />
@@ -1089,7 +1089,7 @@ export default function WebSettingsCMS({
                                                             e.target.value,
                                                     }))
                                                 }
-                                                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-bold outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-bold outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                                 required
                                             >
                                                 <option value="0">
@@ -1231,7 +1231,7 @@ export default function WebSettingsCMS({
                                                         e.target.value,
                                                 }))
                                             }
-                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                         />
                                         <p className="text-[10px] font-medium text-neutral-400">
                                             Jika diisi, poster pemberitahuan
@@ -1261,7 +1261,7 @@ export default function WebSettingsCMS({
                                                             e.target.value,
                                                     }))
                                                 }
-                                                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                             />
                                             <p className="text-[10px] font-medium text-neutral-400">
                                                 Jika diisi, tombol aksi tambahan
@@ -1289,7 +1289,7 @@ export default function WebSettingsCMS({
                                                             e.target.value,
                                                     }))
                                                 }
-                                                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                             />
                                             <p className="text-[10px] font-medium text-neutral-400">
                                                 Teks bantuan opsional yang
@@ -1303,7 +1303,7 @@ export default function WebSettingsCMS({
                                 <div className="mt-4 flex items-center justify-end border-t border-neutral-100 pt-4">
                                     <button
                                         type="submit"
-                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B5E20] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#145218]"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0a6c32] px-5 py-3 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
                                     >
                                         <Save size={14} />
                                         <span>
@@ -1338,7 +1338,7 @@ export default function WebSettingsCMS({
                                             onChange={(e) =>
                                                 setInboxSearch(e.target.value)
                                             }
-                                            className="w-full rounded-xl border border-neutral-200 bg-white py-2 pr-4 pl-9 text-xs outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full rounded-xl border border-neutral-200 bg-white py-2 pr-4 pl-9 text-xs outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                         />
                                         <Search
                                             size={14}
@@ -1353,7 +1353,7 @@ export default function WebSettingsCMS({
                                             }
                                             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
                                                 inboxFilter === 'all'
-                                                    ? 'bg-[#1B5E20] text-white'
+                                                    ? 'bg-[#0a6c32] text-white'
                                                     : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                             }`}
                                         >
@@ -1365,7 +1365,7 @@ export default function WebSettingsCMS({
                                             }
                                             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
                                                 inboxFilter === 'unread'
-                                                    ? 'bg-[#1B5E20] text-white'
+                                                    ? 'bg-[#0a6c32] text-white'
                                                     : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                             }`}
                                         >
@@ -1394,7 +1394,7 @@ export default function WebSettingsCMS({
                                                         className={`mt-0.5 shrink-0 rounded-xl p-2.5 ${
                                                             msg.dibaca
                                                                 ? 'bg-neutral-100 text-neutral-500'
-                                                                : 'animate-pulse bg-emerald-100 text-[#1B5E20]'
+                                                                : 'animate-pulse bg-emerald-100 text-[#0a6c32]'
                                                         }`}
                                                     >
                                                         <MailOpen size={16} />
@@ -1435,8 +1435,8 @@ export default function WebSettingsCMS({
                                                         }}
                                                         className={`rounded-lg border border-neutral-200 bg-white p-1.5 text-xs ${
                                                             msg.dibaca
-                                                                ? 'text-neutral-500 hover:text-[#1B5E20]'
-                                                                : 'text-[#1B5E20] hover:text-neutral-500'
+                                                                ? 'text-neutral-500 hover:text-[#0a6c32]'
+                                                                : 'text-[#0a6c32] hover:text-neutral-500'
                                                         }`}
                                                         title={
                                                             msg.dibaca
@@ -1495,7 +1495,7 @@ export default function WebSettingsCMS({
                                         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
                                             activeMessage.dibaca
                                                 ? 'bg-neutral-100 text-neutral-500'
-                                                : 'bg-emerald-100 text-[#1B5E20]'
+                                                : 'bg-emerald-100 text-[#0a6c32]'
                                         }`}
                                     >
                                         <MailOpen size={11} />
@@ -1523,7 +1523,7 @@ export default function WebSettingsCMS({
                                 {/* Sender Info Block */}
                                 <div className="flex flex-col gap-3 rounded-2xl border border-neutral-100 bg-neutral-50/60 p-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1B5E20]/10 text-[#1B5E20]">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0a6c32]/10 text-[#0a6c32]">
                                             <User size={18} />
                                         </div>
                                         <div className="min-w-0 flex-1">
@@ -1532,7 +1532,7 @@ export default function WebSettingsCMS({
                                             </p>
                                             <a
                                                 href={`mailto:${activeMessage.email}`}
-                                                className="block truncate text-[11px] font-bold text-[#1B5E20] hover:text-[#145218] hover:underline"
+                                                className="block truncate text-[11px] font-bold text-[#0a6c32] hover:text-[#085627] hover:underline"
                                             >
                                                 {activeMessage.email}
                                             </a>
@@ -1589,7 +1589,7 @@ export default function WebSettingsCMS({
                                     </button>
                                     <a
                                         href={`mailto:${activeMessage.email}?subject=Balasan BKA UMRI: ${activeMessage.subjek}`}
-                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B5E20] px-4.5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#145218]"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0a6c32] px-4.5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
                                     >
                                         <Mail size={14} />
                                         <span>Balas Email</span>

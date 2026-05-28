@@ -36,7 +36,7 @@ export default function NewsCard({ slug, thumbnail, category, title, excerpt, da
 
                     {/* Category badge overlaid on thumbnail */}
                     {category && (
-                        <span className="absolute top-3 left-3 z-10 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.04em] text-[#1B5E20] shadow-sm backdrop-blur-sm">
+                        <span className="absolute top-3 left-3 z-10 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.04em] text-[#0a6c32] shadow-sm backdrop-blur-sm">
                             {category}
                         </span>
                     )}
@@ -44,7 +44,7 @@ export default function NewsCard({ slug, thumbnail, category, title, excerpt, da
 
                 {/* Content */}
                 <div className="flex flex-1 flex-col p-5">
-                    <h3 className="mb-2 line-clamp-2 text-[16px] font-semibold leading-snug text-[#1A1A1A] transition-colors duration-200 group-hover:text-[#1B5E20]">
+                    <h3 className="mb-2 line-clamp-2 text-[16px] font-semibold leading-snug text-[#1A1A1A] transition-colors duration-200 group-hover:text-[#0a6c32]">
                         {title}
                     </h3>
 

@@ -559,7 +559,7 @@ export default function UserCreate({ activeCount }: { activeCount: number }) {
                                     'flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold text-white shadow-sm transition-all outline-none',
                                     processing || isLimitReached
                                         ? 'cursor-not-allowed bg-neutral-200 text-neutral-400'
-                                        : 'bg-[#1B5E20] hover:bg-[#145218]',
+                                        : 'bg-[#0a6c32] hover:bg-[#085627]',
                                 )}
                             >
                                 <Save size={14} />

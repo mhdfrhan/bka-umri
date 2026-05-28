@@ -36,7 +36,7 @@ export default function StatistikSection({
             className="relative z-[3] overflow-hidden border-t-[3px] border-[#C8A000]"
             style={{
                 background:
-                    'linear-gradient(135deg, #144317 0%, #1B5E20 50%, #206825 100%)',
+                    'linear-gradient(135deg, #144317 0%, #0a6c32 50%, #206825 100%)',
             }}
         >
             {/* Dot Pattern Overlay */}
@@ -65,7 +65,7 @@ export default function StatistikSection({
                 className="pointer-events-none absolute -bottom-[10%] -left-[5%] z-[1] h-[300px] w-[300px] rounded-full"
                 style={{
                     background:
-                        'radial-gradient(circle, rgba(46,125,70,0.3) 0%, rgba(46,125,70,0) 70%)',
+                        'radial-gradient(circle, rgba(4,141,70,0.3) 0%, rgba(4,141,70,0) 70%)',
                     filter: 'blur(30px)',
                 }}
             />

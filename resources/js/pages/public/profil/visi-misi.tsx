@@ -74,7 +74,7 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
                 <PageHero
                     title="Profil BKA"
                     description="Visi dan Misi sebagai arah gerak komitmen pelayanan BKA UMRI."
-                    className="bg-gradient-to-r from-[#1B5E20] to-[#0D3C10]"
+                    className="bg-gradient-to-r from-[#0a6c32] to-[#0D3C10]"
                 >
                     <Breadcrumbs
                         breadcrumbs={breadcrumbItems}
@@ -89,16 +89,16 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
                 <div className="mx-auto mt-12 w-full max-w-4xl px-4 sm:px-6 lg:px-8">
                     {/* Visi Section */}
                     <div className="relative mb-12 overflow-hidden rounded-2xl border border-[#DDE5DD] bg-white p-8 shadow-md sm:p-12">
-                        <div className="absolute top-0 right-0 -z-0 h-32 w-32 rounded-bl-full bg-[#E8F5E9] opacity-40" />
+                        <div className="absolute top-0 right-0 -z-0 h-32 w-32 rounded-bl-full bg-[#e6f4ea] opacity-40" />
                         <div className="pointer-events-none absolute -top-4 -left-4 font-serif text-8xl text-gray-100 opacity-30 select-none">
                             “
                         </div>
 
                         <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8F5E9] text-[#1B5E20] shadow-sm">
+                            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e6f4ea] text-[#0a6c32] shadow-sm">
                                 <Compass size={32} />
                             </div>
-                            <h2 className="mb-2 text-xs font-bold tracking-widest text-[#1B5E20] uppercase">
+                            <h2 className="mb-2 text-xs font-bold tracking-widest text-[#0a6c32] uppercase">
                                 Visi BKA UMRI
                             </h2>
                             <div
@@ -113,7 +113,7 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
                         <div className="flex flex-col items-start gap-8 md:flex-row">
                             {/* Left column title */}
                             <div className="flex-shrink-0 md:w-1/3">
-                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#E8F5E9] text-[#1B5E20]">
+                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#0a6c32]">
                                     <Target size={24} />
                                 </div>
                                 <h2 className="text-2xl font-bold tracking-tight text-gray-900">
@@ -136,7 +136,7 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
                                             className="group flex items-start gap-4"
                                         >
                                             {/* Number Circle Badge */}
-                                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[#DDE5DD] bg-[#E8F5E9] text-sm font-bold text-[#1B5E20] shadow-sm transition-all duration-200 group-hover:bg-[#1B5E20] group-hover:text-white">
+                                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[#DDE5DD] bg-[#e6f4ea] text-sm font-bold text-[#0a6c32] shadow-sm transition-all duration-200 group-hover:bg-[#0a6c32] group-hover:text-white">
                                                 {index + 1}
                                             </div>
 

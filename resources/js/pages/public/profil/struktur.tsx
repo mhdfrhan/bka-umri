@@ -119,7 +119,7 @@ export default function Struktur({
                 <PageHero
                     title="Profil BKA"
                     description="Struktur Organisasi dan Personalia pengelola BKA UMRI."
-                    className="bg-gradient-to-r from-[#1B5E20] to-[#0D3C10]"
+                    className="bg-gradient-to-r from-[#0a6c32] to-[#0D3C10]"
                 >
                     <Breadcrumbs
                         breadcrumbs={breadcrumbItems}
@@ -135,11 +135,11 @@ export default function Struktur({
                     {/* Section 1: Bagan Struktur Organisasi */}
                     <div className="mb-16">
                         <div className="mb-6 flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E8F5E9] text-[#1B5E20] shadow-sm">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#0a6c32] shadow-sm">
                                 <Users size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xs font-bold tracking-widest text-[#1B5E20] uppercase">
+                                <h2 className="text-xs font-bold tracking-widest text-[#0a6c32] uppercase">
                                     Bagan Instansi
                                 </h2>
                                 <h3 className="text-2xl font-bold tracking-tight text-gray-900">
@@ -160,11 +160,11 @@ export default function Struktur({
                             />
 
                             {/* Zoom overlay indicator */}
-                            <div className="absolute inset-0 flex items-center justify-center bg-[#1B5E20]/10 opacity-0 transition-all duration-300 group-hover:opacity-100">
+                            <div className="absolute inset-0 flex items-center justify-center bg-[#0a6c32]/10 opacity-0 transition-all duration-300 group-hover:opacity-100">
                                 <div className="flex scale-95 transform items-center gap-2 rounded-full bg-white/95 px-5 py-2.5 text-sm font-semibold text-gray-800 shadow-lg transition-all duration-300 group-hover:scale-100">
                                     <ZoomIn
                                         size={16}
-                                        className="text-[#1B5E20]"
+                                        className="text-[#0a6c32]"
                                     />
                                     Klik untuk memperbesar bagan
                                 </div>
@@ -182,7 +182,7 @@ export default function Struktur({
                     {/* Section 2: Personalia Kepengurusan */}
                     <div>
                         <div className="mb-10 flex flex-col items-center text-center">
-                            <span className="text-xs font-bold tracking-widest text-[#1B5E20] uppercase">
+                            <span className="text-xs font-bold tracking-widest text-[#0a6c32] uppercase">
                                 Struktur Personalia
                             </span>
                             <h2 className="mt-1 text-3xl font-bold tracking-tight text-gray-900">
@@ -194,7 +194,7 @@ export default function Struktur({
                         {/* Top Spotlight: Kepala Biro BKA */}
                         {liveKepalaBiro && (
                             <div className="group relative mx-auto mb-16 max-w-md">
-                                <div className="absolute inset-0 -z-0 rounded-3xl border-2 border-[#C8A000] bg-gradient-to-br from-[#1B5E20]/5 to-[#C8A000]/5 opacity-100 shadow-md" />
+                                <div className="absolute inset-0 -z-0 rounded-3xl border-2 border-[#C8A000] bg-gradient-to-br from-[#0a6c32]/5 to-[#C8A000]/5 opacity-100 shadow-md" />
 
                                 <div className="relative z-10 flex transform flex-col items-center rounded-3xl border border-[#DDE5DD] bg-white p-8 text-center shadow-sm transition-all duration-200 hover:translate-y-[-4px]">
                                     {/* Gold crown or top accent */}
@@ -202,7 +202,7 @@ export default function Struktur({
                                         Pimpinan
                                     </div>
 
-                                    <div className="relative mb-6 h-32 w-32 overflow-hidden rounded-full border-4 border-[#E8F5E9] shadow-inner">
+                                    <div className="relative mb-6 h-32 w-32 overflow-hidden rounded-full border-4 border-[#e6f4ea] shadow-inner">
                                         <img
                                             src={liveKepalaBiro.foto}
                                             alt={liveKepalaBiro.nama}
@@ -213,11 +213,11 @@ export default function Struktur({
                                     <h3 className="text-xl font-bold tracking-tight text-gray-900">
                                         {liveKepalaBiro.nama}
                                     </h3>
-                                    <p className="mt-1 text-sm font-semibold text-[#1B5E20]">
+                                    <p className="mt-1 text-sm font-semibold text-[#0a6c32]">
                                         {liveKepalaBiro.jabatan}
                                     </p>
                                     {liveKepalaBiro.periode && (
-                                        <span className="mt-3 inline-block rounded-full bg-[#E8F5E9] px-3 py-1 text-xs font-medium text-[#1B5E20]">
+                                        <span className="mt-3 inline-block rounded-full bg-[#e6f4ea] px-3 py-1 text-xs font-medium text-[#0a6c32]">
                                             {liveKepalaBiro.periode}
                                         </span>
                                     )}
@@ -232,9 +232,9 @@ export default function Struktur({
                                 .map((anggota) => (
                                     <div
                                         key={anggota.id}
-                                        className="flex transform flex-col items-center rounded-2xl border border-[#DDE5DD] bg-white p-6 text-center shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:border-[#1B5E20]/30 hover:shadow-md"
+                                        className="flex transform flex-col items-center rounded-2xl border border-[#DDE5DD] bg-white p-6 text-center shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:border-[#0a6c32]/30 hover:shadow-md"
                                     >
-                                        <div className="mb-4 h-24 w-24 overflow-hidden rounded-full border-2 border-[#E8F5E9] shadow-sm">
+                                        <div className="mb-4 h-24 w-24 overflow-hidden rounded-full border-2 border-[#e6f4ea] shadow-sm">
                                             <img
                                                 src={anggota.foto}
                                                 alt={anggota.nama}
@@ -245,7 +245,7 @@ export default function Struktur({
                                         <h4 className="text-base font-bold tracking-tight text-gray-900">
                                             {anggota.nama}
                                         </h4>
-                                        <p className="mt-0.5 text-xs font-semibold text-[#1B5E20]">
+                                        <p className="mt-0.5 text-xs font-semibold text-[#0a6c32]">
                                             {anggota.jabatan}
                                         </p>
 

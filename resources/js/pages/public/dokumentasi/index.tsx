@@ -117,7 +117,7 @@ export default function DokumentasiIndex({
                 </div>
             </PageHero>
 
-            <section className="border-b border-[#E8F5E9] bg-white py-8">
+            <section className="border-b border-[#e6f4ea] bg-white py-8">
                 <div className="bka-container">
                     <div
                         ref={filterRef}
@@ -139,7 +139,7 @@ export default function DokumentasiIndex({
                                 placeholder="Cari album kegiatan..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full rounded-xl border border-[#DDE5DD] bg-white py-2.5 pr-4 pl-11 text-[14px] text-[#1A1A1A] transition-colors focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] focus:outline-none"
+                                className="w-full rounded-xl border border-[#DDE5DD] bg-white py-2.5 pr-4 pl-11 text-[14px] text-[#1A1A1A] transition-colors focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32] focus:outline-none"
                             />
                             <Search
                                 size={18}
@@ -153,8 +153,8 @@ export default function DokumentasiIndex({
                             onClick={() => handleCategoryChange('Semua')}
                             className={`rounded-full px-4 py-1.5 text-xs font-extrabold transition-all ${
                                 activeCategory === 'Semua'
-                                    ? 'bg-[#1B5E20] text-white shadow-xs'
-                                    : 'border border-[#DDE5DD] bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#E8F5E9] hover:text-[#1B5E20]'
+                                    ? 'bg-[#0a6c32] text-white shadow-xs'
+                                    : 'border border-[#DDE5DD] bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#e6f4ea] hover:text-[#0a6c32]'
                             }`}
                         >
                             Semua
@@ -165,8 +165,8 @@ export default function DokumentasiIndex({
                                 onClick={() => handleCategoryChange(cat)}
                                 className={`rounded-full px-4 py-1.5 text-xs font-extrabold transition-all ${
                                     activeCategory === cat
-                                        ? 'bg-[#1B5E20] text-white shadow-xs'
-                                        : 'border border-[#DDE5DD] bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#E8F5E9] hover:text-[#1B5E20]'
+                                        ? 'bg-[#0a6c32] text-white shadow-xs'
+                                        : 'border border-[#DDE5DD] bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#e6f4ea] hover:text-[#0a6c32]'
                                 }`}
                             >
                                 {cat}
@@ -215,7 +215,7 @@ export default function DokumentasiIndex({
                                                 className={`absolute top-3 left-3 rounded-lg px-2.5 py-1 text-[10px] font-extrabold text-white shadow-xs backdrop-blur-xs ${
                                                     album.kategori === 'Aset'
                                                         ? 'bg-[#C8A000]'
-                                                        : 'bg-[#1B5E20]'
+                                                        : 'bg-[#0a6c32]'
                                                 }`}
                                             >
                                                 {album.kategori}
@@ -226,7 +226,7 @@ export default function DokumentasiIndex({
                                             <div className="mb-2.5 flex items-center gap-2 text-xs font-medium text-[#5C6B73]">
                                                 <Calendar
                                                     size={13}
-                                                    className="text-[#1B5E20]"
+                                                    className="text-[#0a6c32]"
                                                 />
                                                 <span>
                                                     {formatDate(
@@ -235,7 +235,7 @@ export default function DokumentasiIndex({
                                                 </span>
                                             </div>
 
-                                            <h3 className="mb-2 line-clamp-2 text-[15px] leading-snug font-bold text-[#1A1A1A] hover:text-[#1B5E20]">
+                                            <h3 className="mb-2 line-clamp-2 text-[15px] leading-snug font-bold text-[#1A1A1A] hover:text-[#0a6c32]">
                                                 <Link
                                                     href={`/dokumentasi/${album.slug}`}
                                                 >
@@ -252,7 +252,7 @@ export default function DokumentasiIndex({
                                             <div className="mt-auto border-t border-[#F1F3F1] pt-3">
                                                 <Link
                                                     href={`/dokumentasi/${album.slug}`}
-                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1B5E20] transition-colors hover:text-[#145218]"
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0a6c32] transition-colors hover:text-[#085627]"
                                                 >
                                                     <span>
                                                         Lihat Foto Album
@@ -274,7 +274,7 @@ export default function DokumentasiIndex({
                         </>
                     ) : (
                         <div className="mx-auto flex max-w-xl flex-col items-center justify-center px-6 py-20 text-center text-[#5C6B73]">
-                            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F5E9] text-[#1B5E20]">
+                            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#e6f4ea] text-[#0a6c32]">
                                 <ImageIcon size={28} />
                             </div>
                             <h3 className="mb-2 text-xl font-bold text-[#1A1A1A]">
@@ -290,7 +290,7 @@ export default function DokumentasiIndex({
                                         setSearchQuery('');
                                         handleCategoryChange('Semua');
                                     }}
-                                    className="rounded-xl bg-[#1B5E20] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#145218]"
+                                    className="rounded-xl bg-[#0a6c32] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#085627]"
                                 >
                                     Reset Filter & Pencarian
                                 </button>

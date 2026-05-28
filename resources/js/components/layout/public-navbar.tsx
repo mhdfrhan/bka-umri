@@ -109,7 +109,7 @@ export default function PublicNavbar() {
 
     return (
         <>
-            <div className="hidden border-b border-emerald-800/20 bg-[#1B5E20] py-2 font-sans text-[11.5px] text-white/90 md:block">
+            <div className="hidden border-b border-emerald-800/20 bg-[#0a6c32] py-2 font-sans text-[11.5px] text-white/90 md:block">
                 <div className="bka-container flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                         <MapPin size={13} className="text-[#C8A000]" />
@@ -128,7 +128,7 @@ export default function PublicNavbar() {
 
             <header
                 id="public-navbar"
-                className="sticky top-0 z-50 border-b border-[#1B5E20]/10 bg-white/95 shadow-[0_8px_30px_-8px_rgba(10,40,14,0.06)] backdrop-blur-md transition-all duration-300 ease-in-out"
+                className="sticky top-0 z-50 border-b border-[#0a6c32]/10 bg-white/95 shadow-[0_8px_30px_-8px_rgba(10,40,14,0.06)] backdrop-blur-md transition-all duration-300 ease-in-out"
             >
                 <div className="bka-container">
                     <nav className="flex h-[80px] items-center justify-between">
@@ -179,8 +179,8 @@ export default function PublicNavbar() {
                                                     }
                                                     className={`relative flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-medium tracking-wide transition-all duration-200 ease-out ${
                                                         isActive('/profil')
-                                                            ? 'bg-[#E8F5E9]/30 font-semibold text-[#1B5E20] hover:bg-[#E8F5E9]/50'
-                                                            : 'text-slate-600 hover:bg-[#E8F5E9]/50 hover:text-[#1B5E20]'
+                                                            ? 'bg-[#e6f4ea]/30 font-semibold text-[#0a6c32] hover:bg-[#e6f4ea]/50'
+                                                            : 'text-slate-600 hover:bg-[#e6f4ea]/50 hover:text-[#0a6c32]'
                                                     }`}
                                                 >
                                                     <span>{item.label}</span>
@@ -195,12 +195,12 @@ export default function PublicNavbar() {
                                                             color: isActive(
                                                                 '/profil',
                                                             )
-                                                                ? '#1B5E20'
+                                                                ? '#0a6c32'
                                                                 : '#64748B',
                                                         }}
                                                     />
                                                     {isActive('/profil') && (
-                                                        <span className="absolute bottom-[2px] left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-[#1B5E20] shadow-[0_1px_4px_rgba(27,94,32,0.15)]" />
+                                                        <span className="absolute bottom-[2px] left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-[#0a6c32] shadow-[0_1px_4px_rgba(10,108,50,0.15)]" />
                                                     )}
                                                 </button>
 
@@ -241,11 +241,11 @@ export default function PublicNavbar() {
                                                                                 false,
                                                                             )
                                                                         }
-                                                                        className={`group flex gap-3 rounded-xl px-3 py-2.5 transition-all duration-250 ease-out hover:bg-[#E8F5E9]/50 ${
+                                                                        className={`group flex gap-3 rounded-xl px-3 py-2.5 transition-all duration-250 ease-out hover:bg-[#e6f4ea]/50 ${
                                                                             isActive(
                                                                                 sub.href,
                                                                             )
-                                                                                ? 'bg-[#E8F5E9]/30 font-semibold text-[#1B5E20]'
+                                                                                ? 'bg-[#e6f4ea]/30 font-semibold text-[#0a6c32]'
                                                                                 : 'text-[#475569]'
                                                                         }`}
                                                                     >
@@ -254,8 +254,8 @@ export default function PublicNavbar() {
                                                                                 isActive(
                                                                                     sub.href,
                                                                                 )
-                                                                                    ? 'bg-[#1B5E20] text-white shadow-sm'
-                                                                                    : 'bg-[#E8F5E9]/60 text-[#1B5E20]'
+                                                                                    ? 'bg-[#0a6c32] text-white shadow-sm'
+                                                                                    : 'bg-[#e6f4ea]/60 text-[#0a6c32]'
                                                                             }`}
                                                                         >
                                                                             <SubIcon
@@ -270,8 +270,8 @@ export default function PublicNavbar() {
                                                                                     isActive(
                                                                                         sub.href,
                                                                                     )
-                                                                                        ? 'text-[#1B5E20]'
-                                                                                        : 'text-slate-800 group-hover:text-[#1B5E20]'
+                                                                                        ? 'text-[#0a6c32]'
+                                                                                        : 'text-slate-800 group-hover:text-[#0a6c32]'
                                                                                 }`}
                                                                             >
                                                                                 {
@@ -296,13 +296,13 @@ export default function PublicNavbar() {
                                                 href={item.href}
                                                 className={`relative flex items-center rounded-full px-4 py-2 text-[14px] font-medium tracking-wide transition-all duration-300 ease-out ${
                                                     isActive(item.href)
-                                                        ? 'bg-[#E8F5E9]/30 font-semibold text-[#1B5E20] hover:bg-[#E8F5E9]/50'
-                                                        : 'text-slate-600 hover:bg-[#E8F5E9]/50 hover:text-[#1B5E20]'
+                                                        ? 'bg-[#e6f4ea]/30 font-semibold text-[#0a6c32] hover:bg-[#e6f4ea]/50'
+                                                        : 'text-slate-600 hover:bg-[#e6f4ea]/50 hover:text-[#0a6c32]'
                                                 }`}
                                             >
                                                 <span>{item.label}</span>
                                                 {isActive(item.href) && (
-                                                    <span className="absolute bottom-[2px] left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-[#1B5E20] shadow-[0_1px_4px_rgba(27,94,32,0.15)]" />
+                                                    <span className="absolute bottom-[2px] left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-[#0a6c32] shadow-[0_1px_4px_rgba(10,108,50,0.15)]" />
                                                 )}
                                             </Link>
                                         )}
@@ -314,7 +314,7 @@ export default function PublicNavbar() {
                                 {user ? (
                                     <Link
                                         href="/admin"
-                                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#1B5E20] to-[#2e7d46] px-5 py-2.5 text-[13.5px] font-bold text-white shadow-[0_4px_16px_-2px_rgba(27,94,32,0.3)] transition-all duration-200 ease-out hover:-translate-y-[2px] hover:from-[#145218] hover:to-[#226136] hover:shadow-[0_8px_24px_rgba(27,94,32,0.4)] active:translate-y-0"
+                                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#0a6c32] to-[#048d46] px-5 py-2.5 text-[13.5px] font-bold text-white shadow-[0_4px_16px_-2px_rgba(10,108,50,0.3)] transition-all duration-200 ease-out hover:-translate-y-[2px] hover:from-[#085627] hover:to-[#226136] hover:shadow-[0_8px_24px_rgba(10,108,50,0.4)] active:translate-y-0"
                                     >
                                         <LayoutDashboard size={14} />
                                         <span>Dashboard</span>
@@ -322,7 +322,7 @@ export default function PublicNavbar() {
                                 ) : (
                                     <Link
                                         href="/login"
-                                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#1B5E20] to-[#2e7d46] px-5 py-2.5 text-[13.5px] font-bold text-white shadow-[0_4px_16px_-2px_rgba(27,94,32,0.3)] transition-all duration-200 ease-out hover:-translate-y-[2px] hover:from-[#145218] hover:to-[#226136] hover:shadow-[0_8px_24px_rgba(27,94,32,0.4)] active:translate-y-0"
+                                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#0a6c32] to-[#048d46] px-5 py-2.5 text-[13.5px] font-bold text-white shadow-[0_4px_16px_-2px_rgba(10,108,50,0.3)] transition-all duration-200 ease-out hover:-translate-y-[2px] hover:from-[#085627] hover:to-[#226136] hover:shadow-[0_8px_24px_rgba(10,108,50,0.4)] active:translate-y-0"
                                     >
                                         <LogIn size={14} />
                                         <span>Portal BKA</span>
@@ -339,7 +339,7 @@ export default function PublicNavbar() {
                 aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
                 aria-expanded={mobileOpen}
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className={`fixed top-[17px] right-4 z-60 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/50 bg-white/95 text-slate-800 shadow-sm transition-all duration-300 ease-out hover:bg-[#E8F5E9] hover:text-[#1B5E20] lg:hidden ${
+                className={`fixed top-[17px] right-4 z-60 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/50 bg-white/95 text-slate-800 shadow-sm transition-all duration-300 ease-out hover:bg-[#e6f4ea] hover:text-[#0a6c32] lg:hidden ${
                     mobileOpen ? 'scale-95 shadow-none' : ''
                 }`}
             >
@@ -391,7 +391,7 @@ export default function PublicNavbar() {
                                             }
                                             className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[14.5px] font-semibold transition-all duration-250 ${
                                                 isActive('/profil')
-                                                    ? 'bg-[#E8F5E9]/50 text-[#1B5E20]'
+                                                    ? 'bg-[#e6f4ea]/50 text-[#0a6c32]'
                                                     : 'bg-transparent text-slate-800 hover:bg-[#F7F9F7]'
                                             }`}
                                         >
@@ -404,7 +404,7 @@ export default function PublicNavbar() {
                                                         ? 'rotate(180deg)'
                                                         : 'rotate(0deg)',
                                                     color: isActive('/profil')
-                                                        ? '#1B5E20'
+                                                        ? '#0a6c32'
                                                         : '#64748B',
                                                 }}
                                             />
@@ -430,7 +430,7 @@ export default function PublicNavbar() {
                                                         }
                                                         className={`mt-1 flex items-start gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ${
                                                             isActive(sub.href)
-                                                                ? 'bg-[#E8F5E9]/50 font-semibold text-[#1B5E20]'
+                                                                ? 'bg-[#e6f4ea]/50 font-semibold text-[#0a6c32]'
                                                                 : 'bg-transparent text-slate-500 hover:bg-[#F7F9F7]'
                                                         }`}
                                                     >
@@ -439,8 +439,8 @@ export default function PublicNavbar() {
                                                                 isActive(
                                                                     sub.href,
                                                                 )
-                                                                    ? 'bg-[#1B5E20] text-white'
-                                                                    : 'bg-[#E8F5E9]/50 text-[#1B5E20]'
+                                                                    ? 'bg-[#0a6c32] text-white'
+                                                                    : 'bg-[#e6f4ea]/50 text-[#0a6c32]'
                                                             }`}
                                                         >
                                                             <SubIcon
@@ -453,7 +453,7 @@ export default function PublicNavbar() {
                                                                     isActive(
                                                                         sub.href,
                                                                     )
-                                                                        ? 'text-[#1B5E20]'
+                                                                        ? 'text-[#0a6c32]'
                                                                         : 'text-slate-700'
                                                                 }`}
                                                             >
@@ -474,7 +474,7 @@ export default function PublicNavbar() {
                                         onClick={() => setMobileOpen(false)}
                                         className={`flex items-center justify-between rounded-xl px-4 py-3 text-[14.5px] font-semibold transition-all duration-200 ${
                                             isActive(item.href)
-                                                ? 'bg-[#E8F5E9]/50 font-bold text-[#1B5E20]'
+                                                ? 'bg-[#e6f4ea]/50 font-bold text-[#0a6c32]'
                                                 : 'bg-transparent text-slate-800 hover:bg-[#F7F9F7]'
                                         }`}
                                     >
@@ -482,7 +482,7 @@ export default function PublicNavbar() {
                                         {isActive(item.href) && (
                                             <ArrowRight
                                                 size={14}
-                                                className="text-[#1B5E20]"
+                                                className="text-[#0a6c32]"
                                             />
                                         )}
                                     </Link>
@@ -498,7 +498,7 @@ export default function PublicNavbar() {
                             <Link
                                 href="/dashboard"
                                 onClick={() => setMobileOpen(false)}
-                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#1B5E20] to-[#2e7d46] px-4 py-3 text-[14px] font-bold text-white shadow-[0_3px_10px_rgba(27,94,32,0.15)]"
+                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0a6c32] to-[#048d46] px-4 py-3 text-[14px] font-bold text-white shadow-[0_3px_10px_rgba(10,108,50,0.15)]"
                             >
                                 <LayoutDashboard size={15} />
                                 <span>Dashboard Admin</span>
@@ -507,7 +507,7 @@ export default function PublicNavbar() {
                             <Link
                                 href="/login"
                                 onClick={() => setMobileOpen(false)}
-                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#1B5E20] to-[#2e7d46] px-4 py-3 text-[14px] font-bold text-white shadow-[0_3px_10px_rgba(27,94,32,0.15)]"
+                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0a6c32] to-[#048d46] px-4 py-3 text-[14px] font-bold text-white shadow-[0_3px_10px_rgba(10,108,50,0.15)]"
                             >
                                 <LogIn size={15} />
                                 <span>Portal BKA</span>
@@ -517,15 +517,15 @@ export default function PublicNavbar() {
 
                     <div className="mt-1 flex flex-col gap-2.5 px-2 text-[12px] text-slate-400">
                         <div className="flex items-center gap-2">
-                            <Mail size={13} className="text-[#1B5E20]" />
+                            <Mail size={13} className="text-[#0a6c32]" />
                             <span>bka@umri.ac.id</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Phone size={13} className="text-[#1B5E20]" />
+                            <Phone size={13} className="text-[#0a6c32]" />
                             <span>(0761) 35008</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <MapPin size={13} className="text-[#1B5E20]" />
+                            <MapPin size={13} className="text-[#0a6c32]" />
                             <span>Pekanbaru, Riau</span>
                         </div>
                     </div>

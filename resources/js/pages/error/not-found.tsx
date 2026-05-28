@@ -10,7 +10,7 @@ export default function NotFound() {
                 {/* Modern subtle grids & gradients background */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000003_1px,transparent_1px),linear-gradient(to_bottom,#00000003_1px,transparent_1px)] bg-[size:4rem_4rem]" />
                 <div className="absolute -top-40 -left-40 size-96 rounded-full bg-emerald-500/5 blur-[120px]" />
-                <div className="absolute -right-40 -bottom-40 size-96 rounded-full bg-[#1B5E20]/5 blur-[120px]" />
+                <div className="absolute -right-40 -bottom-40 size-96 rounded-full bg-[#0a6c32]/5 blur-[120px]" />
 
                 <div className="relative z-10 w-full max-w-xl space-y-6 text-center select-none md:space-y-8">
                     {/* Massive Elegant 404 Text */}
@@ -37,7 +37,7 @@ export default function NotFound() {
                     <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
                         <Link
                             href="/"
-                            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#1B5E20] px-6 py-3.5 text-xs font-bold text-white shadow-md shadow-emerald-800/10 transition-all hover:bg-[#145218] sm:w-auto"
+                            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#0a6c32] px-6 py-3.5 text-xs font-bold text-white shadow-md shadow-emerald-800/10 transition-all hover:bg-[#085627] sm:w-auto"
                         >
                             <Home size={14} />
                             <span>Kembali ke Beranda</span>

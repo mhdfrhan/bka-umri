@@ -100,7 +100,7 @@ export default function PengumumanIndex({
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
-                                    className="w-full rounded-xl border border-[#DDE5DD] bg-white py-3 pr-4 pl-11 text-[14px] text-[#1A1A1A] shadow-sm transition-colors focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] focus:outline-none"
+                                    className="w-full rounded-xl border border-[#DDE5DD] bg-white py-3 pr-4 pl-11 text-[14px] text-[#1A1A1A] shadow-sm transition-colors focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32] focus:outline-none"
                                 />
                                 <Search
                                     size={18}

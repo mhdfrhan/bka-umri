@@ -43,9 +43,9 @@ const defaultLayanan: LayananItem[] = [
 const getCardBgClass = (idx: number) => {
     switch (idx % 3) {
         case 0:
-            return 'bg-[#1B5E20]';
+            return 'bg-[#0a6c32]';
         case 1:
-            return 'bg-[#2E7D46]';
+            return 'bg-[#048d46]';
         default:
             return 'bg-[#43A060]';
     }
@@ -119,7 +119,7 @@ export default function LayananSection({
                                         className={`bka-reveal bka-stagger-${idx + 2} ${translateYClass}`}
                                     >
                                         <div
-                                            className={`group flex items-start gap-5 rounded-2xl p-6 transition-all duration-300 ${bgClass} bka-cascade-card shadow-[0_12px_35px_rgba(27,94,32,0.12)]`}
+                                            className={`group flex items-start gap-5 rounded-2xl p-6 transition-all duration-300 ${bgClass} bka-cascade-card shadow-[0_12px_35px_rgba(10,108,50,0.12)]`}
                                         >
                                             {/* Icon */}
                                             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/12 text-white ring-4 ring-white/8 transition-all duration-300 group-hover:scale-105 group-hover:bg-white/20">
@@ -147,7 +147,7 @@ export default function LayananSection({
                         <div className="sticky top-28 self-start lg:pl-4">
                             <div ref={videoRef} className="bka-reveal-right">
                                 {/* Premium gradient border wrapper */}
-                                <div className="relative rounded-3xl bg-gradient-to-br from-[#1B5E20]/30 via-transparent to-[#C8A000]/30 p-1.5 shadow-[0_20px_50px_rgba(27,94,32,0.12)]">
+                                <div className="relative rounded-3xl bg-gradient-to-br from-[#0a6c32]/30 via-transparent to-[#C8A000]/30 p-1.5 shadow-[0_20px_50px_rgba(10,108,50,0.12)]">
                                     <div className="overflow-hidden rounded-[18px] bg-white">
                                         <div className="relative aspect-video w-full">
                                             <iframe

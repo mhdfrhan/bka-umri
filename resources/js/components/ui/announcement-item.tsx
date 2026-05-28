@@ -29,9 +29,9 @@ export default function AnnouncementItem({
                     relative flex items-start gap-4 p-5 transition-all duration-300 ease-out bg-white shadow-[0_4px_15px_rgba(0,0,0,0.02)]
                     ${isPenting
                         ? 'border-l-4 border-l-[#C62828] border-y border-r border-[#DDE5DD] rounded-r-2xl hover:border-l-[#C62828] hover:border-y-[#B5C5B5] hover:border-r-[#B5C5B5]'
-                        : 'border-l-4 border-l-[#1B5E20] border-y border-r border-[#DDE5DD] rounded-r-2xl hover:border-l-[#C8A000] hover:border-y-[#B5C5B5] hover:border-r-[#B5C5B5]'
+                        : 'border-l-4 border-l-[#0a6c32] border-y border-r border-[#DDE5DD] rounded-r-2xl hover:border-l-[#C8A000] hover:border-y-[#B5C5B5] hover:border-r-[#B5C5B5]'
                     }
-                    hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(27,94,32,0.06)]
+                    hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(10,108,50,0.06)]
                 `}
             >
                 {/* Content */}
@@ -47,12 +47,12 @@ export default function AnnouncementItem({
                             </span>
                         ) : null}
                         <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#9EAAB2]">
-                            <Calendar size={12} className="text-[#1B5E20]/80" />
+                            <Calendar size={12} className="text-[#0a6c32]/80" />
                             {date}
                         </span>
                     </div>
 
-                    <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[#1A1A1A] transition-colors duration-200 group-hover:text-[#1B5E20]">
+                    <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[#1A1A1A] transition-colors duration-200 group-hover:text-[#0a6c32]">
                         {title}
                     </h3>
 
@@ -66,7 +66,7 @@ export default function AnnouncementItem({
                 {/* Arrow indicator on hover */}
                 <ArrowRight
                     size={16}
-                    className="mt-3.5 shrink-0 text-[#9EAAB2] opacity-0 -translate-x-2 transition-all duration-300 group-hover:translate-x-0 group-hover:text-[#1B5E20] group-hover:opacity-100"
+                    className="mt-3.5 shrink-0 text-[#9EAAB2] opacity-0 -translate-x-2 transition-all duration-300 group-hover:translate-x-0 group-hover:text-[#0a6c32] group-hover:opacity-100"
                 />
             </div>
         </Link>

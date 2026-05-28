@@ -323,7 +323,7 @@ export default function LogsIndex({ logs }: { logs: ActivityLog[] }) {
                         )}
                         <button
                             onClick={exportCSV}
-                            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#1B5E20]/20 bg-emerald-50/50 px-4 py-2.5 text-xs font-bold text-[#1B5E20] transition-all outline-none hover:bg-[#1B5E20]/10"
+                            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#0a6c32]/20 bg-emerald-50/50 px-4 py-2.5 text-xs font-bold text-[#0a6c32] transition-all outline-none hover:bg-[#0a6c32]/10"
                             title="Unduh seluruh data log dalam format .csv"
                         >
                             <Download size={14} />
@@ -472,7 +472,7 @@ export default function LogsIndex({ logs }: { logs: ActivityLog[] }) {
                             className={cn(
                                 'cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition-all',
                                 selectedType === 'all'
-                                    ? 'border-[#1B5E20] bg-[#1B5E20] text-white'
+                                    ? 'border-[#0a6c32] bg-[#0a6c32] text-white'
                                     : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
                             )}
                         >
@@ -626,7 +626,7 @@ export default function LogsIndex({ logs }: { logs: ActivityLog[] }) {
                                                 <td className="max-w-sm px-5 py-4">
                                                     <p className="leading-relaxed font-light break-words text-neutral-600">
                                                         {log.action}{' '}
-                                                        <strong className="mt-0.5 block font-bold break-all text-[#1B5E20] md:mt-0 md:inline">
+                                                        <strong className="mt-0.5 block font-bold break-all text-[#0a6c32] md:mt-0 md:inline">
                                                             "{log.target}"
                                                         </strong>
                                                     </p>
@@ -639,7 +639,7 @@ export default function LogsIndex({ logs }: { logs: ActivityLog[] }) {
                                                         onClick={() =>
                                                             setDetailLog(log)
                                                         }
-                                                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[10px] font-bold text-neutral-500 transition-all outline-none hover:bg-neutral-50 hover:text-[#1B5E20]"
+                                                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[10px] font-bold text-neutral-500 transition-all outline-none hover:bg-neutral-50 hover:text-[#0a6c32]"
                                                         title="Buka rincian data log lengkap"
                                                     >
                                                         <Eye size={12} />
@@ -703,7 +703,7 @@ export default function LogsIndex({ logs }: { logs: ActivityLog[] }) {
                                         className={cn(
                                             'size-8 cursor-pointer rounded-lg text-xs font-bold transition-all outline-none',
                                             currentPage === i + 1
-                                                ? 'bg-[#1B5E20] text-white shadow-2xs'
+                                                ? 'bg-[#0a6c32] text-white shadow-2xs'
                                                 : 'border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
                                         )}
                                     >
@@ -840,10 +840,10 @@ export default function LogsIndex({ logs }: { logs: ActivityLog[] }) {
                                     <span className="text-[9px] font-bold tracking-wider text-neutral-400 uppercase">
                                         Tipe Tindakan
                                     </span>
-                                    <span className="col-span-2 flex items-center gap-1.5 text-[9px] font-bold text-[#1B5E20] uppercase">
+                                    <span className="col-span-2 flex items-center gap-1.5 text-[9px] font-bold text-[#0a6c32] uppercase">
                                         <CheckCircle2
                                             size={11}
-                                            className="text-[#1B5E20]"
+                                            className="text-[#0a6c32]"
                                         />
                                         <span>{detailLog.type}</span>
                                     </span>

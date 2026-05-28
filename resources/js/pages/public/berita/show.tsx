@@ -159,7 +159,7 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                     >
                         {/* Prose Content */}
                         <div
-                            className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-2xl prose-a:text-[#1B5E20] prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-[#C8A000] prose-blockquote:bg-[#F7F9F7] prose-blockquote:px-6 prose-blockquote:py-3 prose-blockquote:font-medium prose-blockquote:text-[#1B5E20] prose-blockquote:italic prose-img:rounded-2xl prose-img:shadow-md"
+                            className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-2xl prose-a:text-[#0a6c32] prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-[#C8A000] prose-blockquote:bg-[#F7F9F7] prose-blockquote:px-6 prose-blockquote:py-3 prose-blockquote:font-medium prose-blockquote:text-[#0a6c32] prose-blockquote:italic prose-img:rounded-2xl prose-img:shadow-md"
                             dangerouslySetInnerHTML={{
                                 __html: berita.content,
                             }}
@@ -169,7 +169,7 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                         <div className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-[#DDE5DD] pt-8 md:flex-row">
                             <Link
                                 href="/berita"
-                                className="group inline-flex items-center gap-2 text-sm font-semibold text-[#5C6B73] no-underline transition-all duration-200 hover:gap-3 hover:text-[#1B5E20]"
+                                className="group inline-flex items-center gap-2 text-sm font-semibold text-[#5C6B73] no-underline transition-all duration-200 hover:gap-3 hover:text-[#0a6c32]"
                             >
                                 <ArrowLeft
                                     size={16}
@@ -186,7 +186,7 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                                     <button
                                         onClick={handleShareWhatsApp}
                                         aria-label="Share on WhatsApp"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke WhatsApp"
                                     >
                                         <svg
@@ -199,7 +199,7 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                                     <button
                                         onClick={handleShareFacebook}
                                         aria-label="Share on Facebook"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke Facebook"
                                     >
                                         <Facebook size={16} />
@@ -207,7 +207,7 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                                     <button
                                         onClick={handleShareTwitter}
                                         aria-label="Share on Twitter"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke Twitter / X"
                                     >
                                         <Twitter size={16} />
@@ -215,7 +215,7 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                                     <button
                                         onClick={handleShareLinkedIn}
                                         aria-label="Share on LinkedIn"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Bagikan ke LinkedIn"
                                     >
                                         <Linkedin size={16} />
@@ -223,7 +223,7 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                                     <button
                                         onClick={handleCopyLink}
                                         aria-label="Copy Link"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#1B5E20] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
                                         title="Salin Tautan Berita"
                                     >
                                         <LinkIcon size={16} />

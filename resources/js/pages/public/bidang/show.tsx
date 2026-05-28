@@ -206,7 +206,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                     <div className="bka-container">
                         <div ref={strukturRef} className="bka-reveal">
                             <div className="mb-10 text-center">
-                                <span className="mb-3 inline-block rounded-full bg-[#E8F5E9] px-3 py-1 text-[11px] font-bold tracking-[0.1em] text-[#1B5E20] uppercase">
+                                <span className="mb-3 inline-block rounded-full bg-[#e6f4ea] px-3 py-1 text-[11px] font-bold tracking-[0.1em] text-[#0a6c32] uppercase">
                                     Struktur
                                 </span>
                                 <h2
@@ -229,7 +229,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                                             className="absolute -top-3 right-3 bottom-3 -left-3 z-0 rounded-2xl"
                                             style={{
                                                 background:
-                                                    'linear-gradient(135deg, #1B5E20, #2E7D46)',
+                                                    'linear-gradient(135deg, #0a6c32, #048d46)',
                                             }}
                                         />
                                         <div className="relative z-[1] aspect-[3/4] overflow-hidden rounded-2xl shadow-lg">
@@ -252,7 +252,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                                         <h3 className="mb-1 text-xl font-bold text-[#1A1A1A]">
                                             {bidang.kepalaBagian.nama}
                                         </h3>
-                                        <p className="mb-4 text-sm font-semibold text-[#1B5E20]">
+                                        <p className="mb-4 text-sm font-semibold text-[#0a6c32]">
                                             {bidang.kepalaBagian.jabatan}
                                         </p>
 
@@ -290,7 +290,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                                                                     aria-label={
                                                                         sm.platform
                                                                     }
-                                                                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E8F5E9] text-[#1B5E20] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1B5E20] hover:text-white hover:shadow-md"
+                                                                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e6f4ea] text-[#0a6c32] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0a6c32] hover:text-white hover:shadow-md"
                                                                 >
                                                                     <Icon
                                                                         size={
@@ -324,7 +324,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                                             className={`bka-reveal-scale bka-stagger-${idx + 1}`}
                                         >
                                             <div className="flex flex-col items-center rounded-2xl border border-[#DDE5DD] bg-white p-5 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-                                                <div className="mb-3 h-20 w-20 overflow-hidden rounded-full bg-[#E8F5E9]">
+                                                <div className="mb-3 h-20 w-20 overflow-hidden rounded-full bg-[#e6f4ea]">
                                                     <img
                                                         src={
                                                             a.foto ||
@@ -357,7 +357,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                     className="relative overflow-hidden"
                     style={{
                         background:
-                            'linear-gradient(135deg, #144317 0%, #1B5E20 50%, #206825 100%)',
+                            'linear-gradient(135deg, #144317 0%, #0a6c32 50%, #206825 100%)',
                     }}
                 >
                     <div
@@ -401,7 +401,7 @@ export default function BidangShow({ bidang: bidangProp }: BidangShowProps) {
                 <div className="bka-container text-center">
                     <Link
                         href="/"
-                        className="group inline-flex items-center gap-2 text-sm font-semibold text-[#1B5E20] no-underline transition-all duration-200 hover:gap-3"
+                        className="group inline-flex items-center gap-2 text-sm font-semibold text-[#0a6c32] no-underline transition-all duration-200 hover:gap-3"
                     >
                         <ArrowLeft
                             size={16}

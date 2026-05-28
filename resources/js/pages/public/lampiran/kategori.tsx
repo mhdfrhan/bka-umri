@@ -305,7 +305,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                 <div className="bka-container flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Link
                         href="/lampiran"
-                        className="inline-flex items-center gap-2 text-xs font-bold text-[#5C6B73] transition-colors hover:text-[#1B5E20]"
+                        className="inline-flex items-center gap-2 text-xs font-bold text-[#5C6B73] transition-colors hover:text-[#0a6c32]"
                     >
                         <ArrowLeft size={14} />
                         <span>Kembali ke Repositori</span>
@@ -324,7 +324,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                             ref={headerRef}
                             className="bka-reveal mb-5 flex items-center gap-2"
                         >
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F5E9] px-3.5 py-1 text-xs font-bold text-[#1B5E20]">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e6f4ea] px-3.5 py-1 text-xs font-bold text-[#0a6c32]">
                                 <FolderOpen size={13} />
                                 <span>
                                     {resolvedBerkas.length} Berkas Aktif
@@ -365,7 +365,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
-                                    className="w-full rounded-xl border border-[#DDE5DD] bg-[#F7F9F7] py-2 pr-4 pl-10 text-[13px] text-[#1A1A1A] transition-colors focus:border-[#1B5E20] focus:bg-white focus:ring-1 focus:ring-[#1B5E20] focus:outline-none"
+                                    className="w-full rounded-xl border border-[#DDE5DD] bg-[#F7F9F7] py-2 pr-4 pl-10 text-[13px] text-[#1A1A1A] transition-colors focus:border-[#0a6c32] focus:bg-white focus:ring-1 focus:ring-[#0a6c32] focus:outline-none"
                                 />
                                 <Search
                                     size={16}
@@ -409,7 +409,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
 
                                                 {/* Details */}
                                                 <div className="flex flex-col">
-                                                    <h3 className="mb-1 text-[15px] leading-snug font-bold break-words text-[#1A1A1A] hover:text-[#1B5E20]">
+                                                    <h3 className="mb-1 text-[15px] leading-snug font-bold break-words text-[#1A1A1A] hover:text-[#0a6c32]">
                                                         {file.nama_tampilan}
                                                     </h3>
                                                     <p className="mb-3 text-[13px] leading-normal text-[#5C6B73]">
@@ -458,7 +458,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                                                             file.nama_tampilan,
                                                         )
                                                     }
-                                                    className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-[#1B5E20] px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#145218] sm:w-auto"
+                                                    className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-[#0a6c32] px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#085627] sm:w-auto"
                                                 >
                                                     <Download size={13} />
                                                     <span>Unduh Berkas</span>
@@ -471,7 +471,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                         ) : (
                             /* Empty State Inside Folder */
                             <div className="flex flex-col items-center justify-center rounded-3xl border border-[#DDE5DD] bg-white px-6 py-20 text-center">
-                                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F5E9] text-[#1B5E20]">
+                                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#e6f4ea] text-[#0a6c32]">
                                     <Info size={24} />
                                 </div>
                                 <h3 className="mb-1 text-lg font-bold text-[#1A1A1A]">
@@ -485,7 +485,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                                 {searchQuery && (
                                     <button
                                         onClick={() => setSearchQuery('')}
-                                        className="rounded-xl bg-[#1B5E20] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#145218]"
+                                        className="rounded-xl bg-[#0a6c32] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#085627]"
                                     >
                                         Reset Pencarian
                                     </button>

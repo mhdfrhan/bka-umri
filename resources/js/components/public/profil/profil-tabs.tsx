@@ -24,8 +24,8 @@ export default function ProfilTabs() {
                                     href={tab.href}
                                     className={`relative rounded-xl px-5 py-2.5 text-xs font-semibold whitespace-nowrap transition-all duration-300 sm:text-sm ${
                                         isActive
-                                            ? 'bg-[#1B5E20] text-white shadow-sm shadow-[#1B5E20]/20'
-                                            : 'text-gray-600 hover:bg-[#E8F5E9]/50 hover:text-[#1B5E20]'
+                                            ? 'bg-[#0a6c32] text-white shadow-sm shadow-[#0a6c32]/20'
+                                            : 'text-gray-600 hover:bg-[#e6f4ea]/50 hover:text-[#0a6c32]'
                                     }`}
                                 >
                                     <span className="relative z-10 flex items-center justify-center gap-1.5">

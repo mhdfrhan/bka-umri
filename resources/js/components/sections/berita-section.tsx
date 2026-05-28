@@ -60,7 +60,7 @@ export default function BeritaSection({ beritaList }: BeritaSectionProps) {
                     />
                     <a
                         href="/berita"
-                        className="group hidden shrink-0 items-center gap-1.5 text-sm font-bold text-[#1B5E20] no-underline transition-all duration-200 hover:gap-2.5 lg:inline-flex"
+                        className="group hidden shrink-0 items-center gap-1.5 text-sm font-bold text-[#0a6c32] no-underline transition-all duration-200 hover:gap-2.5 lg:inline-flex"
                     >
                         Lihat Semua Berita
                         <ArrowRight
@@ -136,7 +136,7 @@ export default function BeritaSection({ beritaList }: BeritaSectionProps) {
                                 >
                                     <Link
                                         href={`/berita/${item.slug}`}
-                                        className="group block rounded-2xl border border-[#DDE5DD] bg-white p-4 transition-all duration-300 hover:border-[#B5C5B5] hover:shadow-[0_12px_30px_rgba(27,94,32,0.04)]"
+                                        className="group block rounded-2xl border border-[#DDE5DD] bg-white p-4 transition-all duration-300 hover:border-[#B5C5B5] hover:shadow-[0_12px_30px_rgba(10,108,50,0.04)]"
                                         aria-label={`Baca berita: ${item.title}`}
                                     >
                                         <div className="flex items-center gap-4">
@@ -160,7 +160,7 @@ export default function BeritaSection({ beritaList }: BeritaSectionProps) {
                                             <div className="min-w-0 flex-1">
                                                 <div className="mb-2 flex items-center gap-2">
                                                     {/* Accent indicator */}
-                                                    <div className="h-1.5 w-1.5 rounded-full bg-[#1B5E20]" />
+                                                    <div className="h-1.5 w-1.5 rounded-full bg-[#0a6c32]" />
                                                     <span className="text-[10px] font-extrabold tracking-[0.05em] text-[#9EAAB2] uppercase">
                                                         {item.category ||
                                                             'Berita'}
@@ -173,7 +173,7 @@ export default function BeritaSection({ beritaList }: BeritaSectionProps) {
                                                     </span>
                                                 </div>
 
-                                                <h4 className="line-clamp-2 text-[14.5px] leading-snug font-bold text-[#1A1A1A] transition-colors duration-200 group-hover:text-[#1B5E20]">
+                                                <h4 className="line-clamp-2 text-[14.5px] leading-snug font-bold text-[#1A1A1A] transition-colors duration-200 group-hover:text-[#0a6c32]">
                                                     {item.title}
                                                 </h4>
                                             </div>

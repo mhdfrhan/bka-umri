@@ -128,8 +128,8 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 el.className = 'custom-marker';
                 el.innerHTML = `
                     <div class="relative flex items-center justify-center">
-                        <div class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-[#1B5E20] opacity-75"></div>
-                        <div class="relative flex items-center justify-center rounded-full bg-[#1B5E20] border-2 border-white p-2.5 text-white shadow-md">
+                        <div class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-[#0a6c32] opacity-75"></div>
+                        <div class="relative flex items-center justify-center rounded-full bg-[#0a6c32] border-2 border-white p-2.5 text-white shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                             </svg>
@@ -427,7 +427,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                 <div className="flex flex-col gap-6">
                                     {/* Address */}
                                     <div className="flex items-start gap-4">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E8F5E9] text-[#1B5E20]">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#0a6c32]">
                                             <MapPin size={20} />
                                         </div>
                                         <div className="flex flex-col">
@@ -442,7 +442,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
                                     {/* Telephone */}
                                     <div className="flex items-start gap-4">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E8F5E9] text-[#1B5E20]">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#0a6c32]">
                                             <Phone size={20} />
                                         </div>
                                         <div className="flex flex-col">
@@ -457,7 +457,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
                                     {/* Email */}
                                     <div className="flex items-start gap-4">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E8F5E9] text-[#1B5E20]">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#0a6c32]">
                                             <Mail size={20} />
                                         </div>
                                         <div className="flex flex-col">
@@ -466,7 +466,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                             </span>
                                             <a
                                                 href={`mailto:${resolvedKontak.email}`}
-                                                className="text-[14px] leading-normal font-bold text-[#1B5E20] hover:text-[#145218] hover:underline"
+                                                className="text-[14px] leading-normal font-bold text-[#0a6c32] hover:text-[#085627] hover:underline"
                                             >
                                                 {resolvedKontak.email}
                                             </a>
@@ -475,7 +475,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
                                     {/* Hours */}
                                     <div className="flex items-start gap-4">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E8F5E9] text-[#1B5E20]">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#0a6c32]">
                                             <Clock size={20} />
                                         </div>
                                         <div className="flex flex-col">
@@ -505,7 +505,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             aria-label={`Official ${med.platform} Page`}
-                                                            className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F7F9F7] text-[#5C6B73] transition-all duration-200 hover:bg-[#1B5E20] hover:text-white"
+                                                            className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F7F9F7] text-[#5C6B73] transition-all duration-200 hover:bg-[#0a6c32] hover:text-white"
                                                         >
                                                             {getSocialIcon(
                                                                 med.platform,
@@ -560,7 +560,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                             className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] text-[#1A1A1A] transition-colors focus:ring-1 focus:outline-none ${
                                                 errors.nama
                                                     ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500 focus:ring-rose-500'
-                                                    : 'border-[#DDE5DD] focus:border-[#1B5E20] focus:ring-[#1B5E20]'
+                                                    : 'border-[#DDE5DD] focus:border-[#0a6c32] focus:ring-[#0a6c32]'
                                             }`}
                                         />
                                         {errors.nama && (
@@ -591,7 +591,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                             className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] text-[#1A1A1A] transition-colors focus:ring-1 focus:outline-none ${
                                                 errors.email
                                                     ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500 focus:ring-rose-500'
-                                                    : 'border-[#DDE5DD] focus:border-[#1B5E20] focus:ring-[#1B5E20]'
+                                                    : 'border-[#DDE5DD] focus:border-[#0a6c32] focus:ring-[#0a6c32]'
                                             }`}
                                         />
                                         {errors.email && (
@@ -622,7 +622,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                             className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] text-[#1A1A1A] transition-colors focus:ring-1 focus:outline-none ${
                                                 errors.subjek
                                                     ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500 focus:ring-rose-500'
-                                                    : 'border-[#DDE5DD] focus:border-[#1B5E20] focus:ring-[#1B5E20]'
+                                                    : 'border-[#DDE5DD] focus:border-[#0a6c32] focus:ring-[#0a6c32]'
                                             }`}
                                         />
                                         {errors.subjek && (
@@ -653,7 +653,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                             className={`w-full resize-none rounded-xl border bg-white px-4 py-3 text-[14px] text-[#1A1A1A] transition-colors focus:ring-1 focus:outline-none ${
                                                 errors.pesan
                                                     ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500 focus:ring-rose-500'
-                                                    : 'border-[#DDE5DD] focus:border-[#1B5E20] focus:ring-[#1B5E20]'
+                                                    : 'border-[#DDE5DD] focus:border-[#0a6c32] focus:ring-[#0a6c32]'
                                             }`}
                                         />
                                         {errors.pesan ? (
@@ -682,7 +682,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                         <button
                                             type="submit"
                                             disabled={submitting}
-                                            className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1B5E20] text-xs font-bold text-white shadow-md transition-all duration-200 hover:bg-[#145218] disabled:cursor-not-allowed disabled:bg-[#1B5E20]/75"
+                                            className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0a6c32] text-xs font-bold text-white shadow-md transition-all duration-200 hover:bg-[#085627] disabled:cursor-not-allowed disabled:bg-[#0a6c32]/75"
                                         >
                                             {submitting ? (
                                                 <>
@@ -716,7 +716,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 {/* Visual Section Intro Header */}
                 <div className="bka-container pt-12 pb-6">
                     <div className="flex flex-col gap-2">
-                        <span className="text-[10px] font-extrabold tracking-widest text-[#1B5E20] uppercase">
+                        <span className="text-[10px] font-extrabold tracking-widest text-[#0a6c32] uppercase">
                             Lokasi Kampus Utama
                         </span>
                         <h2 className="text-xl font-bold text-[#1A1A1A] md:text-2xl">
@@ -741,7 +741,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                     {/* Floating Controls Overlay - Top Left: Styles Selector */}
                     <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 rounded-2xl border border-[#DDE5DD] bg-white/80 p-2 shadow-sm backdrop-blur-md transition-all">
                         <div className="flex items-center gap-1.5 border-b border-[#F1F3F1] px-1.5 pb-1 text-[9px] font-extrabold tracking-wide text-neutral-400 uppercase">
-                            <Layers size={10} className="text-[#1B5E20]" />
+                            <Layers size={10} className="text-[#0a6c32]" />
                             <span>Gaya Visual Peta</span>
                         </div>
                         <div className="flex flex-col gap-1">
@@ -755,8 +755,8 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                     className={cn(
                                         'flex cursor-pointer items-center justify-between rounded-lg px-3 py-1.5 text-left text-[11px] font-bold transition-all outline-none',
                                         activeStyleId === style.id
-                                            ? 'bg-[#1B5E20] text-white'
-                                            : 'text-[#1A1A1A] hover:bg-[#E8F5E9]',
+                                            ? 'bg-[#0a6c32] text-white'
+                                            : 'text-[#1A1A1A] hover:bg-[#e6f4ea]',
                                     )}
                                 >
                                     <span>{style.label}</span>
@@ -771,7 +771,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                         <button
                             type="button"
                             onClick={handleRecenter}
-                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-[#DDE5DD] bg-white/90 text-[#1B5E20] shadow-sm backdrop-blur-md transition-all outline-none hover:scale-105 hover:bg-white"
+                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-[#DDE5DD] bg-white/90 text-[#0a6c32] shadow-sm backdrop-blur-md transition-all outline-none hover:scale-105 hover:bg-white"
                             title="Kembali ke UMRI"
                         >
                             <Navigation size={16} />
@@ -784,7 +784,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                             className={cn(
                                 'flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border bg-white/90 shadow-sm backdrop-blur-md transition-all outline-none hover:scale-105',
                                 is3DMode
-                                    ? 'border-[#1B5E20]/40 bg-emerald-50/50 text-[#1B5E20]'
+                                    ? 'border-[#0a6c32]/40 bg-emerald-50/50 text-[#0a6c32]'
                                     : 'border-[#DDE5DD] text-neutral-500 hover:bg-white',
                             )}
                             title="Aktifkan Mode 3D / Kemiringan"
@@ -819,7 +819,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                     {/* Floating Info Overlay - Bottom Right: Interactive Contact Details Glassmorphism Card */}
                     <div className="absolute right-4 bottom-4 z-10 flex w-72 flex-col gap-2 rounded-2xl border border-[#DDE5DD]/80 bg-white/80 p-4 shadow-sm backdrop-blur-lg">
                         <div className="flex items-center gap-2">
-                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#E8F5E9] text-[#1B5E20]">
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e6f4ea] text-[#0a6c32]">
                                 <MapPin size={12} />
                             </div>
                             <span className="text-xs font-bold text-[#1A1A1A]">
@@ -842,7 +842,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                     <>
                                         <Check
                                             size={11}
-                                            className="text-[#1B5E20]"
+                                            className="text-[#0a6c32]"
                                         />
                                         <span>Tersalin</span>
                                     </>
@@ -857,7 +857,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                 href="https://maps.google.com/?q=Universitas+Muhammadiyah+Riau"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#1B5E20] py-1.5 text-center text-[10px] font-bold text-white shadow-xs transition-all hover:scale-[1.02] hover:bg-[#145218]"
+                                className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0a6c32] py-1.5 text-center text-[10px] font-bold text-white shadow-xs transition-all hover:scale-[1.02] hover:bg-[#085627]"
                             >
                                 <Maximize2 size={11} />
                                 <span>Buka Google Maps</span>

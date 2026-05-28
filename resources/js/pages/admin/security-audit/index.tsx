@@ -453,7 +453,7 @@ export default function SecurityAuditIndex({
                         </button>
                         <button
                             onClick={exportCSV}
-                            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#1B5E20]/20 bg-emerald-50/50 px-4 py-2.5 text-xs font-bold text-[#1B5E20] transition-all outline-none hover:bg-[#1B5E20]/10"
+                            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#0a6c32]/20 bg-emerald-50/50 px-4 py-2.5 text-xs font-bold text-[#0a6c32] transition-all outline-none hover:bg-[#0a6c32]/10"
                         >
                             <Download size={14} />
                             <span>Ekspor CSV</span>
@@ -631,7 +631,7 @@ export default function SecurityAuditIndex({
                                 className={cn(
                                     'relative flex flex-col justify-between space-y-3.5 rounded-xl border p-4 transition-all',
                                     session.isCurrent
-                                        ? 'border-[#1B5E20]/30 bg-emerald-50/20 shadow-2xs'
+                                        ? 'border-[#0a6c32]/30 bg-emerald-50/20 shadow-2xs'
                                         : 'border-neutral-200/80 bg-white hover:border-neutral-300',
                                 )}
                             >
@@ -660,7 +660,7 @@ export default function SecurityAuditIndex({
                                     </div>
 
                                     {session.isCurrent ? (
-                                        <span className="rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold text-[#1B5E20] uppercase select-none">
+                                        <span className="rounded border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold text-[#0a6c32] uppercase select-none">
                                             Aktif Anda
                                         </span>
                                     ) : (
@@ -757,7 +757,7 @@ export default function SecurityAuditIndex({
                                             onClick={() =>
                                                 handleToggleBlacklist(ip)
                                             }
-                                            className="inline-flex items-center gap-1 text-[9px] font-extrabold text-[#1B5E20] uppercase hover:text-emerald-700"
+                                            className="inline-flex items-center gap-1 text-[9px] font-extrabold text-[#0a6c32] uppercase hover:text-emerald-700"
                                             title="Buka blokir"
                                         >
                                             <Unlock size={10} />
@@ -815,7 +815,7 @@ export default function SecurityAuditIndex({
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
-                                    className="w-full rounded-lg border border-neutral-200 py-1.5 pr-3 pl-9 text-xs font-medium outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                    className="w-full rounded-lg border border-neutral-200 py-1.5 pr-3 pl-9 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                 />
                             </div>
 
@@ -833,7 +833,7 @@ export default function SecurityAuditIndex({
                                         className={cn(
                                             'rounded-lg border px-2.5 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors',
                                             statusFilter === status
-                                                ? 'border-[#1B5E20] bg-[#1B5E20] text-white'
+                                                ? 'border-[#0a6c32] bg-[#0a6c32] text-white'
                                                 : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
                                         )}
                                     >
@@ -1014,7 +1014,7 @@ export default function SecurityAuditIndex({
                                             className={cn(
                                                 'size-7 rounded-lg text-[10px] font-bold transition-all outline-none',
                                                 currentPage === i + 1
-                                                    ? 'bg-[#1B5E20] text-white shadow-2xs'
+                                                    ? 'bg-[#0a6c32] text-white shadow-2xs'
                                                     : 'border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
                                             )}
                                         >

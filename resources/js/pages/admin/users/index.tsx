@@ -291,7 +291,7 @@ export default function UsersIndex({ users }: { users: CMSUser[] }) {
                                 'inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-bold shadow-xs transition-all',
                                 isLimitReached
                                     ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
-                                    : 'bg-[#1B5E20] text-white hover:bg-[#145218]',
+                                    : 'bg-[#0a6c32] text-white hover:bg-[#085627]',
                             )}
                         >
                             <UserPlus size={15} />
@@ -412,7 +412,7 @@ export default function UsersIndex({ users }: { users: CMSUser[] }) {
                                             >
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#1B5E20]/10 bg-[#1B5E20]/5 text-xs font-bold text-[#1B5E20] select-none">
+                                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#0a6c32]/10 bg-[#0a6c32]/5 text-xs font-bold text-[#0a6c32] select-none">
                                                             {item.name
                                                                 .charAt(0)
                                                                 .toUpperCase()}
@@ -423,7 +423,7 @@ export default function UsersIndex({ users }: { users: CMSUser[] }) {
                                                                     {item.name}
                                                                 </span>
                                                                 {isCurrentUser && (
-                                                                    <span className="rounded border border-emerald-100 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-extrabold text-[#1B5E20] uppercase">
+                                                                    <span className="rounded border border-emerald-100 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-extrabold text-[#0a6c32] uppercase">
                                                                         Anda
                                                                     </span>
                                                                 )}
@@ -579,7 +579,7 @@ export default function UsersIndex({ users }: { users: CMSUser[] }) {
                                     'rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all outline-none',
                                     statusConfirm.user.is_active
                                         ? 'bg-amber-600 hover:bg-amber-700'
-                                        : 'bg-[#1B5E20] hover:bg-[#145218]',
+                                        : 'bg-[#0a6c32] hover:bg-[#085627]',
                                 )}
                             >
                                 {statusConfirm.user.is_active

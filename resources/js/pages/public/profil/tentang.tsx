@@ -57,7 +57,7 @@ export default function Tentang({ konten }: TentangProps) {
                 <PageHero
                     title="Profil BKA"
                     description="Mengenal Biro Keuangan & Aset Universitas Muhammadiyah Riau lebih dekat."
-                    className="bg-gradient-to-r from-[#1B5E20] to-[#0D3C10]"
+                    className="bg-gradient-to-r from-[#0a6c32] to-[#0D3C10]"
                 >
                     <Breadcrumbs
                         breadcrumbs={breadcrumbItems}
@@ -74,7 +74,7 @@ export default function Tentang({ konten }: TentangProps) {
                         {/* Article Column */}
                         <div className="rounded-2xl border border-[#DDE5DD] bg-white p-6 shadow-md sm:p-10 lg:col-span-2">
                             <article
-                                className="prose max-w-none text-gray-700 prose-emerald prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 prose-h2:mt-8 prose-h2:border-b prose-h2:border-[#E8F5E9] prose-h2:pb-3 prose-h2:text-2xl prose-blockquote:rounded-r-lg prose-blockquote:border-l-4 prose-blockquote:border-[#1B5E20] prose-blockquote:bg-[#E8F5E9] prose-blockquote:px-5 prose-blockquote:py-2 prose-blockquote:italic prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5"
+                                className="prose max-w-none text-gray-700 prose-emerald prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 prose-h2:mt-8 prose-h2:border-b prose-h2:border-[#e6f4ea] prose-h2:pb-3 prose-h2:text-2xl prose-blockquote:rounded-r-lg prose-blockquote:border-l-4 prose-blockquote:border-[#0a6c32] prose-blockquote:bg-[#e6f4ea] prose-blockquote:px-5 prose-blockquote:py-2 prose-blockquote:italic prose-strong:text-gray-900 prose-ul:list-disc prose-ul:pl-5"
                                 dangerouslySetInnerHTML={{ __html: liveKonten }}
                             />
                         </div>
@@ -83,10 +83,10 @@ export default function Tentang({ konten }: TentangProps) {
                         <div className="space-y-6">
                             {/* Card 1: Nilai Utama */}
                             <div className="relative overflow-hidden rounded-2xl border border-[#DDE5DD] bg-white p-6 shadow-md">
-                                <div className="absolute top-0 right-0 -z-0 h-24 w-24 rounded-bl-full bg-[#E8F5E9] opacity-40" />
+                                <div className="absolute top-0 right-0 -z-0 h-24 w-24 rounded-bl-full bg-[#e6f4ea] opacity-40" />
                                 <h3 className="relative z-10 mb-4 flex items-center gap-2 text-lg font-bold text-gray-900">
                                     <ShieldCheck
-                                        className="text-[#1B5E20]"
+                                        className="text-[#0a6c32]"
                                         size={20}
                                     />
                                     Nilai-Nilai BKA
@@ -129,7 +129,7 @@ export default function Tentang({ konten }: TentangProps) {
                             </div>
 
                             {/* Card 2: Layanan Cepat */}
-                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1B5E20] to-[#0D3C10] p-6 text-white shadow-md">
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a6c32] to-[#0D3C10] p-6 text-white shadow-md">
                                 <div className="absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-white/10" />
                                 <h3 className="relative z-10 mb-3 flex items-center gap-2 text-lg font-bold">
                                     <Landmark
@@ -145,7 +145,7 @@ export default function Tentang({ konten }: TentangProps) {
                                 </p>
                                 <a
                                     href="/kontak"
-                                    className="relative z-10 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#1B5E20] shadow transition-colors duration-150 hover:bg-gray-100"
+                                    className="relative z-10 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#0a6c32] shadow transition-colors duration-150 hover:bg-gray-100"
                                 >
                                     Hubungi BKA
                                 </a>

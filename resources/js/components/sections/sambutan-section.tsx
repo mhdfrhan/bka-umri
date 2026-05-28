@@ -35,7 +35,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                 className="pointer-events-none absolute inset-0 opacity-40"
                 style={{
                     background:
-                        'radial-gradient(circle at 80% 20%, rgba(46,125,70,0.06) 0%, transparent 50%)',
+                        'radial-gradient(circle at 80% 20%, rgba(4,141,70,0.06) 0%, transparent 50%)',
                 }}
             />
 
@@ -49,7 +49,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                         {/* Rotated vertical text label */}
                         <div
                             aria-hidden="true"
-                            className="absolute top-1/2 -left-12 hidden origin-center -translate-y-1/2 -rotate-90 text-[11px] font-extrabold tracking-[0.25em] whitespace-nowrap text-[#1B5E20]/45 uppercase select-none lg:block"
+                            className="absolute top-1/2 -left-12 hidden origin-center -translate-y-1/2 -rotate-90 text-[11px] font-extrabold tracking-[0.25em] whitespace-nowrap text-[#0a6c32]/45 uppercase select-none lg:block"
                         >
                             KEPALA BIRO BKA
                         </div>
@@ -61,7 +61,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                                 className="absolute -top-4 right-4 bottom-4 -left-4 z-0 rounded-[20px]"
                                 style={{
                                     background:
-                                        'linear-gradient(135deg, #1B5E20 0%, #2E7D46 100%)',
+                                        'linear-gradient(135deg, #0a6c32 0%, #048d46 100%)',
                                 }}
                             />
 
@@ -97,7 +97,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                         ref={contentRef}
                         className="bka-reveal-right flex flex-col justify-center"
                     >
-                        <span className="mb-4 self-start rounded-full bg-[#E8F5E9] px-3.5 py-1 text-[11px] font-bold tracking-[0.1em] text-[#1B5E20] uppercase">
+                        <span className="mb-4 self-start rounded-full bg-[#e6f4ea] px-3.5 py-1 text-[11px] font-bold tracking-[0.1em] text-[#0a6c32] uppercase">
                             Kata Sambutan
                         </span>
 
@@ -113,7 +113,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                         {/* Pull Quote */}
                         {pullQuote && (
                             <div className="relative mb-8 border-l-4 border-[#C8A000] pl-5 font-sans">
-                                <p className="text-lg leading-relaxed font-medium text-[#1B5E20]/90 italic md:text-xl">
+                                <p className="text-lg leading-relaxed font-medium text-[#0a6c32]/90 italic md:text-xl">
                                     "{pullQuote}"
                                 </p>
                             </div>
@@ -124,7 +124,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                             <Quote
                                 size={56}
                                 aria-hidden="true"
-                                className="absolute -top-7 -left-7 z-0 -scale-x-100 text-[#1B5E20]/5 opacity-60"
+                                className="absolute -top-7 -left-7 z-0 -scale-x-100 text-[#0a6c32]/5 opacity-60"
                             />
                             <p className="relative z-[1] text-base leading-[1.85] font-normal text-[#5C6B73]">
                                 {remainingText || kepalaBiro.sambutan}
@@ -141,7 +141,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                                 <span className="hidden text-neutral-300 sm:inline">
                                     |
                                 </span>
-                                <span className="font-semibold text-[#1B5E20]">
+                                <span className="font-semibold text-[#0a6c32]">
                                     {kepalaBiro.jabatan}
                                 </span>
                                 <span className="hidden text-neutral-300 sm:inline">

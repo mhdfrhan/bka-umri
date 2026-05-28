@@ -242,7 +242,7 @@ export default function AdminDashboard({
 
             <div className="mx-auto w-full max-w-7xl space-y-6 p-6 md:space-y-8 md:p-8">
                 {/* Modern Welcoming Card */}
-                <div className="relative overflow-hidden rounded-3xl border border-emerald-800/10 bg-[radial-gradient(circle_at_80%_20%,#2E7D46_0%,#1B5E20_100%)] p-6 text-white shadow-lg md:p-8">
+                <div className="relative overflow-hidden rounded-3xl border border-emerald-800/10 bg-[radial-gradient(circle_at_80%_20%,#048d46_0%,#0a6c32_100%)] p-6 text-white shadow-lg md:p-8">
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:3rem_3rem]" />
                     <div className="pointer-events-none absolute -right-20 -bottom-20 h-80 w-80 rounded-full bg-emerald-400/10 blur-[100px]" />
 
@@ -527,7 +527,7 @@ export default function AdminDashboard({
 
                                                         {/* Actual Bar */}
                                                         <div
-                                                            className="relative w-full cursor-pointer rounded-t-lg bg-[linear-gradient(to_top,#1B5E20,#4CAF50)] shadow-2xs transition-all duration-300 group-hover:shadow-md sm:w-10"
+                                                            className="relative w-full cursor-pointer rounded-t-lg bg-[linear-gradient(to_top,#0a6c32,#4CAF50)] shadow-2xs transition-all duration-300 group-hover:shadow-md sm:w-10"
                                                             style={{
                                                                 height: `${Math.max(heightPercent, 3)}%`,
                                                             }}

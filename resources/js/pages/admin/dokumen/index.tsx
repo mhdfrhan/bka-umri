@@ -487,7 +487,7 @@ export default function LampiranDokumenCMS({
                 <div className="flex flex-col gap-2 border-b border-neutral-100 pb-5 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
-                            <FolderOpen className="text-[#1B5E20]" size={28} />
+                            <FolderOpen className="text-[#0a6c32]" size={28} />
                             Kelola Lampiran & Dokumen Penting
                         </h1>
                         <p className="mt-1 text-sm text-neutral-500">
@@ -514,7 +514,7 @@ export default function LampiranDokumenCMS({
                                         deskripsi: '',
                                     })
                                 }
-                                className="inline-flex items-center gap-1 rounded-xl bg-[#1B5E20] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-[#145218]"
+                                className="inline-flex items-center gap-1 rounded-xl bg-[#0a6c32] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
                             >
                                 <Plus size={13} />
                                 <span>Tambah Folder</span>
@@ -538,7 +538,7 @@ export default function LampiranDokumenCMS({
                                             }
                                             className={`group relative flex cursor-pointer items-start justify-between gap-3 rounded-xl border p-4 transition-all ${
                                                 isSelected
-                                                    ? 'border-[#1B5E20] bg-emerald-50/20 shadow-xs'
+                                                    ? 'border-[#0a6c32] bg-emerald-50/20 shadow-xs'
                                                     : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/30'
                                             }`}
                                         >
@@ -546,7 +546,7 @@ export default function LampiranDokumenCMS({
                                                 <div
                                                     className={`shrink-0 rounded-lg p-2.5 ${
                                                         isSelected
-                                                            ? 'bg-[#1B5E20] text-white'
+                                                            ? 'bg-[#0a6c32] text-white'
                                                             : 'bg-neutral-100 text-neutral-500'
                                                     }`}
                                                 >
@@ -556,7 +556,7 @@ export default function LampiranDokumenCMS({
                                                     <h3
                                                         className={`truncate text-sm font-bold ${
                                                             isSelected
-                                                                ? 'text-[#1B5E20]'
+                                                                ? 'text-[#0a6c32]'
                                                                 : 'text-neutral-900'
                                                         }`}
                                                     >
@@ -666,7 +666,7 @@ export default function LampiranDokumenCMS({
                                 <div className="flex flex-col gap-4 border-b border-neutral-100 bg-neutral-50/50 p-5">
                                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
-                                            <span className="text-[10px] font-extrabold tracking-wider text-[#1B5E20] uppercase">
+                                            <span className="text-[10px] font-extrabold tracking-wider text-[#0a6c32] uppercase">
                                                 Folder Terpilih
                                             </span>
                                             <h2 className="mt-0.5 text-lg font-bold text-neutral-900">
@@ -689,7 +689,7 @@ export default function LampiranDokumenCMS({
                                                     deskripsi: '',
                                                 })
                                             }
-                                            className="inline-flex items-center gap-1.5 self-start rounded-xl bg-[#1B5E20] px-4 py-2 text-xs font-bold whitespace-nowrap text-white shadow-xs transition-all hover:bg-[#145218]"
+                                            className="inline-flex items-center gap-1.5 self-start rounded-xl bg-[#0a6c32] px-4 py-2 text-xs font-bold whitespace-nowrap text-white shadow-xs transition-all hover:bg-[#085627]"
                                         >
                                             <Upload size={14} />
                                             <span>Unggah Berkas Baru</span>
@@ -705,7 +705,7 @@ export default function LampiranDokumenCMS({
                                             onChange={(e) =>
                                                 setSearchQuery(e.target.value)
                                             }
-                                            className="w-full rounded-xl border border-neutral-200 bg-white py-2 pr-4 pl-9 text-xs outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                                            className="w-full rounded-xl border border-neutral-200 bg-white py-2 pr-4 pl-9 text-xs outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                         />
                                         <Search
                                             size={14}
@@ -771,7 +771,7 @@ export default function LampiranDokumenCMS({
                                                             download={
                                                                 file.nama_tampilan
                                                             }
-                                                            className="rounded-xl p-2 text-[#1B5E20] hover:bg-emerald-50"
+                                                            className="rounded-xl p-2 text-[#0a6c32] hover:bg-emerald-50"
                                                             title="Unduh Berkas"
                                                         >
                                                             <Download
@@ -942,7 +942,7 @@ export default function LampiranDokumenCMS({
                                     </button>
                                     <button
                                         type="submit"
-                                        className="rounded-xl bg-[#1B5E20] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-[#145218]"
+                                        className="rounded-xl bg-[#0a6c32] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-[#085627]"
                                     >
                                         {categoryModal.mode === 'add'
                                             ? 'Buat Kategori'
@@ -993,7 +993,7 @@ export default function LampiranDokumenCMS({
                                             ? 'Berkas Dokumen *'
                                             : 'Ganti Berkas Dokumen (Opsional)'}
                                     </label>
-                                    <div className="relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50/50 p-6 text-center transition-colors hover:border-[#1B5E20]">
+                                    <div className="relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50/50 p-6 text-center transition-colors hover:border-[#0a6c32]">
                                         <input
                                             type="file"
                                             onChange={handleFileChange}
@@ -1017,8 +1017,8 @@ export default function LampiranDokumenCMS({
 
                                     {/* Preview selected file info */}
                                     {fileModal.fileName && (
-                                        <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#E8F5E9] bg-emerald-50/20 p-3">
-                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1B5E20] text-white">
+                                        <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#e6f4ea] bg-emerald-50/20 p-3">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0a6c32] text-white">
                                                 <FileText size={16} />
                                             </div>
                                             <div className="min-w-0 flex-1">
@@ -1096,7 +1096,7 @@ export default function LampiranDokumenCMS({
                                     </button>
                                     <button
                                         type="submit"
-                                        className="rounded-xl bg-[#1B5E20] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-[#145218]"
+                                        className="rounded-xl bg-[#0a6c32] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-[#085627]"
                                     >
                                         {fileModal.mode === 'add'
                                             ? 'Unggah Berkas'
