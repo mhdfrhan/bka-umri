@@ -338,6 +338,7 @@ export default function TambahAlbum({ categories = [] }: TambahAlbumProps) {
                 }}
                 file={selectedUploadFile}
                 onConfirm={handleUploadConfirm}
+                aspectRatio={16 / 9}
             />
         </>
     );

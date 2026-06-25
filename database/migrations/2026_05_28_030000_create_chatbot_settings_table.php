@@ -21,7 +21,7 @@ return new class extends Migration
             'primary_provider' => 'nvidia',
             'primary_base_url' => 'https://integrate.api.nvidia.com/v1',
             'primary_api_key' => '',
-            'primary_model' => 'meta/llama-3.3-70b-instruct',
+            'primary_model' => 'openai/gpt-oss-120b',
             'fallback_enabled' => '0',
             'fallback_provider' => 'nvidia',
             'fallback_base_url' => 'https://integrate.api.nvidia.com/v1',

@@ -17,41 +17,8 @@ interface VisiMisiProps {
 }
 
 export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
-    // Fallback Mock Data
-    const defaultVisi =
-        visi ||
-        'Menjadi penyelenggara administrasi keuangan dan pengelolaan aset yang unggul, terpercaya, transparan, dan akuntabel berbasis digitalisasi layanan demi mendukung Universitas Muhammadiyah Riau yang cerdas, inovatif, dan berkemajuan pada tahun 2028.';
-
-    const defaultMisiItems = misiItems || [
-        {
-            id: 1,
-            isi: 'Menyelenggarakan sistem perencanaan, penganggaran, dan pengendalian keuangan yang efisien, transparan, dan akuntabel.',
-            urutan: 1,
-        },
-        {
-            id: 2,
-            isi: 'Mengembangkan digitalisasi administrasi layanan keuangan terintegrasi guna memberikan kemudahan pelayanan terbaik bagi seluruh mahasiswa dan civitas akademika.',
-            urutan: 2,
-        },
-        {
-            id: 3,
-            isi: 'Melaksanakan penataan, pembukuan, dan pelaporan sarana, prasarana, serta aset fisik universitas secara profesional dan akurat.',
-            urutan: 3,
-        },
-        {
-            id: 4,
-            isi: 'Mengoptimalkan pemanfaatan dan produktivitas aset fisik maupun finansial kampus untuk keberlangsungan finansial universitas yang mandiri.',
-            urutan: 4,
-        },
-        {
-            id: 5,
-            isi: 'Membina kualitas sumber daya manusia pengelola keuangan dan logistik yang berintegritas tinggi, kompeten, dan memegang teguh nilai-nilai Al-Islam Kemuhammadiyahan.',
-            urutan: 5,
-        },
-    ];
-
-    const liveVisi = defaultVisi;
-    const liveMisiItems = defaultMisiItems;
+    const liveVisi = visi || '';
+    const liveMisiItems = misiItems || [];
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },

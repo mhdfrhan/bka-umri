@@ -194,6 +194,8 @@ class BidangController extends Controller
             }
         });
 
+        cache()->forget('beranda_data');
+
         return redirect()->route('admin.bidang.index')->with('success', 'Bidang baru berhasil didaftarkan.');
     }
 
@@ -382,6 +384,8 @@ class BidangController extends Controller
             }
         });
 
+        cache()->forget('beranda_data');
+
         return redirect()->route('admin.bidang.index')->with('success', 'Data bidang berhasil diperbarui.');
     }
 
@@ -415,6 +419,8 @@ class BidangController extends Controller
             $b->update(['urutan' => $index + 1]);
         }
 
+        cache()->forget('beranda_data');
+
         return redirect()->route('admin.bidang.index')->with('success', 'Bidang berhasil dihapus.');
     }
 
@@ -431,6 +437,8 @@ class BidangController extends Controller
         foreach ($request->ids as $index => $id) {
             Bidang::where('id', $id)->update(['urutan' => $index + 1]);
         }
+
+        cache()->forget('beranda_data');
 
         return redirect()->route('admin.bidang.index')->with('success', 'Urutan bidang berhasil diperbarui.');
     }

@@ -12,6 +12,7 @@ import {
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { AdminModal } from '@/components/admin/admin-modal';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface AlbumItem {
     id: number;
@@ -22,6 +23,7 @@ interface AlbumItem {
     coverUrl: string;
     category?: string;
     photos: Array<{ id: string; url: string; order: number }>;
+    deleted_at?: string | null;
 }
 
 const INITIAL_ALBUMS: AlbumItem[] = [
@@ -98,15 +100,50 @@ export default function DokumentasiIndex({
             return;
         }
 
+        const target = albums.find((a) => a.id === deletingId);
         router.delete(`/admin/dokumentasi/${deletingId}`, {
             onSuccess: () => {
                 setDeletingId(null);
-                toast.success('Album kegiatan berhasil dihapus.');
+                toast.success(
+                    showTrashed 
+                    ? `Album "${target?.title}" berhasil dihapus permanen.`
+                    : `Album "${target?.title}" berhasil dipindahkan ke Sampah.`,
+                );
             },
             onError: () => {
                 toast.error('Gagal menghapus album.');
             },
         });
+    };
+
+    // Trash logic
+    const [showTrashed, setShowTrashed] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return new URLSearchParams(window.location.search).get('trashed') === 'true';
+        }
+        return false;
+    });
+
+    const toggleTrashed = () => {
+        const newValue = !showTrashed;
+        setShowTrashed(newValue);
+        router.get('/admin/dokumentasi', { trashed: newValue ? 'true' : undefined }, { preserveState: true });
+    };
+
+    const handleRestore = (id: number) => {
+        toast.promise(
+            new Promise((resolve, reject) => {
+                router.post(`/admin/dokumentasi/${id}/restore`, {}, {
+                    onSuccess: () => resolve(true),
+                    onError: () => reject(new Error('Gagal memulihkan album')),
+                });
+            }),
+            {
+                loading: 'Memulihkan...',
+                success: 'Album berhasil dipulihkan!',
+                error: 'Terjadi kesalahan saat memulihkan album.',
+            }
+        );
     };
 
     const handleAddCategory = (e: React.FormEvent) => {
@@ -177,7 +214,17 @@ export default function DokumentasiIndex({
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={toggleTrashed}
+                                className={`flex h-10 w-full md:w-auto items-center justify-center gap-2 rounded-xl border px-4 text-sm font-bold transition-colors ${showTrashed ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'}`}
+                            >
+                                <Trash2 className="size-4" />
+                                <span>
+                                    {showTrashed ? 'Data Aktif' : 'Lihat Sampah'}
+                                </span>
+                            </button>
                         <button
                             type="button"
                             onClick={() => setIsCategoryModalOpen(true)}
@@ -239,20 +286,31 @@ export default function DokumentasiIndex({
                                             {album.date}
                                         </span>
                                         <div className="flex items-center gap-1.5">
-                                            <Link
-                                                href={`/admin/dokumentasi/${album.id}/edit`}
-                                                className="rounded-lg border border-neutral-200 p-1.5 text-neutral-600 hover:bg-neutral-50"
-                                                title="Edit Album & Foto"
-                                            >
-                                                <Edit2 className="size-3.5" />
-                                            </Link>
+                                            {!album.deleted_at ? (
+                                                <Link
+                                                    href={`/admin/dokumentasi/${album.id}/edit`}
+                                                    className="rounded-lg border border-neutral-200 p-1.5 text-neutral-600 hover:bg-neutral-50"
+                                                    title="Edit Album & Foto"
+                                                >
+                                                    <Edit2 className="size-3.5" />
+                                                </Link>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRestore(album.id)}
+                                                    className="rounded-lg border border-emerald-100 p-1.5 text-emerald-600 hover:bg-emerald-50"
+                                                    title="Pulihkan Album"
+                                                >
+                                                    <AlertCircle className="size-3.5" />
+                                                </button>
+                                            )}
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     setDeletingId(album.id)
                                                 }
                                                 className="rounded-lg border border-red-100 p-1.5 text-red-600 hover:bg-red-50"
-                                                title="Hapus Album"
+                                                title={album.deleted_at ? "Hapus Permanen" : "Hapus Album (Soft Delete)"}
                                             >
                                                 <Trash2 className="size-3.5" />
                                             </button>
@@ -341,40 +399,23 @@ export default function DokumentasiIndex({
                 </div>
             </AdminModal>
 
-            <AdminModal
+            <ConfirmDialog
                 isOpen={deletingId !== null}
                 onClose={() => setDeletingId(null)}
-                title="Hapus Album Kegiatan?"
-                icon={<AlertCircle className="size-5 text-red-600" />}
-                maxWidth="sm"
-            >
-                <div className="p-2 text-center">
-                    <p className="mb-6 text-sm leading-relaxed text-neutral-500">
-                        Apakah Anda yakin ingin menghapus album "
+                onConfirm={handleConfirmDelete}
+                title={showTrashed ? "Hapus Permanen Album?" : "Pindah ke Sampah?"}
+                description={
+                    <>
+                        Apakah Anda yakin ingin {showTrashed ? 'menghapus permanen' : 'memindahkan'} album "
                         <strong>
                             {albums.find((a) => a.id === deletingId)?.title}
                         </strong>
-                        "? Seluruh berkas foto di dalam album ini akan ikut
-                        terhapus dari sistem local.
-                    </p>
-                    <div className="flex items-center justify-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setDeletingId(null)}
-                            className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleConfirmDelete}
-                            className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-red-700"
-                        >
-                            Hapus Permanen
-                        </button>
-                    </div>
-                </div>
-            </AdminModal>
+                        "? {showTrashed ? "Tindakan ini akan menghapus data secara permanen beserta seluruh berkas foto di dalamnya." : "Album akan dipindahkan ke Sampah."}
+                    </>
+                }
+                confirmText={showTrashed ? "Hapus Permanen" : "Pindah ke Sampah"}
+                danger={true}
+            />
         </>
     );
 }

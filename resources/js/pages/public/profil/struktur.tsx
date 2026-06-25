@@ -37,66 +37,9 @@ export default function Struktur({
 }: StrukturProps) {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Fallback Mock Data
-    const defaultGambarBagan =
-        gambarBagan ||
-        'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=1200&q=80';
-
-    const defaultKepalaBiro = kepalaBiro || {
-        nama: 'Rahmawita, S.E',
-        jabatan: 'Kepala Biro Keuangan & Aset UMRI',
-        periode: 'Periode 2024 - 2028',
-        foto: 'https://smart.umri.ac.id/application/modules/personalia/assets/uploads/foto/f405f-rahmawita-se.jpg',
-    };
-
-    const defaultAnggotaList = anggotaList || [
-        {
-            id: 1,
-            nama: 'Dina Amalia, S.E., Ak.',
-            jabatan: 'Kepala Bagian Keuangan & Verifikasi',
-            foto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-            urutan: 1,
-        },
-        {
-            id: 2,
-            nama: 'Budi Hartono, S.Kom.',
-            jabatan: 'Kepala Bagian Pengelolaan Aset & Inventaris',
-            foto: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80',
-            urutan: 2,
-        },
-        {
-            id: 3,
-            nama: 'Rina Marlina, A.Md.',
-            jabatan: 'Staf Administrasi Pembayaran SPP',
-            foto: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80',
-            urutan: 3,
-        },
-        {
-            id: 4,
-            nama: 'Fahmi Syahputra, S.Ak.',
-            jabatan: 'Staf Verifikasi & Anggaran Belanja',
-            foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
-            urutan: 4,
-        },
-        {
-            id: 5,
-            nama: 'Siti Rahmah, S.E.',
-            jabatan: 'Staf Logistik & Pengadaan Barang',
-            foto: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=400&q=80',
-            urutan: 5,
-        },
-        {
-            id: 6,
-            nama: 'Andi Wijaya, A.Md.T.',
-            jabatan: 'Staf Sarana Prasarana & Inventaris Aset',
-            foto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',
-            urutan: 6,
-        },
-    ];
-
-    const liveGambarBagan = defaultGambarBagan;
-    const liveKepalaBiro = defaultKepalaBiro;
-    const liveAnggotaList = defaultAnggotaList;
+    const liveGambarBagan = gambarBagan || '';
+    const liveKepalaBiro = kepalaBiro || null;
+    const liveAnggotaList = anggotaList || [];
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },

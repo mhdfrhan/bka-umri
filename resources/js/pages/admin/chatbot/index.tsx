@@ -379,7 +379,7 @@ export default function ChatbotSettingsPage({
                                                             const next = { ...prev, primary_provider: val };
                                                             if (val === 'nvidia') {
                                                                 next.primary_base_url = 'https://integrate.api.nvidia.com/v1';
-                                                                next.primary_model = 'meta/llama-3.3-70b-instruct';
+                                                                next.primary_model = 'openai/gpt-oss-120b';
                                                             } else if (val === 'groq') {
                                                                 next.primary_base_url = 'https://api.groq.com/openai/v1';
                                                                 next.primary_model = 'llama-3.3-70b-versatile';
@@ -404,7 +404,7 @@ export default function ChatbotSettingsPage({
                                                 <input
                                                     type="text"
                                                     value={settings.primary_model}
-                                                    placeholder="Contoh: meta/llama-3.3-70b-instruct"
+                                                    placeholder="Contoh: openai/gpt-oss-120b"
                                                     onChange={(e) => handleInputChange('primary_model', e.target.value)}
                                                     className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                                     required

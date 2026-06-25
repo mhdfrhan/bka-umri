@@ -3,50 +3,18 @@ import { useState } from 'react';
 import { AdminModal } from '@/components/admin/admin-modal';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 
-const defaultImages = [
-    {
-        src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80',
-        title: 'Gedung Rektorat KH. Ahmad Dahlan',
-        category: 'Fasilitas',
-        desc: 'Gedung utama Rektorat Universitas Muhammadiyah Riau yang megah, berfungsi sebagai pusat administrasi dan biro rektorat.',
-    },
-    {
-        src: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=1200&q=80',
-        title: 'Rapat Koordinasi Evaluasi Keuangan',
-        category: 'Kegiatan',
-        desc: 'Sinergi antar unit kerja dalam menyelaraskan anggaran tahunan universitas secara transparan dan akuntabel.',
-    },
-    {
-        src: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80',
-        title: 'Penyerahan Penghargaan Akuntabilitas 2026',
-        category: 'Prestasi',
-        desc: 'Apresiasi tinggi atas tata kelola administrasi keuangan BKA UMRI yang berorientasi pada transparansi publik.',
-    },
-    {
-        src: 'https://images.unsplash.com/photo-1559223607-a43c990c692c?w=1200&q=80',
-        title: 'Sosialisasi Pembayaran VA Mahasiswa',
-        category: 'Sosialisasi',
-        desc: 'Edukasi layanan digitalisasi keuangan terintegrasi bagi perwakilan mahasiswa baru dan organisasi mahasiswa.',
-    },
-    {
-        src: 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=1200&q=80',
-        title: 'Penandatanganan MoU Bank Rekanan Baru',
-        category: 'Kerjasama',
-        desc: 'Langkah strategis memperluas akses pembayaran SPP/UKT mahasiswa melalui 4 bank rekanan nasional terkemuka.',
-    },
-    {
-        src: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
-        title: 'Audit Keuangan Independen Tahunan',
-        category: 'Audit',
-        desc: 'Verifikasi berkala oleh Kantor Akuntan Publik guna menjamin akurasi data laporan keuangan BKA UMRI.',
-    },
-];
+const defaultImages: any[] = [];
 
-export default function CtaDokumentasi() {
+export default function CtaDokumentasi({ images = [] }: { images?: any[] }) {
     const sectionRef = useScrollReveal<HTMLDivElement>();
-    const [selectedImage, setSelectedImage] = useState<
-        null | (typeof defaultImages)[0]
-    >(null);
+    const [selectedImage, setSelectedImage] = useState<any>(null);
+
+    // If no images provided, use defaultImages as fallback
+    const resolvedImages = images.length > 0 ? images : defaultImages;
+
+    if (resolvedImages.length === 0) {
+        return null;
+    }
 
     return (
         <section
@@ -119,7 +87,7 @@ export default function CtaDokumentasi() {
                 <div className="bka-marquee-track flex w-max cursor-pointer gap-0">
                     {/* First Half */}
                     <div className="flex shrink-0 gap-6 pr-6">
-                        {defaultImages.map((img, idx) => (
+                        {resolvedImages.map((img, idx) => (
                             <div
                                 key={`half1-${idx}`}
                                 onClick={() => setSelectedImage(img)}
@@ -148,7 +116,7 @@ export default function CtaDokumentasi() {
 
                     {/* Second Half (Exact Duplicate) */}
                     <div className="flex shrink-0 gap-6 pr-6">
-                        {defaultImages.map((img, idx) => (
+                        {resolvedImages.map((img, idx) => (
                             <div
                                 key={`half2-${idx}`}
                                 onClick={() => setSelectedImage(img)}

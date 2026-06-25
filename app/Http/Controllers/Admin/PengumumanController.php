@@ -17,12 +17,15 @@ class PengumumanController extends Controller
     /**
      * Display a listing of announcements.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $announcements = Pengumuman::with('penulis')
-            ->latest()
-            ->get()
-            ->map(function ($item) {
+        $query = Pengumuman::with('penulis')->latest();
+
+        if ($request->has('trashed') && $request->trashed === 'true') {
+            $query->onlyTrashed();
+        }
+
+        $announcements = $query->get()->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'slug' => $item->slug,
@@ -42,6 +45,7 @@ class PengumumanController extends Controller
                             'extension' => $media->extension,
                         ];
                     })->toArray(),
+                    'deleted_at' => $item->deleted_at,
                 ];
             });
 
@@ -221,16 +225,33 @@ class PengumumanController extends Controller
      */
     public function destroy($id)
     {
-        $pengumuman = Pengumuman::findOrFail($id);
+        $pengumuman = Pengumuman::withTrashed()->findOrFail($id);
         
-        DB::transaction(function () use ($pengumuman) {
-            // Delete all embedded images in rich text content
-            MediaUploadHelper::deleteAllContentImages($pengumuman->isi);
-            
-            // Force delete the model to purge Spatie attachments (thumbnail and lampirans)
-            $pengumuman->forceDelete();
-        });
+        if ($pengumuman->trashed()) {
+            DB::transaction(function () use ($pengumuman) {
+                // Delete all embedded images in rich text content
+                MediaUploadHelper::deleteAllContentImages($pengumuman->isi);
+                
+                // Force delete the model to purge Spatie attachments (thumbnail and lampirans)
+                $pengumuman->forceDelete();
+            });
+            $message = 'Pengumuman berhasil dihapus permanen.';
+        } else {
+            $pengumuman->delete();
+            $message = 'Pengumuman berhasil dipindahkan ke Tong Sampah.';
+        }
 
-        return redirect()->route('admin.pengumuman.index')->with('success', 'Pengumuman berhasil dihapus.');
+        return redirect()->route('admin.pengumuman.index')->with('success', $message);
+    }
+
+    /**
+     * Restore the specified soft-deleted announcement.
+     */
+    public function restore($id)
+    {
+        $pengumuman = Pengumuman::onlyTrashed()->findOrFail($id);
+        $pengumuman->restore();
+
+        return redirect()->route('admin.pengumuman.index')->with('success', 'Pengumuman berhasil dipulihkan.');
     }
 }

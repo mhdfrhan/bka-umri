@@ -11,16 +11,12 @@ import {
     ArrowDown,
     Sparkles,
     Check,
-    Play,
     Eye,
-    FileText,
     ArrowRight,
-    HelpCircle,
-    Info,
     Calendar,
-    Briefcase,
     Upload,
     Image as ImageIcon,
+    Loader2,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -28,6 +24,7 @@ import { AdminModal } from '@/components/admin/admin-modal';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
 import { cn } from '@/lib/utils';
+import * as LucideIcons from 'lucide-react';
 
 // Curated list of Lucide icons for statistics and services dropdowns
 const CURATED_ICONS = [
@@ -41,6 +38,72 @@ const CURATED_ICONS = [
     { name: 'Award', label: 'Penghargaan / Akreditasi' },
     { name: 'Coins', label: 'Keuangan / Koin' },
 ];
+
+interface IconPickerProps {
+    value: string;
+    onChange: (val: string) => void;
+}
+
+function IconPicker({ value, onChange }: IconPickerProps) {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const currentIcon = CURATED_ICONS.find((i) => i.name === value) || CURATED_ICONS[0];
+    const LucideIcon = (LucideIcons as any)[currentIcon.name] || LucideIcons.HelpCircle;
+
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex w-full items-center gap-2 rounded-lg border border-neutral-200 bg-white p-2.5 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 hover:bg-neutral-50"
+            >
+                <LucideIcon className="size-4.5 text-emerald-600 shrink-0" />
+                <span className="truncate">{currentIcon.label}</span>
+                <LucideIcons.ChevronDown className="ml-auto size-4 text-neutral-400 shrink-0" />
+            </button>
+
+            {isOpen && (
+                <>
+                    <div
+                        className="fixed inset-0 z-30"
+                        onClick={() => setIsOpen(false)}
+                    />
+                    <div className="absolute left-0 mt-1.5 z-40 w-[260px] rounded-xl border border-neutral-200 bg-white p-3 shadow-xl animate-in fade-in slide-in-from-top-1 duration-150">
+                        <div className="grid grid-cols-3 gap-2">
+                            {CURATED_ICONS.map((i) => {
+                                const ItemIcon = (LucideIcons as any)[i.name] || LucideIcons.HelpCircle;
+                                const isSelected = i.name === value;
+                                return (
+                                    <button
+                                        key={i.name}
+                                        type="button"
+                                        onClick={() => {
+                                            onChange(i.name);
+                                            setIsOpen(false);
+                                        }}
+                                        className={cn(
+                                            "flex flex-col items-center justify-center gap-1.5 rounded-lg p-2 transition-all",
+                                            isSelected
+                                                ? "bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold"
+                                                : "border border-neutral-100 hover:bg-neutral-50 text-neutral-600 hover:text-neutral-900"
+                                        )}
+                                        title={i.label}
+                                    >
+                                        <ItemIcon className={cn("size-5", isSelected ? "text-emerald-600" : "text-neutral-500")} />
+                                        <span className="text-[10px] text-center leading-tight truncate w-full">
+                                            {i.label.split(' / ')[0]}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
 
 interface Banner {
     id: number;
@@ -193,12 +256,15 @@ export default function EditBeranda({
     // 1. BANNER/SLIDER STATE & ACTIONS
     // ────────────────────────────────────────────────────────
     const [banners, setBanners] = useState(initialBanners);
+    const [bannerToDelete, setBannerToDelete] = useState<number | null>(null);
 
     useEffect(() => {
         setBanners(initialBanners);
     }, [initialBanners]);
 
     const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+    const [isProcessingBanner, setIsProcessingBanner] = useState(false);
+    const [isDeletingBanner, setIsDeletingBanner] = useState(false);
     const [editingBannerId, setEditingBannerId] = useState<number | null>(null);
     const [bannerForm, setBannerForm] = useState({
         title: '',
@@ -243,12 +309,13 @@ export default function EditBeranda({
     const handleSaveBanner = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!bannerForm.title.trim() || !bannerForm.desc.trim()) {
-            toast.error('Judul dan Deskripsi wajib diisi!');
+        if (!bannerForm.imgUrl.trim()) {
+            toast.error('Gambar banner wajib diisi!');
 
             return;
         }
 
+        setIsProcessingBanner(true);
         if (editingBannerId !== null) {
             router.put(
                 `/admin/beranda/banners/${editingBannerId}`,
@@ -264,6 +331,7 @@ export default function EditBeranda({
                                 'Gagal memperbarui slide banner.',
                         );
                     },
+                    onFinish: () => setIsProcessingBanner(false),
                 },
             );
         } else {
@@ -278,21 +346,31 @@ export default function EditBeranda({
                             'Gagal menambahkan slide banner.',
                     );
                 },
+                onFinish: () => setIsProcessingBanner(false),
             });
         }
     };
 
     const handleDeleteBanner = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus slide banner ini?')) {
-            router.delete(`/admin/beranda/banners/${id}`, {
-                onSuccess: () => {
-                    toast.success('Slide Banner berhasil dihapus!');
-                },
-                onError: () => {
-                    toast.error('Gagal menghapus slide banner.');
-                },
-            });
+        setBannerToDelete(id);
+    };
+
+    const handleConfirmDeleteBanner = () => {
+        if (bannerToDelete === null) {
+            return;
         }
+
+        setIsDeletingBanner(true);
+        router.delete(`/admin/beranda/banners/${bannerToDelete}`, {
+            onSuccess: () => {
+                toast.success('Slide Banner berhasil dihapus!');
+                setBannerToDelete(null);
+            },
+            onError: () => {
+                toast.error('Gagal menghapus slide banner.');
+            },
+            onFinish: () => setIsDeletingBanner(false),
+        });
     };
 
     const handleToggleBannerStatus = (id: number) => {
@@ -1060,30 +1138,16 @@ export default function EditBeranda({
                                                     <label className="text-xs font-semibold text-neutral-500 uppercase">
                                                         Ikon
                                                     </label>
-                                                    <select
+                                                    <IconPicker
                                                         value={item.icon}
-                                                        onChange={(e) =>
+                                                        onChange={(val) =>
                                                             handleStatChange(
                                                                 item.id,
                                                                 'icon',
-                                                                e.target.value,
+                                                                val,
                                                             )
                                                         }
-                                                        className="w-full rounded-lg border border-neutral-200 bg-white p-2.5 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600"
-                                                    >
-                                                        {CURATED_ICONS.map(
-                                                            (i) => (
-                                                                <option
-                                                                    key={i.name}
-                                                                    value={
-                                                                        i.name
-                                                                    }
-                                                                >
-                                                                    {i.name}
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
+                                                    />
                                                 </div>
 
                                                 {/* Stat Number */}
@@ -1284,30 +1348,16 @@ export default function EditBeranda({
                                                     <label className="text-xs font-semibold text-neutral-500 uppercase">
                                                         Ikon
                                                     </label>
-                                                    <select
+                                                    <IconPicker
                                                         value={item.icon}
-                                                        onChange={(e) =>
+                                                        onChange={(val) =>
                                                             handleLayananItemChange(
                                                                 item.id,
                                                                 'icon',
-                                                                e.target.value,
+                                                                val,
                                                             )
                                                         }
-                                                        className="w-full rounded-lg border border-neutral-200 bg-white p-2.5 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600"
-                                                    >
-                                                        {CURATED_ICONS.map(
-                                                            (i) => (
-                                                                <option
-                                                                    key={i.name}
-                                                                    value={
-                                                                        i.name
-                                                                    }
-                                                                >
-                                                                    {i.name}
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
+                                                    />
                                                 </div>
 
                                                 <div className="w-full flex-1 space-y-3">
@@ -1398,7 +1448,7 @@ export default function EditBeranda({
                 <form onSubmit={handleSaveBanner} className="space-y-4">
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-neutral-700">
-                            Judul Slide (Maksimal 100)
+                            Judul Slide (Opsional, Maksimal 100)
                         </label>
                         <input
                             type="text"
@@ -1417,7 +1467,7 @@ export default function EditBeranda({
 
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-neutral-700">
-                            Deskripsi Pendek (Maksimal 200)
+                            Deskripsi Pendek (Opsional, Maksimal 200)
                         </label>
                         <textarea
                             rows={3}
@@ -1474,7 +1524,7 @@ export default function EditBeranda({
                     <div className="space-y-1.5">
                         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                             <label className="text-sm font-bold text-neutral-700">
-                                Gambar Banner (Rasio 16:9)
+                                Gambar Banner (Rekomendasi: 1600 x 680 piksel)
                             </label>
                             <div className="flex gap-2">
                                 <button
@@ -1545,13 +1595,61 @@ export default function EditBeranda({
                             </button>
                             <button
                                 type="submit"
-                                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all outline-none hover:bg-emerald-700"
+                                disabled={isProcessingBanner}
+                                className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all outline-none hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Simpan Slide
+                                {isProcessingBanner ? (
+                                    <>
+                                        <Loader2 className="size-4 animate-spin" />
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    'Simpan Slide'
+                                )}
                             </button>
                         </div>
                     </div>
                 </form>
+            </AdminModal>
+
+            {/* MODAL: DELETE BANNER CONFIRMATION */}
+            <AdminModal
+                isOpen={bannerToDelete !== null}
+                onClose={() => setBannerToDelete(null)}
+                title="Hapus Slide Banner?"
+                icon={<Trash2 className="size-5 text-red-600" />}
+                maxWidth="sm"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm leading-relaxed text-neutral-500">
+                        Apakah Anda yakin ingin menghapus slide banner ini secara permanen?
+                        Tautan slide ini tidak akan dapat diakses lagi oleh publik.
+                    </p>
+                    <div className="flex items-center justify-end gap-3 border-t border-neutral-100 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => setBannerToDelete(null)}
+                            className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleConfirmDeleteBanner}
+                            disabled={isDeletingBanner}
+                            className="flex items-center justify-center gap-1.5 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all outline-none hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {isDeletingBanner ? (
+                                <>
+                                    <Loader2 className="size-4 animate-spin" />
+                                    Menghapus...
+                                </>
+                            ) : (
+                                'Hapus Permanen'
+                            )}
+                        </button>
+                    </div>
+                </div>
             </AdminModal>
 
             <AssetPickerModal
@@ -1565,8 +1663,8 @@ export default function EditBeranda({
                 onClose={() => setIsBannerUploadModalOpen(false)}
                 file={selectedBannerFile}
                 onConfirm={handleBannerUploadConfirm}
-                defaultWidth={1200}
-                defaultQuality={80}
+                defaultWidth={1600}
+                defaultQuality={85}
             />
 
             <ImageUploadModal
@@ -1576,6 +1674,7 @@ export default function EditBeranda({
                 onConfirm={handleKbUploadConfirm}
                 defaultWidth={600}
                 defaultQuality={75}
+                aspectRatio={1}
             />
         </>
     );

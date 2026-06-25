@@ -54,7 +54,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
             id="hero-slider"
             aria-label="Banner utama"
             className="relative w-full overflow-hidden bg-[#0D3B11]"
-            style={{ height: 'clamp(480px, 65vw, 720px)' }}
+            style={{ height: 'clamp(480px, 52vw, 680px)' }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -69,11 +69,10 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                         pointerEvents: idx === current ? 'auto' : 'none',
                     }}
                 >
-                    {/* Background image */}
+                    {/* Standard full-bleed cover background for all slides */}
                     <img
-                        src={slide.image}
-                        alt=""
-                        aria-hidden="true"
+                        src={slide.image || undefined}
+                        alt={slide.title || 'Banner'}
                         className={`absolute inset-0 h-full w-full object-cover object-center transition-transform ${
                             idx === current
                                 ? 'scale-100 delay-0 duration-[6000ms] ease-out'
@@ -104,36 +103,40 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                     <div className="bka-container relative z-[2] flex h-full items-center">
                         <div className="max-w-[720px] pl-0 lg:pl-6">
                             {/* Gold accent line */}
-                            <div
-                                className="mb-6 h-[3px] w-16 rounded-full transition-all duration-700 ease-out"
-                                style={{
-                                    background:
-                                        'linear-gradient(90deg, #C8A000, #E8C840)',
-                                    opacity: idx === current ? 1 : 0,
-                                    transform:
-                                        idx === current
-                                            ? 'translateX(0) scaleX(1)'
-                                            : 'translateX(-20px) scaleX(0.5)',
-                                    transitionDelay: '200ms',
-                                }}
-                            />
+                            {slide.title && (
+                                <div
+                                    className="mb-6 h-[3px] w-16 rounded-full transition-all duration-700 ease-out"
+                                    style={{
+                                        background:
+                                            'linear-gradient(90deg, #C8A000, #E8C840)',
+                                        opacity: idx === current ? 1 : 0,
+                                        transform:
+                                            idx === current
+                                                ? 'translateX(0) scaleX(1)'
+                                                : 'translateX(-20px) scaleX(0.5)',
+                                        transitionDelay: '200ms',
+                                    }}
+                                />
+                            )}
 
                             {/* Title */}
-                            <h1
-                                className="mb-5 leading-[1.12] font-bold tracking-tight text-white"
-                                style={{
-                                    fontSize: 'clamp(34px, 5.5vw, 64px)',
-                                    opacity: idx === current ? 1 : 0,
-                                    transform:
-                                        idx === current
-                                            ? 'translateY(0)'
-                                            : 'translateY(20px)',
-                                    transition:
-                                        'opacity 700ms ease-out 300ms, transform 700ms ease-out 300ms',
-                                }}
-                            >
-                                {slide.title}
-                            </h1>
+                            {slide.title && (
+                                <h1
+                                    className="mb-5 leading-[1.12] font-bold tracking-tight text-white"
+                                    style={{
+                                        fontSize: 'clamp(34px, 5.5vw, 64px)',
+                                        opacity: idx === current ? 1 : 0,
+                                        transform:
+                                            idx === current
+                                                ? 'translateY(0)'
+                                                : 'translateY(20px)',
+                                        transition:
+                                            'opacity 700ms ease-out 300ms, transform 700ms ease-out 300ms',
+                                    }}
+                                >
+                                    {slide.title}
+                                </h1>
+                            )}
 
                             {/* Description */}
                             {slide.description && (

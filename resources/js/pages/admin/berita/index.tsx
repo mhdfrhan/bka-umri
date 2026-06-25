@@ -12,8 +12,9 @@ import {
     AlertCircle,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface NewsItem {
     id: number;
@@ -26,6 +27,7 @@ interface NewsItem {
     date: string;
     author?: string;
     status: 'draf' | 'terpublikasi' | 'diarsipkan';
+    deleted_at?: string | null;
 }
 
 interface CategoryItem {
@@ -58,6 +60,36 @@ export default function BeritaIndex({
 
     // Delete confirmation modal
     const [deletingNewsId, setDeletingNewsId] = useState<number | null>(null);
+
+    // Trash logic
+    const [showTrashed, setShowTrashed] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return new URLSearchParams(window.location.search).get('trashed') === 'true';
+        }
+        return false;
+    });
+
+    const toggleTrashed = () => {
+        const newValue = !showTrashed;
+        setShowTrashed(newValue);
+        router.get('/admin/berita', { trashed: newValue ? 'true' : undefined }, { preserveState: true });
+    };
+
+    const handleRestore = (id: number) => {
+        toast.promise(
+            new Promise((resolve, reject) => {
+                router.post(`/admin/berita/${id}/restore`, {}, {
+                    onSuccess: () => resolve(true),
+                    onError: () => reject(new Error('Gagal memulihkan berita')),
+                });
+            }),
+            {
+                loading: 'Memulihkan...',
+                success: 'Berita berhasil dipulihkan!',
+                error: 'Terjadi kesalahan saat memulihkan berita.',
+            }
+        );
+    };
 
     // Filter Logic (Client-side for premium responsive UX)
     const filteredNews = beritas.filter((item) => {
@@ -283,6 +315,19 @@ export default function BeritaIndex({
                                 Reset Semua Filter
                             </button>
                         )}
+
+                        <div className="pt-4 border-t border-neutral-200/60">
+                            <button
+                                type="button"
+                                onClick={toggleTrashed}
+                                className={`flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm font-bold transition-colors ${showTrashed ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'}`}
+                            >
+                                <Trash2 className="size-4" />
+                                <span>
+                                    {showTrashed ? 'Kembali ke Data Aktif' : 'Lihat Sampah'}
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Right Column: Main News Table */}
@@ -385,25 +430,37 @@ export default function BeritaIndex({
                                                         {item.status}
                                                     </span>
                                                 </td>
-                                                {/* Action buttons */}
                                                 <td className="py-3 pr-3 text-right">
                                                     <div className="inline-flex items-center gap-1">
-                                                        <a
-                                                            href={`/berita/${item.slug}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100"
-                                                            title="Pratinjau Publik"
-                                                        >
-                                                            <Eye className="size-4" />
-                                                        </a>
-                                                        <Link
-                                                            href={`/admin/berita/${item.id}/edit`}
-                                                            className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100"
-                                                            title="Edit Berita"
-                                                        >
-                                                            <Edit2 className="size-4" />
-                                                        </Link>
+                                                        {!item.deleted_at ? (
+                                                            <>
+                                                                <a
+                                                                    href={`/berita/${item.slug}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100"
+                                                                    title="Pratinjau Publik"
+                                                                >
+                                                                    <Eye className="size-4" />
+                                                                </a>
+                                                                <Link
+                                                                    href={`/admin/berita/${item.id}/edit`}
+                                                                    className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100"
+                                                                    title="Edit Berita"
+                                                                >
+                                                                    <Edit2 className="size-4" />
+                                                                </Link>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRestore(item.id)}
+                                                                className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
+                                                                title="Pulihkan Berita"
+                                                            >
+                                                                <AlertCircle className="size-4" />
+                                                            </button>
+                                                        )}
                                                         <button
                                                             type="button"
                                                             onClick={() =>
@@ -412,7 +469,7 @@ export default function BeritaIndex({
                                                                 )
                                                             }
                                                             className="rounded-lg p-2 text-red-600 hover:bg-red-50"
-                                                            title="Hapus Berita"
+                                                            title={item.deleted_at ? 'Hapus Permanen' : 'Hapus Berita (Soft Delete)'}
                                                         >
                                                             <Trash2 className="size-4" />
                                                         </button>
@@ -606,45 +663,23 @@ export default function BeritaIndex({
             )}
 
             {/* Confirm dialog box for news deletion */}
-            {deletingNewsId !== null && (
-                <div className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-150 fade-in">
-                    <div className="w-full max-w-md animate-in rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-2xl duration-150 zoom-in-95">
-                        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600">
-                            <AlertCircle className="size-6" />
-                        </div>
-                        <h3 className="mb-2 text-lg font-bold text-neutral-900">
-                            Hapus Artikel Berita?
-                        </h3>
-                        <p className="mb-6 text-sm leading-relaxed text-neutral-500">
-                            Apakah Anda yakin ingin menghapus artikel berita "
-                            <strong>
-                                {
-                                    beritas.find((n) => n.id === deletingNewsId)
-                                        ?.title
-                                }
-                            </strong>
-                            "? Tindakan ini akan menghapus artikel secara
-                            permanen dari server lokal.
-                        </p>
-                        <div className="flex items-center justify-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setDeletingNewsId(null)}
-                                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmDeleteNews}
-                                className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-red-700"
-                            >
-                                Hapus Permanen
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                isOpen={deletingNewsId !== null}
+                onClose={() => setDeletingNewsId(null)}
+                onConfirm={confirmDeleteNews}
+                title={showTrashed ? "Hapus Permanen Berita?" : "Pindah ke Sampah?"}
+                description={
+                    <>
+                        Apakah Anda yakin ingin {showTrashed ? 'menghapus permanen' : 'memindahkan'} berita "
+                        <strong>
+                            {beritas.find((b) => b.id === deletingNewsId)?.title}
+                        </strong>
+                        "? {showTrashed ? "Tindakan ini akan menghapus data selamanya." : "Tindakan ini akan memindahkan berita ke Sampah."}
+                    </>
+                }
+                confirmText={showTrashed ? "Hapus Permanen" : "Pindah ke Sampah"}
+                danger={true}
+            />
         </>
     );
 }

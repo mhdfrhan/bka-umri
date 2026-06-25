@@ -21,9 +21,7 @@ export default function Login({ status, canResetPassword }: Props) {
     return (
         <>
             <Head title="Masuk Ke Panel Admin" />
-
-            <PasskeyVerify />
-
+            
             {status && (
                 <div className="mb-4 rounded-xl border border-emerald-200/50 bg-emerald-50 p-3 text-center text-sm font-medium text-emerald-600">
                     {status}

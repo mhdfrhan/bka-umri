@@ -363,6 +363,7 @@ export default function TambahBerita({ categories = [] }: TambahBeritaProps) {
                             }}
                             file={selectedUploadFile}
                             onConfirm={handleUploadConfirm}
+                            aspectRatio={16 / 9}
                         />
 
                         {/* Editor Konten */}

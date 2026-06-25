@@ -23,7 +23,7 @@ class ChatbotSettingController extends Controller
             'primary_provider' => ChatbotSetting::getValue('primary_provider', 'nvidia'),
             'primary_base_url' => ChatbotSetting::getValue('primary_base_url', 'https://integrate.api.nvidia.com/v1'),
             'primary_api_key' => ChatbotSetting::getValue('primary_api_key', ''),
-            'primary_model' => ChatbotSetting::getValue('primary_model', 'meta/llama-3.3-70b-instruct'),
+            'primary_model' => ChatbotSetting::getValue('primary_model', 'openai/gpt-oss-120b'),
             'fallback_enabled' => ChatbotSetting::getValue('fallback_enabled', '0'),
             'fallback_provider' => ChatbotSetting::getValue('fallback_provider', 'nvidia'),
             'fallback_base_url' => ChatbotSetting::getValue('fallback_base_url', 'https://integrate.api.nvidia.com/v1'),

@@ -18,12 +18,15 @@ class BeritaController extends Controller
     /**
      * Display a listing of news.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $beritas = Berita::with(['kategori', 'penulis'])
-            ->latest()
-            ->get()
-            ->map(function ($item) {
+        $query = Berita::with(['kategori', 'penulis'])->latest();
+
+        if ($request->has('trashed') && $request->trashed === 'true') {
+            $query->onlyTrashed();
+        }
+
+        $beritas = $query->get()->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'slug' => $item->slug,
@@ -35,6 +38,7 @@ class BeritaController extends Controller
                     'date' => $item->tanggal_publikasi ? $item->tanggal_publikasi->format('Y-m-d') : $item->created_at->format('Y-m-d'),
                     'author' => $item->penulis ? $item->penulis->name : 'Admin BKA',
                     'status' => $item->status->value,
+                    'deleted_at' => $item->deleted_at,
                 ];
             });
 
@@ -214,25 +218,42 @@ class BeritaController extends Controller
         return redirect()->route('admin.berita.index')->with('success', 'Berita berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified news.
-     */
     public function destroy($id)
     {
-        $berita = Berita::findOrFail($id);
+        $berita = Berita::withTrashed()->findOrFail($id);
         
-        DB::transaction(function () use ($berita) {
-            // Delete all embedded images in rich text content
-            MediaUploadHelper::deleteAllContentImages($berita->isi);
-            
-            // Force delete the model to purge Spatie attachments & record
-            $berita->forceDelete();
-        });
+        if ($berita->trashed()) {
+            DB::transaction(function () use ($berita) {
+                // Delete all embedded images in rich text content
+                MediaUploadHelper::deleteAllContentImages($berita->isi);
+                
+                // Force delete the model to purge Spatie attachments & record
+                $berita->forceDelete();
+            });
+            $message = 'Berita berhasil dihapus permanen.';
+        } else {
+            $berita->delete();
+            $message = 'Berita berhasil dipindahkan ke Tong Sampah.';
+        }
 
         cache()->forget('beranda_data');
         cache()->forget('kategori_beritas');
 
-        return redirect()->route('admin.berita.index')->with('success', 'Berita berhasil dihapus.');
+        return redirect()->route('admin.berita.index')->with('success', $message);
+    }
+
+    /**
+     * Restore the specified soft-deleted news.
+     */
+    public function restore($id)
+    {
+        $berita = Berita::onlyTrashed()->findOrFail($id);
+        $berita->restore();
+
+        cache()->forget('beranda_data');
+        cache()->forget('kategori_beritas');
+
+        return redirect()->route('admin.berita.index')->with('success', 'Berita berhasil dipulihkan.');
     }
 
     /**

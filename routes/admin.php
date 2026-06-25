@@ -52,14 +52,17 @@ Route::middleware(['auth', 'verified', 'check_active', 'admin'])
         // Kelola Berita
         Route::post('/berita/kategori', [BeritaController::class, 'storeKategori'])->name('admin.berita.kategori.store');
         Route::delete('/berita/kategori/{id}', [BeritaController::class, 'destroyKategori'])->name('admin.berita.kategori.destroy');
+        Route::post('/berita/{id}/restore', [BeritaController::class, 'restore'])->name('admin.berita.restore');
         Route::resource('berita', BeritaController::class)->names('admin.berita');
 
         // Kelola Pengumuman
+        Route::post('/pengumuman/{id}/restore', [PengumumanController::class, 'restore'])->name('admin.pengumuman.restore');
         Route::resource('pengumuman', PengumumanController::class)->names('admin.pengumuman');
 
         // Kelola Dokumentasi
         Route::post('/dokumentasi/kategori', [DokumentasiController::class, 'storeKategori'])->name('admin.dokumentasi.kategori.store');
         Route::delete('/dokumentasi/kategori/{id}', [DokumentasiController::class, 'destroyKategori'])->name('admin.dokumentasi.kategori.destroy');
+        Route::post('/dokumentasi/{id}/restore', [DokumentasiController::class, 'restore'])->name('admin.dokumentasi.restore');
         Route::resource('dokumentasi', DokumentasiController::class)->names('admin.dokumentasi');
 
         // Kelola Aset Media
@@ -71,12 +74,15 @@ Route::middleware(['auth', 'verified', 'check_active', 'admin'])
         // Kelola Dokumen Penting / Lampiran
         Route::prefix('dokumen')->group(function () {
             Route::get('/', [DokumenController::class, 'index'])->name('admin.dokumen.index');
+            Route::post('/kategori/{id}/restore', [DokumenController::class, 'restoreKategori'])->name('admin.dokumen.kategori.restore');
             Route::post('/kategori', [DokumenController::class, 'storeKategori'])->name('admin.dokumen.kategori.store');
             Route::put('/kategori/{id}', [DokumenController::class, 'updateKategori'])->name('admin.dokumen.kategori.update');
             Route::delete('/kategori/{id}', [DokumenController::class, 'destroyKategori'])->name('admin.dokumen.kategori.destroy');
             Route::post('/kategori/reorder', [DokumenController::class, 'reorderKategori'])->name('admin.dokumen.kategori.reorder');
             
+            Route::post('/berkas/{id}/restore', [DokumenController::class, 'restoreBerkas'])->name('admin.dokumen.berkas.restore');
             Route::post('/berkas', [DokumenController::class, 'storeBerkas'])->name('admin.dokumen.berkas.store');
+            Route::post('/berkas/multiple', [DokumenController::class, 'storeMultipleBerkas'])->name('admin.dokumen.berkas.store-multiple');
             Route::put('/berkas/{id}', [DokumenController::class, 'updateBerkas'])->name('admin.dokumen.berkas.update');
             Route::delete('/berkas/{id}', [DokumenController::class, 'destroyBerkas'])->name('admin.dokumen.berkas.destroy');
         });

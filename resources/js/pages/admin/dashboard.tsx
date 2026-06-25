@@ -261,7 +261,7 @@ export default function AdminDashboard({
                                 </span>
                                 . Gunakan menu navigasi di sebelah kiri untuk
                                 mengelola berita, pengumuman, dokumen, galeri,
-                                serta profil BKA BKA Universitas Muhammadiyah
+                                serta profil BKA Universitas Muhammadiyah
                                 Riau secara profesional.
                             </p>
                         </div>

@@ -25,6 +25,13 @@ class GuardrailService
         '/\<\s*iframe/i',
         '/javascript\s*:/i',
         '/on(click|load|error|mouseover)\s*=/i',
+        
+        // Block programming/coding/scripting language requests
+        '/\b(python|golang|rust|kotlin|swift|ruby|php|java|c\+\+|c#|pascal|fortran|cobol)\b/i',
+        '/\b(koding|coding|kodingan|source\s*code|sintaks|syntax)\b/i',
+        '/\b(kode|code)\s+(program|python|php|javascript|js|java|html|css|c\+\+|go|c#|sql|perulangan|loop)\b/i',
+        '/\b(perulangan|looping)\b/i',
+        '/\b(mencetak|print)\s+.*(kali)\b/i',
     ];
 
     /**

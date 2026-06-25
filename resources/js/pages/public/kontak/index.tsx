@@ -44,29 +44,20 @@ interface KontakProps {
     kontak?: KontakDetail;
 }
 
-// ─── Detailed Mock Data for Fallback & Local Evaluator ───
-const dummyKontak: KontakDetail = {
-    alamat: 'Ruang Biro Keuangan dan Aset, Gedung Rektorat Universitas Muhammadiyah Riau\nJl. T. Tambusai, Kota Pekanbaru',
-    telepon: '+62 761 35008 / +62 811-7676-000',
-    email: 'bka@umri.ac.id',
-    jam_operasional: 'Sen - Jum : 08.00 - 16.00 WIB\nSabtu : 08.00 - 13.00 WIB',
-    google_maps_embed:
-        'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d997.4167965592992!2d101.41546138047615!3d0.49870495320004715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31d5a940e01df989%3A0xdc96c279c6f07bc3!2sUniversitas%20Muhammadiyah%20Riau!5e0!3m2!1sid!2sid!4v1779673086975!5m2!1sid!2sid',
-    mediaSosial: [
-        { platform: 'Facebook', url: 'https://facebook.com/umri.official' },
-        { platform: 'Instagram', url: 'https://instagram.com/umri.official' },
-        { platform: 'YouTube', url: 'https://youtube.com' },
-        { platform: 'Twitter', url: 'https://twitter.com' },
-    ],
-};
-
 export default function KontakIndex({ kontak }: KontakProps) {
     const heroRef = useScrollReveal<HTMLDivElement>();
     const leftRef = useScrollReveal<HTMLDivElement>();
     const rightRef = useScrollReveal<HTMLDivElement>();
 
     // Safe fallback handling for dynamic vs mock data
-    const resolvedKontak = kontak || dummyKontak;
+    const resolvedKontak = kontak || {
+        alamat: '',
+        telepon: '',
+        email: '',
+        jam_operasional: '',
+        google_maps_embed: '',
+        mediaSosial: []
+    };
 
     // ─── MAPLIBRE GL INTERACTIVE MAP ENGINE STATES & REFS ───
     const MAP_STYLES = [

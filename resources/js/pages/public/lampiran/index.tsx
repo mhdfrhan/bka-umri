@@ -19,38 +19,6 @@ interface LampiranProps {
     kategoriLampirans?: KategoriLampiran[];
 }
 
-// ─── Detailed Mock Categories for Fallback & Local Evaluator ───
-const dummyKategoriLampirans: KategoriLampiran[] = [
-    {
-        nama: 'Peraturan & Kebijakan',
-        slug: 'peraturan-dan-kebijakan',
-        deskripsi:
-            'Kumpulan Surat Keputusan Rektor, Peraturan Pemerintah, dan Ketetapan Persyarikatan Muhammadiyah tentang tata kelola keuangan kampus.',
-        jumlah_berkas: 8,
-    },
-    {
-        nama: 'Formulir Kemahasiswaan',
-        slug: 'formulir-kemahasiswaan',
-        deskripsi:
-            'Formulir pengajuan dispensasi pembayaran kuliah, template proposal pengajuan dana, dan berkas Surat Pertanggungjawaban (SPJ) kegiatan.',
-        jumlah_berkas: 12,
-    },
-    {
-        nama: 'Panduan & SOP Pelayanan',
-        slug: 'panduan-dan-sop-pelayanan',
-        deskripsi:
-            'Standar Operasional Prosedur (SOP) pencairan anggaran unit, alur pengajuan dana, dan buku panduan tata cara pembayaran Virtual Account.',
-        jumlah_berkas: 6,
-    },
-    {
-        nama: 'Rencana & Laporan Anggaran',
-        slug: 'rencana-dan-laporan-anggaran',
-        deskripsi:
-            'Sosialisasi Rencana Kerja & Anggaran Tahunan (RKAT), kebijakan pagu dana operasional fakultas, serta laporan pertanggungjawaban tahunan.',
-        jumlah_berkas: 4,
-    },
-];
-
 export default function LampiranIndex({
     kategoriLampirans = [],
 }: LampiranProps) {
@@ -60,14 +28,8 @@ export default function LampiranIndex({
     const filterRef = useScrollReveal<HTMLDivElement>();
     const gridRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
-    // Safe fallback handling for dynamic vs mock data
-    const resolvedKategori =
-        kategoriLampirans.length > 0
-            ? kategoriLampirans
-            : dummyKategoriLampirans;
-
     // Filter categories based on search input for highly interactive preview
-    const filteredKategori = resolvedKategori.filter(
+    const filteredKategori = kategoriLampirans.filter(
         (cat) =>
             cat.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
             cat.deskripsi.toLowerCase().includes(searchQuery.toLowerCase()),

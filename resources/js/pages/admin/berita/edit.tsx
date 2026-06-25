@@ -378,6 +378,7 @@ export default function EditBerita({
                             }}
                             file={selectedUploadFile}
                             onConfirm={handleUploadConfirm}
+                            aspectRatio={16 / 9}
                         />
 
                         {/* Editor Konten */}

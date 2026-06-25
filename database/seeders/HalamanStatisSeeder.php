@@ -16,7 +16,7 @@ class HalamanStatisSeeder extends Seeder
             ['slug' => 'tentang-kami'],
             [
                 'judul' => 'Tentang Kami',
-                'konten' => '<h3>Profil BKA</h3><p>Biro Keuangan dan Aset (BKA) Universitas Muhammadiyah Riau didirikan untuk menyelenggarakan administrasi keuangan dan aset secara profesional, transparan, dan akuntabel di lingkungan universitas.</p>',
+                'konten' => '<h3>Profil BKA</h3><p>Biro Administrasi Keuangan dan Aset (BKA) Universitas Muhammadiyah Riau merupakan unit strategis yang didirikan untuk menyelenggarakan pengelolaan tata administrasi keuangan serta perancangan aset secara profesional, transparan, dan akuntabel di lingkungan universitas. Sebagai salah satu pilar penopang unit vital operasional kampus, BKA bertugas merencanakan anggaran, mengendalikan arus kas, dan melaporkan seluruh aktivitas finansial serta memastikan pemeliharaan, optimalisasi sarana, dan prasarana universitas guna menunjang keberhasilan pelaksanaan tridharma perguruan tinggi secara komprehensif.</p><p>Dalam menjalankan berbagai fungsinya, Biro Administrasi Keuangan dan Aset memiliki komitmen untuk terus melakukan transformasi digitalisasi pelayanan keuangan dan perbendaharaan terintegrasi yang berkelanjutan. Implementasi sistem cerdas ditujukan guna memberikan kemudahan operasional, serta layanan terbaik, cepat, efisien, dan presisi bagi seluruh sivitas akademika, baik itu mahasiswa, tenaga pendidik, tenaga kependidikan, serta elemen mitra kerja institusi lainnya secara luas.</p><p>BKA juga senantiasa berinovasi dalam menguatkan regulasi serta standard operating procedures (SOP) internal di bidang kebendaharaan agar selaras dengan ketetapan Majelis Diktilitbang PP Muhammadiyah dan kementerian terkait. Hal ini demi merealisasikan target-target besar rencana strategis UMRI dan visi jangka panjang kampus yang unggul, berkemajuan, serta berdaya saing global pada tingkat nasional maupun internasional.</p>',
             ]
         );
 
@@ -24,23 +24,25 @@ class HalamanStatisSeeder extends Seeder
             ['slug' => 'visi-misi'],
             [
                 'judul' => 'Visi & Misi',
-                'konten' => 'Menjadi penyelenggara administrasi keuangan dan pengelolaan aset yang unggul, terpercaya, transparan, dan akuntabel berbasis digitalisasi layanan demi mendukung Universitas Muhammadiyah Riau yang cerdas, inovatif, dan berkemajuan pada tahun 2028.',
+                'konten' => '<p>Menjadikan Universitas Muhammadiyah Riau sebagai lembaga pendidikan yang bermarwah dan bermartabat dalam menghasilkan sumber daya manusia yang menguasai IPTEK berlandaskan IMTAQ tahun 2030.</p><p style="margin-top: 1.5rem;">Motto: UMRI BERMARWAH DAN BERMARTABAT 2030</p>',
             ]
         );
 
+        // Clear existing missions to avoid duplication
+        \App\Models\Misi::query()->delete();
+
         $misiItems = [
-            'Menyelenggarakan sistem perencanaan, penganggaran, dan pengendalian keuangan yang efisien, transparan, dan akuntabel.',
-            'Mengembangkan digitalisasi administrasi layanan keuangan terintegrasi guna memberikan kemudahan pelayanan terbaik bagi seluruh mahasiswa dan civitas akademika.',
-            'Melaksanakan penataan, pembukuan, dan pelaporan sarana, prasarana, serta aset fisik universitas secara profesional dan akurat.',
-            'Mengoptimalkan pemanfaatan dan produktivitas aset fisik maupun finansial kampus untuk keberlangsungan finansial universitas yang mandiri.',
-            'Membina kualitas sumber daya manusia pengelola keuangan dan logistik yang berintegritas tinggi, kompeten, dan memegang teguh nilai-nilai Al-Islam Kemuhammadiyahan.',
+            'Mewujudkan keunggulan bidang pendidikan, pengajaran, penelitian, pengabdian kepada masyarakat dan Al-Islam Kemuhammadiyahan.',
+            'Menguasai dan memanfaatkan Ilmu Pengetahuan dan Teknologi dalam pendidikan, pengajaran, penelitian, pengabdian kepada masyarakat dan Al-Islam Kemuhammadiyahan.',
+            'Menyelenggarakan pendidikan, pengajaran, penelitian, pengabdian kepada masyarakat yang dilandasi etika, nilai dan moral Islami.',
+            'Menciptakan iklim kondusif untuk tumbuh dan berkembangnya budaya mutu, pengembangan IPTEK dan implementasi iman dan taqwa.',
         ];
 
         foreach ($misiItems as $index => $isi) {
-            \App\Models\Misi::firstOrCreate(
-                ['isi' => $isi],
-                ['urutan' => $index + 1]
-            );
+            \App\Models\Misi::create([
+                'isi' => $isi,
+                'urutan' => $index + 1,
+            ]);
         }
     }
 }

@@ -126,7 +126,7 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                                 aria-hidden="true"
                                 className="absolute -top-7 -left-7 z-0 -scale-x-100 text-[#0a6c32]/5 opacity-60"
                             />
-                            <p className="relative z-[1] text-base leading-[1.85] font-normal text-[#5C6B73]">
+                            <p className="relative z-[1] text-base leading-[1.85] font-normal text-[#5C6B73] whitespace-pre-line">
                                 {remainingText || kepalaBiro.sambutan}
                             </p>
                         </div>

@@ -613,6 +613,7 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
                 }}
                 file={selectedUploadFile}
                 onConfirm={handleUploadConfirm}
+                aspectRatio={16 / 9}
             />
         </>
     );

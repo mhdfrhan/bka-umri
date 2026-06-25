@@ -64,14 +64,17 @@ class BerandaSeeder extends Seeder
         }
 
         // 2. Seed Kepala Biro
-        $kepalaBiro = KepalaBiro::updateOrCreate(
-            ['nama' => 'Rahmawita, S.E'],
-            [
-                'jabatan' => 'Kepala Biro Keuangan & Aset UMRI',
-                'periode' => 'Periode 2024 - 2028',
-                'sambutan' => "Assalamu'alaikum Warahmatullahi Wabarakatuh. Selamat datang di portal resmi Biro Keuangan dan Aset Universitas Muhammadiyah Riau (UMRI). Biro ini berkomitmen untuk menyelenggarakan administrasi keuangan dan pengelolaan aset yang transparan, akuntabel, dan berorientasi pada pelayanan prima. Melalui website ini, kami berharap civitas akademika UMRI dan masyarakat luas dapat mengakses informasi serta layanan administrasi keuangan secara cepat, akurat, dan efisien. Kami terus berinovasi mengintegrasikan sistem digital demi kemudahan kita bersama. Terima kasih atas kepercayaan dan kerjasama Anda semua. Wassalamu'alaikum Warahmatullahi Wabarakatuh.",
-            ]
-        );
+        KepalaBiro::query()->each(function ($kb) {
+            $kb->clearMediaCollection('foto');
+            $kb->delete();
+        });
+
+        $kepalaBiro = KepalaBiro::create([
+            'nama' => 'Rahmawita, SE',
+            'jabatan' => 'Kepala Biro Administrasi Keuangan dan Aset',
+            'periode' => 'Periode 2024 - 2028',
+            'sambutan' => "Assalam’alaikum Warahmatullah Wabarokatuh.\n\nKehadiran website Biro Keuangan dan Aset Universitas Muhammadiyah Riau memiliki peran yang sangat penting sebagai sarana informasi yang transparan dan terpercaya, khususnya dalam hal keuangan dan aset perguruan tinggi. Dengan adanya website ini, kami berkomitmen untuk memberikan akses yang mudah dan cepat bagi seluruh stakeholder, mulai dari mahasiswa, dosen, hingga pihak-pihak terkait lainnya, dalam memperoleh informasi yang relevan dan up-to-date mengenai pengelolaan keuangan dan aset kampus.\n\nWebsite ini juga menjadi wadah untuk meningkatkan akuntabilitas dan transparansi dalam pengelolaan sumber daya yang ada di perguruan tinggi. Sebagai lembaga pendidikan, kami percaya bahwa akses informasi yang terbuka dan jelas akan memperkuat kepercayaan dan kolaborasi antara seluruh pihak. Melalui platform ini, diharapkan seluruh komunitas akademik dapat lebih mudah memahami bagaimana pengelolaan dana dan aset dilakukan secara efektif dan efisien demi kemajuan bersama.",
+        ]);
 
         if ($kepalaBiro->getMedia('foto')->isEmpty()) {
             try {

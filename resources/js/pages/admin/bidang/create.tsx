@@ -1171,6 +1171,7 @@ export default function CreateBidang() {
                 }}
                 defaultWidth={uploadTarget === 'banner' ? 1200 : 600}
                 defaultQuality={uploadTarget === 'banner' ? 80 : 75}
+                aspectRatio={uploadTarget === 'banner' ? 16 / 9 : 1}
             />
         </>
     );

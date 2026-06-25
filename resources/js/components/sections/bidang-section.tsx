@@ -14,15 +14,14 @@ interface BidangSectionProps {
 }
 
 const getBidangIcon = (slug: string) => {
-    switch (slug.toLowerCase()) {
-        case 'keuangan':
-            return Banknote;
-        case 'aset':
-        case 'logistik':
-            return Package;
-        default:
-            return Package;
+    const s = slug.toLowerCase();
+    if (s.includes('keuangan')) {
+        return Banknote;
     }
+    if (s.includes('aset') || s.includes('logistik')) {
+        return Package;
+    }
+    return Package;
 };
 
 export default function BidangSection({ bidangList }: BidangSectionProps) {

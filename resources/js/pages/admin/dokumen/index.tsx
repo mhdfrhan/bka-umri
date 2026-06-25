@@ -20,6 +20,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { formatDate } from '@/lib/format-date';
 import { formatFileSize } from '@/lib/format-file-size';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface KategoriLampiran {
     id: string;
@@ -27,6 +28,7 @@ interface KategoriLampiran {
     slug: string;
     deskripsi: string;
     urutan: number;
+    deleted_at?: string | null;
 }
 
 interface BerkasItem {
@@ -38,6 +40,7 @@ interface BerkasItem {
     ukuran: number;
     tanggal_upload: string;
     download_url: string;
+    deleted_at?: string | null;
 }
 
 const INITIAL_CATEGORIES: KategoriLampiran[] = [
@@ -141,7 +144,6 @@ export default function LampiranDokumenCMS({
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
 
-    // Modal forms states
     const [categoryModal, setCategoryModal] = useState<{
         isOpen: boolean;
         mode: 'add' | 'edit';
@@ -160,12 +162,16 @@ export default function LampiranDokumenCMS({
         fileDataUrl?: string;
         fileName?: string;
         fileSize?: number;
+        files?: { fileDataUrl: string; fileName: string; fileSize: number }[];
+        compress?: boolean;
     }>({
         isOpen: false,
         mode: 'add',
         kategori_id: '',
         nama_tampilan: '',
         deskripsi: '',
+        compress: false,
+        files: [],
     });
 
     const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -180,6 +186,52 @@ export default function LampiranDokumenCMS({
             setSelectedCategoryId(categories[0].id);
         }
     }, [categories, selectedCategoryId]);
+
+    // Trash logic
+    const [showTrashed, setShowTrashed] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return new URLSearchParams(window.location.search).get('trashed') === 'true';
+        }
+        return false;
+    });
+
+    const toggleTrashed = () => {
+        const newValue = !showTrashed;
+        setShowTrashed(newValue);
+        router.get('/admin/dokumen', { trashed: newValue ? 'true' : undefined }, { preserveState: true });
+    };
+
+    const handleRestoreKategori = (id: string) => {
+        toast.promise(
+            new Promise((resolve, reject) => {
+                router.post(`/admin/dokumen/kategori/${id}/restore`, {}, {
+                    onSuccess: () => resolve(true),
+                    onError: () => reject(new Error('Gagal memulihkan kategori')),
+                });
+            }),
+            {
+                loading: 'Memulihkan...',
+                success: 'Kategori berhasil dipulihkan!',
+                error: 'Terjadi kesalahan saat memulihkan.',
+            }
+        );
+    };
+
+    const handleRestoreBerkas = (id: string) => {
+        toast.promise(
+            new Promise((resolve, reject) => {
+                router.post(`/admin/dokumen/berkas/${id}/restore`, {}, {
+                    onSuccess: () => resolve(true),
+                    onError: () => reject(new Error('Gagal memulihkan berkas')),
+                });
+            }),
+            {
+                loading: 'Memulihkan...',
+                success: 'Berkas berhasil dipulihkan!',
+                error: 'Terjadi kesalahan saat memulihkan.',
+            }
+        );
+    };
 
     // Reorder Categories on backend
     const handleReorderCategory = (index: number, direction: 'up' | 'down') => {
@@ -278,95 +330,175 @@ export default function LampiranDokumenCMS({
     };
 
     // File selection/Drag & drop parsing to Base64
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFiles = e.target.files;
+        if (!selectedFiles || selectedFiles.length === 0) return;
 
-        if (!file) {
-            return;
+        const extMatch = (name: string) => name.split('.').pop()?.toLowerCase() || '';
+        const allowedExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar'];
+        const validFiles: File[] = [];
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const ext = extMatch(file.name);
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error(`Ukuran ${file.name} melebihi batas 10 MB`);
+                continue;
+            }
+            if (ext && allowedExts.includes(ext)) {
+                validFiles.push(file);
+            } else {
+                toast.error(`Format berkas ${file.name} tidak diizinkan.`);
+            }
         }
 
-        // Validations
-        if (file.size > 10 * 1024 * 1024) {
-            toast.error('Ukuran berkas melebihi batas 10 MB');
-            return;
-        }
+        if (validFiles.length === 0) return;
 
-        const ext = file.name.split('.').pop()?.toLowerCase();
-        const allowedExts = [
-            'pdf',
-            'doc',
-            'docx',
-            'xls',
-            'xlsx',
-            'ppt',
-            'pptx',
-            'zip',
-            'rar',
-        ];
+        const readFiles = validFiles.map((file) => {
+            return new Promise<{ fileDataUrl: string; fileName: string; fileSize: number }>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    resolve({
+                        fileDataUrl: event.target?.result as string,
+                        fileName: file.name,
+                        fileSize: file.size,
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        });
 
-        if (!ext || !allowedExts.includes(ext)) {
-            toast.error(
-                'Format berkas tidak diizinkan. Gunakan PDF/Office Document/Archive.',
-            );
-            return;
-        }
+        const newFilesData = await Promise.all(readFiles);
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const base64 = event.target?.result as string;
-            setFileModal((prev) => ({
+        setFileModal((prev) => {
+            const currentFiles = prev.files || [];
+            
+            if (prev.mode === 'edit') {
+                return {
+                    ...prev,
+                    fileDataUrl: newFilesData[0].fileDataUrl,
+                    fileName: newFilesData[0].fileName,
+                    fileSize: newFilesData[0].fileSize,
+                };
+            }
+
+            const updatedFiles = [...currentFiles, ...newFilesData];
+            const isMultiple = updatedFiles.length > 1;
+
+            return {
                 ...prev,
-                fileDataUrl: base64,
-                fileName: file.name,
-                fileSize: file.size,
-                nama_tampilan: prev.nama_tampilan || file.name, // Auto-fill display name
-            }));
-            toast.success('Berkas siap diunggah');
-        };
-        reader.readAsDataURL(file);
+                files: updatedFiles,
+                fileDataUrl: updatedFiles[0].fileDataUrl,
+                fileName: updatedFiles[0].fileName,
+                fileSize: updatedFiles[0].fileSize,
+                nama_tampilan: isMultiple ? '' : (prev.nama_tampilan || updatedFiles[0].fileName),
+            };
+        });
+
+        toast.success(`${newFilesData.length} berkas siap diunggah`);
+        e.target.value = '';
+    };
+
+    const removeFile = (indexToRemove: number) => {
+        setFileModal(prev => {
+            const updatedFiles = (prev.files || []).filter((_, i) => i !== indexToRemove);
+            
+            if (updatedFiles.length === 0) {
+                return { ...prev, files: [], fileDataUrl: undefined, fileName: undefined, fileSize: undefined, nama_tampilan: '' };
+            }
+            
+            return {
+                ...prev,
+                files: updatedFiles,
+                fileDataUrl: updatedFiles[0].fileDataUrl,
+                fileName: updatedFiles[0].fileName,
+                fileSize: updatedFiles[0].fileSize,
+                nama_tampilan: updatedFiles.length > 1 ? '' : updatedFiles[0].fileName,
+            };
+        });
     };
 
     // File Add / Update on backend
     const handleFileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!fileModal.nama_tampilan.trim()) {
-            toast.error('Nama tampilan berkas wajib diisi');
-            return;
-        }
-
-        if (fileModal.mode === 'add' && !fileModal.fileDataUrl) {
+        if (fileModal.mode === 'add' && (!fileModal.files || fileModal.files.length === 0)) {
             toast.error('Anda harus mengunggah berkas terlebih dahulu');
             return;
         }
 
+        const isMultiple = fileModal.files && fileModal.files.length > 1;
+
+        if (!isMultiple && !fileModal.nama_tampilan.trim()) {
+            toast.error('Nama tampilan berkas wajib diisi');
+            return;
+        }
+
         if (fileModal.mode === 'add') {
-            router.post(
-                '/admin/dokumen/berkas',
-                {
-                    kategori_id: selectedCategoryId,
-                    nama_tampilan: fileModal.nama_tampilan,
-                    deskripsi: fileModal.deskripsi,
-                    fileDataUrl: fileModal.fileDataUrl,
-                    fileName: fileModal.fileName,
-                },
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        toast.success('Berkas berhasil diunggah');
-                        setFileModal({
-                            isOpen: false,
-                            mode: 'add',
-                            kategori_id: '',
-                            nama_tampilan: '',
-                            deskripsi: '',
-                        });
+            
+            if (isMultiple) {
+                const payload = fileModal.files!.map(f => ({
+                    fileDataUrl: f.fileDataUrl,
+                    fileName: f.fileName,
+                    nama_tampilan: f.fileName.split('.').slice(0, -1).join('.').slice(0, 150),
+                    deskripsi: '',
+                }));
+
+                router.post(
+                    '/admin/dokumen/berkas/multiple',
+                    {
+                        kategori_id: selectedCategoryId,
+                        berkas_files: payload,
+                        compress: fileModal.compress,
                     },
-                    onError: () => {
-                        toast.error('Gagal mengunggah berkas');
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            toast.success('Berkas berhasil diunggah');
+                            setFileModal({
+                                isOpen: false,
+                                mode: 'add',
+                                kategori_id: '',
+                                nama_tampilan: '',
+                                deskripsi: '',
+                                files: [],
+                            });
+                        },
+                        onError: () => {
+                            toast.error('Gagal mengunggah berkas');
+                        },
                     },
-                },
-            );
+                );
+            } else {
+                router.post(
+                    '/admin/dokumen/berkas',
+                    {
+                        kategori_id: selectedCategoryId,
+                        nama_tampilan: fileModal.nama_tampilan,
+                        deskripsi: fileModal.deskripsi,
+                        fileDataUrl: fileModal.fileDataUrl,
+                        fileName: fileModal.fileName,
+                        compress: fileModal.compress,
+                    },
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            toast.success('Berkas berhasil diunggah');
+                            setFileModal({
+                                isOpen: false,
+                                mode: 'add',
+                                kategori_id: '',
+                                nama_tampilan: '',
+                                deskripsi: '',
+                                files: [],
+                            });
+                        },
+                        onError: () => {
+                            toast.error('Gagal mengunggah berkas');
+                        },
+                    },
+                );
+            }
         } else {
             router.put(
                 `/admin/dokumen/berkas/${fileModal.id}`,
@@ -375,6 +507,7 @@ export default function LampiranDokumenCMS({
                     deskripsi: fileModal.deskripsi,
                     fileDataUrl: fileModal.fileDataUrl || null,
                     fileName: fileModal.fileName || null,
+                    compress: fileModal.compress,
                 },
                 {
                     preserveScroll: true,
@@ -398,18 +531,15 @@ export default function LampiranDokumenCMS({
 
     // Confirm deletes on backend
     const handleConfirmDelete = () => {
-        if (!deleteConfirm) {
-            return;
-        }
+        if (!deleteConfirm) return;
 
         if (deleteConfirm.type === 'category') {
             router.delete(`/admin/dokumen/kategori/${deleteConfirm.id}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success(
-                        'Kategori beserta seluruh berkas di dalamnya berhasil dihapus',
-                    );
+                    toast.success(showTrashed ? 'Kategori berhasil dihapus permanen' : 'Kategori berhasil dipindahkan ke Sampah');
                     setDeleteConfirm(null);
+                    // Select another category if possible
                     const remaining = categories.filter(
                         (c) => c.id !== deleteConfirm.id,
                     );
@@ -427,7 +557,7 @@ export default function LampiranDokumenCMS({
             router.delete(`/admin/dokumen/berkas/${deleteConfirm.id}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Berkas berhasil dihapus');
+                    toast.success(showTrashed ? 'Berkas berhasil dihapus permanen' : 'Berkas berhasil dipindahkan ke Sampah');
                     setDeleteConfirm(null);
                 },
                 onError: () => {
@@ -505,20 +635,29 @@ export default function LampiranDokumenCMS({
                             <span className="text-sm font-bold text-neutral-800">
                                 Daftar Folder Kategori ({categories.length})
                             </span>
-                            <button
-                                onClick={() =>
-                                    setCategoryModal({
-                                        isOpen: true,
-                                        mode: 'add',
-                                        nama: '',
-                                        deskripsi: '',
-                                    })
-                                }
-                                className="inline-flex items-center gap-1 rounded-xl bg-[#0a6c32] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
-                            >
-                                <Plus size={13} />
-                                <span>Tambah Folder</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={toggleTrashed}
+                                    className={`inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-bold shadow-xs transition-colors ${showTrashed ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300' : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'}`}
+                                >
+                                    <Trash2 className="size-4" />
+                                    <span>{showTrashed ? 'Data Aktif' : 'Lihat Sampah'}</span>
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        setCategoryModal({
+                                            isOpen: true,
+                                            mode: 'add',
+                                            nama: '',
+                                            deskripsi: '',
+                                        })
+                                    }
+                                    className="inline-flex items-center gap-1 rounded-xl bg-[#0a6c32] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-[#085627]"
+                                >
+                                    <Plus size={13} />
+                                    <span>Tambah Folder</span>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
@@ -617,11 +756,23 @@ export default function LampiranDokumenCMS({
                                                                 cat.deskripsi,
                                                         });
                                                     }}
-                                                    className="rounded-md p-1 text-blue-500 hover:bg-blue-50 hover:text-blue-700"
-                                                    title="Edit Folder"
+                                                    className="rounded-md p-1 text-blue-500 hover:bg-blue-50"
+                                                    title="Edit Kategori"
                                                 >
                                                     <Edit2 size={13} />
                                                 </button>
+                                                {cat.deleted_at && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRestoreKategori(cat.id);
+                                                        }}
+                                                        className="rounded-md p-1 text-emerald-500 hover:bg-emerald-50"
+                                                        title="Pulihkan Kategori"
+                                                    >
+                                                        <AlertCircle size={13} />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -631,8 +782,8 @@ export default function LampiranDokumenCMS({
                                                             title: cat.nama,
                                                         });
                                                     }}
-                                                    className="rounded-md p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
-                                                    title="Hapus Folder"
+                                                    className="rounded-md p-1 text-red-500 hover:bg-red-50"
+                                                    title={cat.deleted_at ? "Hapus Permanen" : "Hapus (Soft Delete)"}
                                                 >
                                                     <Trash2 size={13} />
                                                 </button>
@@ -763,21 +914,19 @@ export default function LampiranDokumenCMS({
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex shrink-0 items-center gap-1.5 self-end border-t border-neutral-100 pt-2 sm:self-center sm:border-0 sm:pt-0">
+                                                    <div className="flex shrink-0 items-center justify-end gap-1 sm:mt-0">
+                                                    {!file.deleted_at && file.download_url && (
                                                         <a
-                                                            href={
-                                                                file.download_url
-                                                            }
-                                                            download={
-                                                                file.nama_tampilan
-                                                            }
-                                                            className="rounded-xl p-2 text-[#0a6c32] hover:bg-emerald-50"
+                                                            href={file.download_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 shadow-xs transition-colors hover:bg-neutral-50"
                                                             title="Unduh Berkas"
                                                         >
-                                                            <Download
-                                                                size={15}
-                                                            />
+                                                            <Download size={14} />
                                                         </a>
+                                                    )}
+                                                    {!file.deleted_at && (
                                                         <button
                                                             onClick={() =>
                                                                 setFileModal({
@@ -790,33 +939,38 @@ export default function LampiranDokumenCMS({
                                                                         file.nama_tampilan,
                                                                     deskripsi:
                                                                         file.deskripsi,
-                                                                    fileName:
-                                                                        file.nama_tampilan,
-                                                                    fileSize:
-                                                                        file.ukuran,
+                                                                    compress: false,
                                                                 })
                                                             }
-                                                            className="rounded-xl p-2 text-blue-500 hover:bg-blue-50"
-                                                            title="Edit Berkas"
+                                                            className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 shadow-xs transition-colors hover:bg-neutral-50"
+                                                            title="Edit Detail"
                                                         >
-                                                            <Edit2 size={15} />
+                                                            <Edit2 size={14} />
                                                         </button>
+                                                    )}
+                                                    {file.deleted_at && (
                                                         <button
-                                                            onClick={() =>
-                                                                setDeleteConfirm(
-                                                                    {
-                                                                        type: 'file',
-                                                                        id: file.id,
-                                                                        title: file.nama_tampilan,
-                                                                    },
-                                                                )
-                                                            }
-                                                            className="rounded-xl p-2 text-red-500 hover:bg-red-50"
-                                                            title="Hapus Berkas"
+                                                            onClick={() => handleRestoreBerkas(file.id)}
+                                                            className="flex items-center justify-center rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 shadow-xs transition-colors hover:bg-emerald-100"
+                                                            title="Pulihkan Berkas"
                                                         >
-                                                            <Trash2 size={15} />
+                                                            <AlertCircle size={14} />
                                                         </button>
-                                                    </div>
+                                                    )}
+                                                    <button
+                                                        onClick={() =>
+                                                            setDeleteConfirm({
+                                                                type: 'file',
+                                                                id: file.id,
+                                                                title: file.nama_tampilan,
+                                                            })
+                                                        }
+                                                        className="flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 shadow-xs transition-colors hover:bg-red-100"
+                                                        title={file.deleted_at ? "Hapus Permanen" : "Hapus Berkas (Soft Delete)"}
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -996,6 +1150,7 @@ export default function LampiranDokumenCMS({
                                     <div className="relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50/50 p-6 text-center transition-colors hover:border-[#0a6c32]">
                                         <input
                                             type="file"
+                                            multiple={fileModal.mode === 'add'}
                                             onChange={handleFileChange}
                                             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
                                             className="absolute inset-0 cursor-pointer opacity-0"
@@ -1006,17 +1161,16 @@ export default function LampiranDokumenCMS({
                                         />
                                         <span className="text-xs font-bold text-neutral-700">
                                             {fileModal.fileName
-                                                ? 'Ganti File Terpilih'
+                                                ? (fileModal.mode === 'edit' ? 'Ganti File Terpilih' : 'Tambah File Lainnya')
                                                 : 'Klik atau Seret Berkas ke Sini'}
                                         </span>
                                         <span className="mt-1 max-w-[280px] text-[10px] leading-normal text-neutral-400">
-                                            Mendukung PDF, Word, Excel, PPT,
-                                            ZIP/RAR hingga batas 10 MB.
+                                            Mendukung PDF, Word, Excel, PPT, ZIP/RAR. Bisa memilih banyak file sekaligus.
                                         </span>
                                     </div>
 
                                     {/* Preview selected file info */}
-                                    {fileModal.fileName && (
+                                    {fileModal.mode === 'edit' && fileModal.fileName && (
                                         <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#e6f4ea] bg-emerald-50/20 p-3">
                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0a6c32] text-white">
                                                 <FileText size={16} />
@@ -1035,48 +1189,105 @@ export default function LampiranDokumenCMS({
                                             </div>
                                         </div>
                                     )}
+
+                                    {fileModal.mode === 'add' && fileModal.files && fileModal.files.length > 0 && (
+                                        <div className="mt-2 flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                                            {fileModal.files.map((f, idx) => (
+                                                <div key={idx} className="flex items-center justify-between gap-3 rounded-xl border border-[#e6f4ea] bg-emerald-50/20 p-2.5">
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0a6c32] text-white">
+                                                        <FileText size={14} />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="truncate text-xs font-bold text-neutral-800">
+                                                            {f.fileName}
+                                                        </p>
+                                                        <span className="text-[10px] font-semibold text-neutral-400">
+                                                            {formatFileSize(f.fileSize)}
+                                                        </span>
+                                                    </div>
+                                                    <button type="button" onClick={() => removeFile(idx)} className="p-1 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg outline-none">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
+                                    {fileModal.fileName?.toLowerCase().endsWith('.pdf') && (
+                                        <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3 border border-amber-100">
+                                            <input
+                                                type="checkbox"
+                                                id="compress-pdf"
+                                                checked={fileModal.compress || false}
+                                                onChange={(e) => setFileModal(prev => ({ ...prev, compress: e.target.checked }))}
+                                                className="mt-0.5 rounded border-neutral-300 text-amber-600 focus:ring-amber-600"
+                                            />
+                                            <div>
+                                                <label htmlFor="compress-pdf" className="text-xs font-bold text-neutral-800 cursor-pointer">
+                                                    Kompres Ukuran PDF
+                                                </label>
+                                                <p className="text-[10px] text-neutral-500 mt-0.5 leading-relaxed">
+                                                    Centang untuk memperkecil ukuran file PDF (menghemat penyimpanan server). Resolusi dan kualitas gambar di dalam PDF mungkin sedikit berkurang.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-neutral-700">
-                                        Nama Tampilan Dokumen *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="Masukkan judul nama dokumen resmi..."
-                                        value={fileModal.nama_tampilan}
-                                        onChange={(e) =>
-                                            setFileModal((prev) => ({
-                                                ...prev,
-                                                nama_tampilan: e.target.value,
-                                            }))
-                                        }
-                                        className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                        required
-                                    />
-                                    <p className="mt-0.5 text-[10px] leading-normal text-neutral-400">
-                                        Judul ini yang akan dibaca oleh publik
-                                        saat mengunduh dokumen.
-                                    </p>
-                                </div>
+                                {/* Show individual inputs only if uploading a single file or editing */}
+                                {(!fileModal.files || fileModal.files.length <= 1) && (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-semibold text-neutral-700">
+                                                Nama Tampilan Dokumen *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Masukkan judul nama dokumen resmi..."
+                                                value={fileModal.nama_tampilan}
+                                                onChange={(e) =>
+                                                    setFileModal((prev) => ({
+                                                        ...prev,
+                                                        nama_tampilan: e.target.value,
+                                                    }))
+                                                }
+                                                className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                                required={fileModal.files && fileModal.files.length <= 1}
+                                            />
+                                            <p className="mt-0.5 text-[10px] leading-normal text-neutral-400">
+                                                Judul ini yang akan dibaca oleh publik saat mengunduh dokumen.
+                                            </p>
+                                        </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-neutral-700">
-                                        Keterangan/Deskripsi Singkat
-                                    </label>
-                                    <textarea
-                                        placeholder="Tuliskan keterangan mengenai fungsi/isi berkas ini..."
-                                        value={fileModal.deskripsi}
-                                        onChange={(e) =>
-                                            setFileModal((prev) => ({
-                                                ...prev,
-                                                deskripsi: e.target.value,
-                                            }))
-                                        }
-                                        rows={3}
-                                        className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                    />
-                                </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-semibold text-neutral-700">
+                                                Keterangan/Deskripsi Singkat
+                                            </label>
+                                            <textarea
+                                                placeholder="Tuliskan keterangan mengenai fungsi/isi berkas ini..."
+                                                value={fileModal.deskripsi}
+                                                onChange={(e) =>
+                                                    setFileModal((prev) => ({
+                                                        ...prev,
+                                                        deskripsi: e.target.value,
+                                                    }))
+                                                }
+                                                rows={3}
+                                                className="w-full resize-none rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                                
+                                {/* Notification for multiple upload mode */}
+                                {fileModal.mode === 'add' && fileModal.files && fileModal.files.length > 1 && (
+                                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                                        <p className="text-xs font-medium text-emerald-800">
+                                            <strong>Mode Unggah Sekaligus Aktif!</strong><br />
+                                            Anda akan mengunggah {fileModal.files.length} dokumen. Nama tampilan akan otomatis disesuaikan dengan nama asli file (tanpa ekstensi). Anda dapat mengedit keterangan masing-masing file secara spesifik setelah file berhasil diunggah.
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div className="mt-4 flex items-center justify-end gap-3 border-t border-neutral-100 pt-4">
                                     <button
@@ -1109,52 +1320,23 @@ export default function LampiranDokumenCMS({
                 )}
 
                 {/* MODAL: DELETE CONFIRMATION */}
-                {deleteConfirm && (
-                    <div className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-neutral-900/50 p-4 backdrop-blur-xs transition-all select-none fade-in">
-                        <div className="w-full max-w-sm animate-in rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-2xl duration-200 zoom-in-95">
-                            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
-                                <AlertCircle size={24} />
-                            </div>
-                            <h3 className="mb-1 text-base font-bold text-neutral-950">
-                                {deleteConfirm.type === 'category'
-                                    ? 'Hapus Folder Kategori?'
-                                    : 'Hapus Berkas Dokumen?'}
-                            </h3>
-                            <p className="mb-6 px-2 text-xs leading-relaxed text-neutral-500">
-                                {deleteConfirm.type === 'category' ? (
-                                    <>
-                                        Apakah Anda yakin ingin menghapus folder
-                                        "<strong>{deleteConfirm.title}</strong>
-                                        "? Seluruh berkas dokumen di dalamnya
-                                        akan dihapus secara permanen dari sistem
-                                        lokal.
-                                    </>
-                                ) : (
-                                    <>
-                                        Apakah Anda yakin ingin menghapus berkas
-                                        "<strong>{deleteConfirm.title}</strong>
-                                        "? Tautan unduhan berkas ini tidak akan
-                                        dapat diakses lagi.
-                                    </>
-                                )}
-                            </p>
-                            <div className="flex items-center justify-center gap-3 border-t border-neutral-100 pt-4">
-                                <button
-                                    onClick={() => setDeleteConfirm(null)}
-                                    className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    onClick={handleConfirmDelete}
-                                    className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-red-700"
-                                >
-                                    Hapus Permanen
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <ConfirmDialog
+                    isOpen={deleteConfirm !== null}
+                    onClose={() => setDeleteConfirm(null)}
+                    onConfirm={handleConfirmDelete}
+                    title={
+                        deleteConfirm?.type === 'category'
+                            ? (showTrashed ? "Hapus Permanen Kategori Folder?" : "Pindah ke Sampah?")
+                            : (showTrashed ? "Hapus Permanen Berkas?" : "Pindah ke Sampah?")
+                    }
+                    description={
+                        deleteConfirm?.type === 'category'
+                            ? `Apakah Anda yakin ingin ${showTrashed ? 'menghapus permanen' : 'memindahkan'} folder "${deleteConfirm?.title}"? ${showTrashed ? "Seluruh berkas dokumen di dalamnya akan dihapus secara permanen." : "Folder beserta dokumen di dalamnya akan dipindahkan ke Sampah."}`
+                            : `Apakah Anda yakin ingin ${showTrashed ? 'menghapus permanen' : 'memindahkan'} berkas "${deleteConfirm?.title}"? ${showTrashed ? "Tautan unduhan berkas ini tidak akan dapat diakses lagi." : "Berkas akan dipindahkan ke Sampah."}`
+                    }
+                    confirmText={showTrashed ? "Hapus Permanen" : "Pindah ke Sampah"}
+                    danger={true}
+                />
             </div>
         </>
     );

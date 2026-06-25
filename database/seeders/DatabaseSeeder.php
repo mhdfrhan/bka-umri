@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
             AlbumSeeder::class,
             AsetMediaSeeder::class,
             LampiranSeeder::class,
+            ChatbotFaqSeeder::class,
+            ChatbotSettingSeeder::class,
         ]);
     }
 }

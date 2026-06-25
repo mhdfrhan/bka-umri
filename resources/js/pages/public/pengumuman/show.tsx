@@ -109,36 +109,35 @@ export default function PengumumanShow({
             </Head>
 
             {/* Header */}
-            <section className="bg-white pt-24 pb-10 md:pt-32 md:pb-14">
+            <section className="bg-gradient-to-b from-[#e8f3ec]/40 via-[#F7F9F7]/10 to-white pt-24 pb-8 md:pt-32 md:pb-12">
                 <div className="bka-container">
                     <div className="mx-auto max-w-[800px] text-center">
                         {announcement.isPenting && (
                             <div className="mb-6">
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFEAE5] px-3.5 py-1.5 text-xs font-bold tracking-widest text-[#E53935] uppercase">
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFEAE5] px-4 py-2 text-[10px] font-black tracking-widest text-[#E53935] uppercase border border-red-100 shadow-sm">
                                     <span className="relative flex h-2 w-2">
                                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E53935] opacity-75"></span>
                                         <span className="relative inline-flex h-2 w-2 rounded-full bg-[#E53935]"></span>
                                     </span>
-                                    Penting
+                                    Penting & Urgent
                                 </span>
                             </div>
                         )}
 
                         <h1
-                            className="mb-6 leading-[1.3] font-bold text-[#1A1A1A]"
-                            style={{ fontSize: 'clamp(24px, 3.5vw, 36px)' }}
+                            className="mb-6 leading-[1.35] font-black text-[#1A1A1A] tracking-tight"
+                            style={{ fontSize: 'clamp(22px, 3.5vw, 32px)' }}
                         >
                             {announcement.title}
                         </h1>
 
-                        <div className="flex items-center justify-center gap-2 text-[14px] font-medium text-[#5C6B73]">
-                            <Calendar size={16} />
+                        <div className="flex items-center justify-center gap-2 text-[12px] font-bold text-[#5C6B73] uppercase tracking-wider bg-neutral-100/80 px-4 py-1.5 rounded-full w-fit mx-auto border border-neutral-200/40">
+                            <Calendar size={14} className="text-[#0a6c32]" />
                             <span>
-                                Dipublikasikan pada{' '}
-                                {formatDateIndo(announcement.date)}
+                                Diterbitkan: {formatDateIndo(announcement.date)}
                             </span>
                         </div>
-                        <span className="bka-gold-line bka-gold-line-center mt-8" />
+                        <span className="bka-gold-line bka-gold-line-center mt-6" />
                     </div>
                 </div>
             </section>
@@ -148,11 +147,11 @@ export default function PengumumanShow({
                 <div className="bka-container">
                     <div
                         ref={articleRef}
-                        className="bka-reveal mx-auto max-w-[760px]"
+                        className="bka-reveal mx-auto max-w-[800px] bg-white rounded-3xl border border-[#DDE5DD] p-6 sm:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.02)]"
                     >
                         {/* Prose Content */}
                         <div
-                            className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-xl prose-a:text-[#0a6c32] prose-a:no-underline hover:prose-a:underline prose-li:marker:text-[#C8A000]"
+                            className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-black prose-headings:text-[#1A1A1A] prose-h3:text-xl prose-a:text-[#0a6c32] prose-a:font-bold prose-a:no-underline hover:prose-a:underline prose-li:marker:text-[#C8A000]"
                             dangerouslySetInnerHTML={{
                                 __html: announcement.content,
                             }}
@@ -161,8 +160,8 @@ export default function PengumumanShow({
                         {/* Attachments */}
                         {announcement.attachments &&
                             announcement.attachments.length > 0 && (
-                                <div className="mt-12 rounded-2xl border border-[#DDE5DD] bg-[#F7F9F7] p-6 md:p-8">
-                                    <h3 className="mb-4 text-lg font-bold text-[#1A1A1A]">
+                                <div className="mt-12 rounded-2xl border border-[#DDE5DD] bg-neutral-50/50 p-5 sm:p-6">
+                                    <h3 className="mb-4 text-sm font-black text-[#1A1A1A] uppercase tracking-widest border-b border-neutral-200 pb-2">
                                         Lampiran Dokumen
                                     </h3>
                                     <div className="flex flex-col gap-3">
@@ -172,26 +171,26 @@ export default function PengumumanShow({
                                                     key={idx}
                                                     href={file.url}
                                                     download={file.name}
-                                                    className="group flex items-center justify-between rounded-xl border border-transparent bg-white p-4 shadow-sm transition-all duration-200 hover:border-[#0a6c32] hover:shadow-md"
+                                                    className="group flex items-center justify-between rounded-xl border border-[#DDE5DD] bg-white p-4 shadow-xs transition-all duration-250 hover:border-[#0a6c32]/30 hover:bg-[#e6f4ea]/20 hover:shadow-sm"
                                                 >
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e6f4ea] text-[#0a6c32]">
+                                                    <div className="flex items-center gap-4 min-w-0">
+                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e6f4ea] text-[#0a6c32] border border-emerald-100">
                                                             <FileText
-                                                                size={20}
+                                                                size={18}
                                                             />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="truncate text-sm font-bold text-[#1A1A1A] group-hover:text-[#0a6c32]">
+                                                            <p className="truncate text-sm font-bold text-[#1A1A1A] group-hover:text-[#0a6c32] transition-colors">
                                                                 {file.name}
                                                             </p>
-                                                            <p className="text-xs text-[#9EAAB2]">
+                                                            <p className="text-xs text-[#9EAAB2] font-medium mt-0.5">
                                                                 Ukuran:{' '}
                                                                 {file.size}
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F7F9F7] text-[#0a6c32] transition-colors group-hover:bg-[#0a6c32] group-hover:text-white">
-                                                        <Download size={16} />
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F7F9F7] border border-neutral-200 text-[#0a6c32] transition-all group-hover:bg-[#0a6c32] group-hover:text-white group-hover:border-[#0a6c32]">
+                                                        <Download size={14} className="stroke-[2.5]" />
                                                     </div>
                                                 </a>
                                             ),
@@ -204,24 +203,24 @@ export default function PengumumanShow({
                         <div className="mt-12 flex flex-col items-center justify-between gap-6 border-t border-[#DDE5DD] pt-8 md:flex-row">
                             <Link
                                 href="/pengumuman"
-                                className="group inline-flex items-center gap-2 text-sm font-semibold text-[#5C6B73] no-underline transition-all duration-200 hover:gap-3 hover:text-[#0a6c32]"
+                                className="group inline-flex items-center gap-2 text-xs font-black text-[#5C6B73] uppercase tracking-wider no-underline transition-all duration-200 hover:text-[#0a6c32]"
                             >
                                 <ArrowLeft
-                                    size={16}
-                                    className="transition-transform duration-200 group-hover:-translate-x-0.5"
+                                    size={14}
+                                    className="transition-transform duration-200 group-hover:-translate-x-1 stroke-[2.5]"
                                 />
-                                Kembali ke Daftar Pengumuman
+                                Kembali ke Daftar
                             </Link>
 
                             <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
-                                <span className="text-sm font-semibold text-[#1A1A1A]">
+                                <span className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest">
                                     Bagikan:
                                 </span>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <button
                                         onClick={handleShareWhatsApp}
                                         aria-label="Share on WhatsApp"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-50 border border-neutral-200 text-[#5C6B73] transition-all hover:bg-[#0a6c32] hover:text-white hover:border-[#0a6c32] cursor-pointer"
                                         title="Bagikan ke WhatsApp"
                                     >
                                         <svg
@@ -234,34 +233,34 @@ export default function PengumumanShow({
                                     <button
                                         onClick={handleShareFacebook}
                                         aria-label="Share on Facebook"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-50 border border-neutral-200 text-[#5C6B73] transition-all hover:bg-[#0a6c32] hover:text-white hover:border-[#0a6c32] cursor-pointer"
                                         title="Bagikan ke Facebook"
                                     >
-                                        <Facebook size={16} />
+                                        <Facebook size={14} />
                                     </button>
                                     <button
                                         onClick={handleShareTwitter}
                                         aria-label="Share on Twitter"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-50 border border-neutral-200 text-[#5C6B73] transition-all hover:bg-[#0a6c32] hover:text-white hover:border-[#0a6c32] cursor-pointer"
                                         title="Bagikan ke Twitter / X"
                                     >
-                                        <Twitter size={16} />
+                                        <Twitter size={14} />
                                     </button>
                                     <button
                                         onClick={handleShareLinkedIn}
                                         aria-label="Share on LinkedIn"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-50 border border-neutral-200 text-[#5C6B73] transition-all hover:bg-[#0a6c32] hover:text-white hover:border-[#0a6c32] cursor-pointer"
                                         title="Bagikan ke LinkedIn"
                                     >
-                                        <Linkedin size={16} />
+                                        <Linkedin size={14} />
                                     </button>
                                     <button
                                         onClick={handleCopyLink}
                                         aria-label="Copy Link"
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F7F9F7] text-[#5C6B73] transition-colors hover:bg-[#0a6c32] hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-50 border border-neutral-200 text-[#5C6B73] transition-all hover:bg-[#0a6c32] hover:text-white hover:border-[#0a6c32] cursor-pointer"
                                         title="Salin Tautan Pengumuman"
                                     >
-                                        <LinkIcon size={16} />
+                                        <LinkIcon size={14} />
                                     </button>
                                 </div>
                             </div>

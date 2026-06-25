@@ -12,6 +12,10 @@ use App\Models\HalamanStatis;
 use App\Models\Statistik;
 use App\Models\Pengaturan;
 use App\Models\ChatbotFaq;
+use App\Models\KepalaBiro;
+use App\Models\StrukturAnggota;
+use App\Models\BidangKepalaBagian;
+use App\Models\BidangAnggota;
 use Illuminate\Support\Str;
 
 class ContextBuilder
@@ -24,10 +28,17 @@ class ContextBuilder
         $keywords = self::extractKeywords($userMessage);
         $context = [];
 
-        // Always include contact info and basic services
+        // Always include contact info, basic services, and kepala biro info
         $context[] = self::getContactInfo();
         $context[] = self::getServiceInfo();
         $context[] = self::getStatistikInfo();
+        $context[] = self::getKepalaBiroInfo();
+
+        // Search for relevant organizational structure/staff
+        $strukturContext = self::searchStrukturOrganisasi($keywords);
+        if ($strukturContext) {
+            $context[] = $strukturContext;
+        }
 
         // Search for relevant custom FAQs
         $faqContext = self::searchChatbotFaqs($keywords);
@@ -313,6 +324,86 @@ class ContextBuilder
 
         $lines = $results->map(fn($f) => "Tanya: {$f->question}\nJawab: {$f->answer}")->join("\n\n");
         return "[TANYA JAWAB / FAQ RELEVAN]\n{$lines}";
+    }
+
+    /**
+     * Get Kepala Biro (Head of Bureau) information.
+     */
+    private static function getKepalaBiroInfo(): string
+    {
+        $kb = KepalaBiro::first();
+        if (!$kb) {
+            return "[KEPALA BIRO BKA UMRI]\nInformasi Kepala Biro belum diatur.";
+        }
+
+        return "[KEPALA BIRO BKA UMRI]\nNama: {$kb->nama}\nJabatan: {$kb->jabatan}\nPeriode: {$kb->periode}";
+    }
+
+    /**
+     * Search organizational structure and division staff members.
+     */
+    private static function searchStrukturOrganisasi(array $keywords): ?string
+    {
+        if (empty($keywords)) {
+            return null;
+        }
+
+        // Trigger keywords for structure/staff
+        $triggerWords = ['struktur', 'anggota', 'staf', 'staff', 'karyawan', 'pegawai', 'pimpinan', 'kepala', 'nama', 'pejabat', 'bagian', 'organisasi', 'tim', 'bagan'];
+        $shouldTrigger = false;
+        
+        foreach ($keywords as $kw) {
+            if (in_array($kw, $triggerWords)) {
+                $shouldTrigger = true;
+                break;
+            }
+        }
+
+        // Or if any keyword matches a staff name (case insensitive)
+        if (!$shouldTrigger) {
+            $names = ['rahmawita', 'mailukni', 'musa', 'rahmiati', 'syauqi', 'delvien', 'wira', 'indra'];
+            foreach ($keywords as $kw) {
+                if (in_array(mb_strtolower($kw), $names)) {
+                    $shouldTrigger = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$shouldTrigger) {
+            return null;
+        }
+
+        $lines = [];
+
+        // 1. Kepala Biro
+        $kb = KepalaBiro::first();
+        if ($kb) {
+            $lines[] = "- Kepala Biro: {$kb->nama} ({$kb->periode})";
+        }
+
+        // 2. Division Heads & Members (Bidang)
+        $bidangs = Bidang::with(['kepalaBagian', 'anggotas'])->orderBy('urutan')->get();
+        foreach ($bidangs as $bidang) {
+            $lines[] = "\n[Bagian: {$bidang->nama}]";
+            if ($bidang->kepalaBagian) {
+                $lines[] = "  - Kepala Bagian: {$bidang->kepalaBagian->nama} (Jabatan: {$bidang->kepalaBagian->jabatan})";
+            }
+            foreach ($bidang->anggotas as $anggota) {
+                $lines[] = "  - Anggota/Staf: {$anggota->nama} (Jabatan: {$anggota->jabatan})";
+            }
+        }
+
+        // 3. General Struktur Anggota (if any, separate from division models)
+        $strukturs = StrukturAnggota::orderBy('urutan')->get();
+        if ($strukturs->isNotEmpty()) {
+            $lines[] = "\n[Daftar Struktur Organisasi Umum]";
+            foreach ($strukturs as $sa) {
+                $lines[] = "  - {$sa->nama} (Jabatan: {$sa->jabatan})";
+            }
+        }
+
+        return "[STRUKTUR ORGANISASI & STAF BKA UMRI]\n" . implode("\n", $lines);
     }
 }
 

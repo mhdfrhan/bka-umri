@@ -18,12 +18,15 @@ class DokumentasiController extends Controller
     /**
      * Display a listing of albums.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $albums = Album::with(['kategori', 'fotos'])
-            ->latest()
-            ->get()
-            ->map(function ($item) {
+        $query = Album::with(['kategori', 'fotos'])->latest();
+
+        if ($request->has('trashed') && $request->trashed === 'true') {
+            $query->onlyTrashed();
+        }
+
+        $albums = $query->get()->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'title' => $item->judul,
@@ -39,6 +42,7 @@ class DokumentasiController extends Controller
                             'order' => $foto->urutan,
                         ];
                     })->toArray(),
+                    'deleted_at' => $item->deleted_at,
                 ];
             });
 
@@ -259,20 +263,37 @@ class DokumentasiController extends Controller
      */
     public function destroy($id)
     {
-        $album = Album::with('fotos')->findOrFail($id);
+        $album = Album::withTrashed()->with('fotos')->findOrFail($id);
 
-        DB::transaction(function () use ($album) {
-            // Clear all individual photo media from storage
-            foreach ($album->fotos as $foto) {
-                $foto->clearMediaCollection('foto');
-                $foto->delete();
-            }
+        if ($album->trashed()) {
+            DB::transaction(function () use ($album) {
+                // Clear all individual photo media from storage
+                foreach ($album->fotos as $foto) {
+                    $foto->clearMediaCollection('foto');
+                    $foto->delete();
+                }
 
-            // Force delete the album (also clears cover media via Spatie)
-            $album->forceDelete();
-        });
+                // Force delete the album (also clears cover media via Spatie)
+                $album->forceDelete();
+            });
+            $message = 'Album berhasil dihapus permanen.';
+        } else {
+            $album->delete();
+            $message = 'Album berhasil dipindahkan ke Tong Sampah.';
+        }
 
-        return redirect()->route('admin.dokumentasi.index')->with('success', 'Album berhasil dihapus.');
+        return redirect()->route('admin.dokumentasi.index')->with('success', $message);
+    }
+
+    /**
+     * Restore the specified soft-deleted album.
+     */
+    public function restore($id)
+    {
+        $album = Album::onlyTrashed()->findOrFail($id);
+        $album->restore();
+
+        return redirect()->route('admin.dokumentasi.index')->with('success', 'Album berhasil dipulihkan.');
     }
 
     /**

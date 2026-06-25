@@ -95,8 +95,8 @@ class BerandaController extends Controller
         }
 
         $request->validate([
-            'title' => 'required|string|max:100',
-            'desc' => 'required|string|max:200',
+            'title' => 'nullable|string|max:100',
+            'desc' => 'nullable|string|max:200',
             'btnText' => 'nullable|string|max:30',
             'btnUrl' => 'nullable|string|max:500',
             'imgUrl' => 'required|string',
@@ -131,8 +131,8 @@ class BerandaController extends Controller
         $banner = Banner::findOrFail($id);
 
         $request->validate([
-            'title' => 'required|string|max:100',
-            'desc' => 'required|string|max:200',
+            'title' => 'nullable|string|max:100',
+            'desc' => 'nullable|string|max:200',
             'btnText' => 'nullable|string|max:30',
             'btnUrl' => 'nullable|string|max:500',
             'imgUrl' => 'required|string',

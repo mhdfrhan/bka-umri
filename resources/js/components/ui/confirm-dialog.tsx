@@ -25,6 +25,23 @@ export function ConfirmDialog({
   danger = false,
   isLoading = false,
 }: ConfirmDialogProps) {
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isOpen && !isLoading && e.key === 'Enter') {
+        e.preventDefault();
+        onConfirm();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isLoading, onConfirm]);
+
   return (
     <Modal
       isOpen={isOpen}

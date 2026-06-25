@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface AnnouncementItem {
     id: number;
@@ -31,6 +32,7 @@ interface AnnouncementItem {
         size: number;
         extension: string;
     }>;
+    deleted_at?: string | null;
 }
 
 interface PengumumanIndexProps {
@@ -63,7 +65,9 @@ export default function PengumumanIndex({
             onSuccess: () => {
                 setDeletingId(null);
                 toast.success(
-                    `Pengumuman "${target?.title}" berhasil dihapus.`,
+                    showTrashed 
+                    ? `Pengumuman "${target?.title}" berhasil dihapus permanen.`
+                    : `Pengumuman "${target?.title}" berhasil dipindahkan ke Sampah.`,
                 );
             },
             onError: () => {
@@ -71,6 +75,36 @@ export default function PengumumanIndex({
                 toast.error('Gagal menghapus pengumuman.');
             },
         });
+    };
+
+    // Trash logic
+    const [showTrashed, setShowTrashed] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return new URLSearchParams(window.location.search).get('trashed') === 'true';
+        }
+        return false;
+    });
+
+    const toggleTrashed = () => {
+        const newValue = !showTrashed;
+        setShowTrashed(newValue);
+        router.get('/admin/pengumuman', { trashed: newValue ? 'true' : undefined }, { preserveState: true });
+    };
+
+    const handleRestore = (id: number) => {
+        toast.promise(
+            new Promise((resolve, reject) => {
+                router.post(`/admin/pengumuman/${id}/restore`, {}, {
+                    onSuccess: () => resolve(true),
+                    onError: () => reject(new Error('Gagal memulihkan pengumuman')),
+                });
+            }),
+            {
+                loading: 'Memulihkan...',
+                success: 'Pengumuman berhasil dipulihkan!',
+                error: 'Terjadi kesalahan saat memulihkan pengumuman.',
+            }
+        );
     };
 
     // Filter Logic
@@ -192,22 +226,19 @@ export default function PengumumanIndex({
                             </div>
                         </label>
 
-                        {/* Reset Filters */}
-                        {(searchQuery ||
-                            filterStatus !== 'Semua' ||
-                            filterPenting) && (
+
+                        <div className="pt-4 border-t border-neutral-200/60">
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setSearchQuery('');
-                                    setFilterStatus('Semua');
-                                    setFilterPenting(false);
-                                }}
-                                className="w-full rounded-xl border border-dashed border-red-200 bg-red-50/50 py-2 text-center text-xs font-bold text-red-600 hover:text-red-700"
+                                onClick={toggleTrashed}
+                                className={`flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm font-bold transition-colors ${showTrashed ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'}`}
                             >
-                                Reset Filter
+                                <Trash2 className="size-4" />
+                                <span>
+                                    {showTrashed ? 'Kembali ke Data Aktif' : 'Lihat Sampah'}
+                                </span>
                             </button>
-                        )}
+                        </div>
                     </div>
 
                     {/* Right Table Column */}
@@ -296,25 +327,37 @@ export default function PengumumanIndex({
                                                         {item.status}
                                                     </span>
                                                 </td>
-                                                {/* Action buttons */}
                                                 <td className="py-3 pr-3 text-right">
                                                     <div className="inline-flex items-center gap-1">
-                                                        <a
-                                                            href={`/pengumuman/${item.slug}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100"
-                                                            title="Pratinjau Publik"
-                                                        >
-                                                            <Eye className="size-4" />
-                                                        </a>
-                                                        <Link
-                                                            href={`/admin/pengumuman/${item.id}/edit`}
-                                                            className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100"
-                                                            title="Edit Pengumuman"
-                                                        >
-                                                            <Edit2 className="size-4" />
-                                                        </Link>
+                                                        {!item.deleted_at ? (
+                                                            <>
+                                                                <a
+                                                                    href={`/pengumuman/${item.slug}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100"
+                                                                    title="Pratinjau Publik"
+                                                                >
+                                                                    <Eye className="size-4" />
+                                                                </a>
+                                                                <Link
+                                                                    href={`/admin/pengumuman/${item.id}/edit`}
+                                                                    className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100"
+                                                                    title="Edit Pengumuman"
+                                                                >
+                                                                    <Edit2 className="size-4" />
+                                                                </Link>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRestore(item.id)}
+                                                                className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
+                                                                title="Pulihkan Pengumuman"
+                                                            >
+                                                                <AlertCircle className="size-4" />
+                                                            </button>
+                                                        )}
                                                         <button
                                                             type="button"
                                                             onClick={() =>
@@ -323,7 +366,7 @@ export default function PengumumanIndex({
                                                                 )
                                                             }
                                                             className="rounded-lg p-2 text-red-600 hover:bg-red-50"
-                                                            title="Hapus Pengumuman"
+                                                            title={item.deleted_at ? "Hapus Permanen" : "Hapus Pengumuman (Soft Delete)"}
                                                         >
                                                             <Trash2 className="size-4" />
                                                         </button>
@@ -414,46 +457,23 @@ export default function PengumumanIndex({
                 </div>
             </div>
 
-            {/* Confirm Dialog */}
-            {deletingId !== null && (
-                <div className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-150 fade-in">
-                    <div className="w-full max-w-sm animate-in rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-2xl duration-150 zoom-in-95">
-                        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600">
-                            <AlertCircle className="size-6" />
-                        </div>
-                        <h3 className="mb-2 text-lg font-bold text-neutral-900">
-                            Hapus Pengumuman?
-                        </h3>
-                        <p className="mb-6 text-sm leading-relaxed text-neutral-500">
-                            Apakah Anda yakin ingin menghapus pengumuman "
-                            <strong>
-                                {
-                                    announcements.find(
-                                        (a) => a.id === deletingId,
-                                    )?.title
-                                }
-                            </strong>
-                            "? Tindakan ini bersifat permanen.
-                        </p>
-                        <div className="flex items-center justify-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setDeletingId(null)}
-                                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition-colors outline-none hover:bg-neutral-50"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleConfirmDelete}
-                                className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-red-700"
-                            >
-                                Hapus Permanen
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                isOpen={deletingId !== null}
+                onClose={() => setDeletingId(null)}
+                onConfirm={handleConfirmDelete}
+                title={showTrashed ? "Hapus Permanen Pengumuman?" : "Pindah ke Sampah?"}
+                description={
+                    <>
+                        Apakah Anda yakin ingin {showTrashed ? 'menghapus permanen' : 'memindahkan'} pengumuman "
+                        <strong>
+                            {announcements.find((a) => a.id === deletingId)?.title}
+                        </strong>
+                        "? {showTrashed ? "Tindakan ini akan menghapus data secara permanen." : "Pengumuman akan dipindahkan ke Sampah."}
+                    </>
+                }
+                confirmText={showTrashed ? "Hapus Permanen" : "Pindah ke Sampah"}
+                danger={true}
+            />
         </>
     );
 }

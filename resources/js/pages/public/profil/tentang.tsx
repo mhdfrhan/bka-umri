@@ -10,31 +10,7 @@ interface TentangProps {
 }
 
 export default function Tentang({ konten }: TentangProps) {
-    // Fallback Mock Data
-    const defaultKonten =
-        konten ||
-        `
-        <p class="lead">Biro Keuangan dan Aset (BKA) Universitas Muhammadiyah Riau merupakan unsur pelaksana administratif yang menyelenggarakan pelayanan teknis dan administratif di bidang pengelolaan keuangan serta pembinaan dan pengelolaan sarana, prasarana, dan aset universitas.</p>
-        
-        <h2>Sejarah Singkat</h2>
-        <p>Seiring dengan perkembangan Universitas Muhammadiyah Riau yang tumbuh pesat sejak didirikan pada tahun 2008, kebutuhan akan tata kelola keuangan yang sistematis, transparan, dan akuntabel menjadi sangat krusial. Biro Keuangan dan Aset dibentuk sebagai langkah strategis universitas untuk mengkonsolidasikan seluruh urusan anggaran, pembiayaan, logistik, inventarisasi, dan optimalisasi aset fisik dalam satu pintu koordinasi yang profesional.</p>
-        
-        <h2>Fungsi Utama BKA UMRI</h2>
-        <p>Biro Keuangan & Aset menjalankan serangkaian fungsi penting guna mendukung kelancaran seluruh proses Tri Dharma Perguruan Tinggi di lingkungan Universitas Muhammadiyah Riau:</p>
-        <ul>
-            <li><strong>Perencanaan Anggaran & Pendapatan:</strong> Merumuskan rancangan anggaran tahunan universitas berdasarkan prinsip efisiensi dan skala prioritas pengembangan institusi.</li>
-            <li><strong>Administrasi Transaksi & Pembukuan:</strong> Memproses seluruh transaksi keuangan secara cermat, akurat, terverifikasi, serta melakukan pencatatan buku besar terintegrasi.</li>
-            <li><strong>Pelayanan Administrasi Pembayaran Mahasiswa:</strong> Memberikan fasilitas pembayaran biaya kuliah (SPP, DPP, Jas Almamater, Wisuda, dll) secara mudah melalui sistem perbankan online yang modern.</li>
-            <li><strong>Pengelolaan Sarana, Prasarana & Aset:</strong> Melakukan inventarisasi berkala, perawatan, distribusi logistik, serta menjaga legalitas kepemilikan aset fisik kampus secara sistematis.</li>
-            <li><strong>Pelaporan Keuangan Berkala:</strong> Menyajikan laporan keuangan real-time dan tahunan yang diaudit oleh Kantor Akuntan Publik (KAP) independen demi mewujudkan akuntabilitas publik.</li>
-        </ul>
-
-        <blockquote>
-            BKA UMRI berkomitmen untuk terus menghadirkan inovasi digitalisasi layanan demi mewujudkan ekosistem keuangan kampus yang andal, amanah, dan berorientasi pada kepuasan civitas akademika.
-        </blockquote>
-    `;
-
-    const liveKonten = defaultKonten;
+    const liveKonten = konten || '';
 
     const breadcrumbItems = [
         { title: 'Beranda', href: '/' },
