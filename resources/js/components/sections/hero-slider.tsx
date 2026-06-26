@@ -182,10 +182,11 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                                 >
                                     <a
                                         href={slide.ctaHref ?? '#'}
-                                        className="bka-btn-primary shadow-[0_4px_25px_rgba(10,108,50,0.45)]"
+                                        className="bka-btn-primary"
                                         style={{
                                             fontSize: '15px',
-                                            padding: '14px 32px',
+                                            padding: '13px 28px',
+                                            boxShadow: '0 4px 20px rgba(10,108,50,0.5)',
                                         }}
                                     >
                                         {slide.ctaText}
@@ -193,7 +194,11 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                                     {idx === 0 && (
                                         <a
                                             href="/profil/tentang-kami"
-                                            className="rounded-full border border-white/40 bg-white/5 px-8 py-3.5 text-[15px] font-medium text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-[#0a6c32] hover:shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
+                                            className="bka-btn-outline-white"
+                                            style={{
+                                                fontSize: '15px',
+                                                padding: '13px 28px',
+                                            }}
                                         >
                                             Profil BKA
                                         </a>
