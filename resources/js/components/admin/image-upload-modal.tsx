@@ -911,4 +911,3 @@ export function ImageUploadModal({
         </div>
     );
 }
-export default ImageUploadModal;
