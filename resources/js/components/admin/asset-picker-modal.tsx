@@ -30,7 +30,11 @@ export function AssetPickerModal({
         if (isOpen) {
             setIsLoading(true);
             setSelectedAssetUrl(null);
-            fetch('/admin/aset/pilihan')
+            fetch('/admin/aset/pilihan', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
                 .then((res) => {
                     if (!res.ok) throw new Error();
                     return res.json();
