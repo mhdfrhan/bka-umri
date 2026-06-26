@@ -216,7 +216,7 @@
         font-weight: 600;
         font-size: 14px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 999px;
         border: none;
         cursor: pointer;
         transition:
@@ -275,7 +275,7 @@
         font-weight: 600;
         font-size: 14px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 999px;
         border: 1.5px solid rgba(255, 255, 255, 0.55);
         cursor: pointer;
         transition:
