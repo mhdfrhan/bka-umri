@@ -27,3 +27,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+resources.zip
+bka_umri.sql
+update_bka.zip
+vendor.zip

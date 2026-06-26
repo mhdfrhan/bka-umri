@@ -311,21 +311,13 @@ export default function PublicNavbar() {
                             </ul>
 
                             <div className="ml-3 flex items-center border-l border-slate-200/60 pl-4">
-                                {user ? (
+                                {user && (
                                     <Link
                                         href="/admin"
                                         className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#0a6c32] to-[#048d46] px-5 py-2.5 text-[13.5px] font-bold text-white shadow-[0_4px_16px_-2px_rgba(10,108,50,0.3)] transition-all duration-200 ease-out hover:-translate-y-[2px] hover:from-[#085627] hover:to-[#226136] hover:shadow-[0_8px_24px_rgba(10,108,50,0.4)] active:translate-y-0"
                                     >
                                         <LayoutDashboard size={14} />
                                         <span>Dashboard</span>
-                                    </Link>
-                                ) : (
-                                    <Link
-                                        href="/login"
-                                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#0a6c32] to-[#048d46] px-5 py-2.5 text-[13.5px] font-bold text-white shadow-[0_4px_16px_-2px_rgba(10,108,50,0.3)] transition-all duration-200 ease-out hover:-translate-y-[2px] hover:from-[#085627] hover:to-[#226136] hover:shadow-[0_8px_24px_rgba(10,108,50,0.4)] active:translate-y-0"
-                                    >
-                                        <LogIn size={14} />
-                                        <span>Portal BKA</span>
                                     </Link>
                                 )}
                             </div>
@@ -494,7 +486,7 @@ export default function PublicNavbar() {
 
                 <div className="mt-auto flex flex-col gap-4 border-t border-slate-100 pt-4">
                     <div>
-                        {user ? (
+                        {user && (
                             <Link
                                 href="/dashboard"
                                 onClick={() => setMobileOpen(false)}
@@ -502,15 +494,6 @@ export default function PublicNavbar() {
                             >
                                 <LayoutDashboard size={15} />
                                 <span>Dashboard Admin</span>
-                            </Link>
-                        ) : (
-                            <Link
-                                href="/login"
-                                onClick={() => setMobileOpen(false)}
-                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0a6c32] to-[#048d46] px-4 py-3 text-[14px] font-bold text-white shadow-[0_3px_10px_rgba(10,108,50,0.15)]"
-                            >
-                                <LogIn size={15} />
-                                <span>Portal BKA</span>
                             </Link>
                         )}
                     </div>

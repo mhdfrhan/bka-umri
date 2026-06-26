@@ -70,15 +70,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     >
                                         Kata Sandi
                                     </Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700"
-                                            tabIndex={5}
-                                        >
-                                            Lupa password?
-                                        </TextLink>
-                                    )}
+
                                 </div>
                                 <div className="relative">
                                     <PasswordInput

