@@ -118,6 +118,7 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
             headers: {
               'Content-Type': 'application/json',
               'X-CSRF-TOKEN': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest',
             },
             body: JSON.stringify({ url }),
           }).catch(() => {
@@ -265,6 +266,7 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
               headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                'X-Requested-With': 'XMLHttpRequest',
               },
               body: JSON.stringify({
                 image: result.base64,

@@ -120,7 +120,7 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Slide banner baru berhasil ditambahkan.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Slide banner baru berhasil ditambahkan.');
     }
 
     /**
@@ -158,7 +158,7 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Slide banner berhasil diperbarui.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Slide banner berhasil diperbarui.');
     }
 
     /**
@@ -180,7 +180,7 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Slide banner berhasil dihapus.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Slide banner berhasil dihapus.');
     }
 
     /**
@@ -193,7 +193,7 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Status slide banner berhasil diubah.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Status slide banner berhasil diubah.');
     }
 
     /**
@@ -212,7 +212,7 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Urutan slide banner berhasil diperbarui.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Urutan banner berhasil disimpan.');
     }
 
     /**
@@ -253,7 +253,7 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Profil & sambutan Kepala Biro berhasil diperbarui.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Profil Kepala Biro berhasil diperbarui.');
     }
 
     /**
@@ -292,7 +292,7 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Statistik kelembagaan berhasil diperbarui.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Statistik Beranda berhasil disimpan.');
     }
 
     /**
@@ -340,6 +340,6 @@ class BerandaController extends Controller
 
         cache()->forget('beranda_data');
 
-        return redirect()->back()->with('success', 'Pengaturan layanan berhasil diperbarui.');
+        return redirect()->route('admin.beranda.edit')->with('success', 'Pengaturan Layanan berhasil disimpan.');
     }
 }

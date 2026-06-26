@@ -213,7 +213,7 @@ class DokumenController extends Controller
 
         cache()->forget('kategori_lampirans');
 
-        return redirect()->back()->with('success', 'Berkas berhasil diunggah.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Berkas berhasil diunggah.');
     }
 
     /**

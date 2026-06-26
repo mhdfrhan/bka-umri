@@ -53,20 +53,10 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
         <section
             id="hero-slider"
             aria-label="Banner utama"
-            className="relative w-full overflow-hidden bg-[#0D3B11]"
+            className="relative w-full overflow-hidden bg-[#0D3B11] h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {/* 
-                Placeholder image to enforce the container's height to match the FIRST slide's natural aspect ratio.
-                This guarantees the image will never be cropped (top/bottom/left/right) or stretched!
-            */}
-            <img 
-                src={slides[0]?.image || undefined} 
-                className="w-full h-auto invisible pointer-events-none" 
-                alt="" 
-                aria-hidden="true"
-            />
             {/* Slides */}
             {slides.map((slide, idx) => {
                 const hasContent = slide.title || slide.description || slide.ctaText;
@@ -85,7 +75,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                         <img
                             src={slide.image || undefined}
                             alt={slide.title || 'Banner'}
-                            className={`absolute inset-0 h-full w-full object-contain object-center transition-transform ${
+                            className={`absolute inset-0 h-full w-full object-cover object-center transition-transform ${
                                 idx === current
                                     ? 'scale-100 delay-0 duration-[6000ms] ease-out'
                                     : 'scale-105 delay-1000 duration-0'

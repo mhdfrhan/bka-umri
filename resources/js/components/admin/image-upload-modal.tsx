@@ -488,6 +488,7 @@ export function ImageUploadModal({
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
                     },
                     body: JSON.stringify({
                         image: optimizedResult.base64,
