@@ -53,10 +53,20 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
         <section
             id="hero-slider"
             aria-label="Banner utama"
-            className="relative w-full overflow-hidden bg-[#0D3B11] aspect-[4/3] md:aspect-video max-h-[85vh]"
+            className="relative w-full overflow-hidden bg-[#0D3B11]"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
+            {/* 
+                Placeholder image to enforce the container's height to match the FIRST slide's natural aspect ratio.
+                This guarantees the image will never be cropped (top/bottom/left/right) or stretched!
+            */}
+            <img 
+                src={slides[0]?.image || undefined} 
+                className="w-full h-auto invisible pointer-events-none" 
+                alt="" 
+                aria-hidden="true"
+            />
             {/* Slides */}
             {slides.map((slide, idx) => {
                 const hasContent = slide.title || slide.description || slide.ctaText;
