@@ -53,51 +53,57 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
         <section
             id="hero-slider"
             aria-label="Banner utama"
-            className="relative w-full overflow-hidden bg-[#0D3B11]"
-            style={{ height: 'clamp(480px, 52vw, 680px)' }}
+            className="relative w-full overflow-hidden bg-[#0D3B11] aspect-[4/3] md:aspect-video max-h-[85vh]"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             {/* Slides */}
-            {slides.map((slide, idx) => (
-                <div
-                    key={slide.id}
-                    aria-hidden={idx !== current}
-                    className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                    style={{
-                        opacity: idx === current ? 1 : 0,
-                        pointerEvents: idx === current ? 'auto' : 'none',
-                    }}
-                >
-                    {/* Standard full-bleed cover background for all slides */}
-                    <img
-                        src={slide.image || undefined}
-                        alt={slide.title || 'Banner'}
-                        className={`absolute inset-0 h-full w-full object-cover object-center transition-transform ${
-                            idx === current
-                                ? 'scale-100 delay-0 duration-[6000ms] ease-out'
-                                : 'scale-110 delay-1000 duration-0'
-                        }`}
-                    />
+            {slides.map((slide, idx) => {
+                const hasContent = slide.title || slide.description || slide.ctaText;
 
+                return (
                     <div
-                        aria-hidden="true"
-                        className="absolute inset-0"
+                        key={slide.id}
+                        aria-hidden={idx !== current}
+                        className="absolute inset-0 transition-opacity duration-700 ease-in-out"
                         style={{
-                            background:
-                                'linear-gradient(to right, rgba(8,32,12,0.75) 0%, rgba(8,32,12,0.45) 45%, rgba(8,32,12,0.15) 75%, transparent 100%)',
+                            opacity: idx === current ? 1 : 0,
+                            pointerEvents: idx === current ? 'auto' : 'none',
                         }}
-                    />
+                    >
+                        {/* Standard full-bleed cover background for all slides */}
+                        <img
+                            src={slide.image || undefined}
+                            alt={slide.title || 'Banner'}
+                            className={`absolute inset-0 h-full w-full object-cover object-center transition-transform ${
+                                idx === current
+                                    ? 'scale-100 delay-0 duration-[6000ms] ease-out'
+                                    : 'scale-110 delay-1000 duration-0'
+                            }`}
+                        />
 
-                    {/* Radial ambient glow */}
-                    <div
-                        aria-hidden="true"
-                        className="absolute inset-0"
-                        style={{
-                            background:
-                                'radial-gradient(ellipse at 20% 50%, rgba(200,160,0,0.1) 0%, transparent 60%)',
-                        }}
-                    />
+                        {hasContent && (
+                            <>
+                                <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0"
+                                    style={{
+                                        background:
+                                            'linear-gradient(to right, rgba(8,32,12,0.75) 0%, rgba(8,32,12,0.45) 45%, rgba(8,32,12,0.15) 75%, transparent 100%)',
+                                    }}
+                                />
+
+                                {/* Radial ambient glow */}
+                                <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0"
+                                    style={{
+                                        background:
+                                            'radial-gradient(ellipse at 20% 50%, rgba(200,160,0,0.1) 0%, transparent 60%)',
+                                    }}
+                                />
+                            </>
+                        )}
 
                     {/* Content */}
                     <div className="bka-container relative z-[2] flex h-full items-center">
@@ -197,7 +203,8 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                         </div>
                     </div>
                 </div>
-            ))}
+            );
+        })}
 
             {/* Decorative diagonal geometric lines */}
             <div
