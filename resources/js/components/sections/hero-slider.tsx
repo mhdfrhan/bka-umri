@@ -85,10 +85,10 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                         <img
                             src={slide.image || undefined}
                             alt={slide.title || 'Banner'}
-                            className={`absolute inset-0 h-full w-full object-cover object-center transition-transform ${
+                            className={`absolute inset-0 h-full w-full object-contain object-center transition-transform ${
                                 idx === current
                                     ? 'scale-100 delay-0 duration-[6000ms] ease-out'
-                                    : 'scale-110 delay-1000 duration-0'
+                                    : 'scale-105 delay-1000 duration-0'
                             }`}
                         />
 
