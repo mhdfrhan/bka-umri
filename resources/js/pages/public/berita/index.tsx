@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head, router } from '@inertiajs/react';
 import { Search, Newspaper } from 'lucide-react';
 import { useState } from 'react';
@@ -19,6 +20,7 @@ interface NewsItem {
     excerpt: string;
     date: string;
     author?: string;
+    bidang?: string;
 }
 
 interface PaginationLink {
@@ -38,20 +40,26 @@ interface PaginatedBeritas {
 interface BeritaIndexProps {
     beritas: PaginatedBeritas;
     categories: string[];
+    bidangs: string[];
     filters: {
         search: string;
         kategori: string;
+        bidang: string;
     };
 }
 
 export default function BeritaIndex({
     beritas,
     categories = [],
+    bidangs = [],
     filters,
 }: BeritaIndexProps) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [activeCategory, setActiveCategory] = useState(
         filters.kategori || 'Semua',
+    );
+    const [activeBidang, setActiveBidang] = useState(
+        filters.bidang || 'Semua',
     );
 
     const heroRef = useScrollReveal<HTMLDivElement>();
@@ -67,7 +75,16 @@ export default function BeritaIndex({
         setActiveCategory(cat);
         router.get(
             '/berita',
-            { search: searchQuery, kategori: cat },
+            { search: searchQuery, kategori: cat, bidang: activeBidang },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const handleBidangChange = (bid: string) => {
+        setActiveBidang(bid);
+        router.get(
+            '/berita',
+            { search: searchQuery, kategori: activeCategory, bidang: bid },
             { preserveState: true, preserveScroll: true },
         );
     };
@@ -76,19 +93,14 @@ export default function BeritaIndex({
         e.preventDefault();
         router.get(
             '/berita',
-            { search: searchQuery, kategori: activeCategory },
+            { search: searchQuery, kategori: activeCategory, bidang: activeBidang },
             { preserveState: true, preserveScroll: true },
         );
     };
 
     return (
         <>
-            <Head title="Berita & Informasi - BKA UMRI">
-                <meta
-                    name="description"
-                    content="Kumpulan berita dan informasi terbaru dari Biro Keuangan dan Aset Universitas Muhammadiyah Riau."
-                />
-            </Head>
+            <Seo title="Berita & Informasi - BKA UMRI" description="Kumpulan berita dan informasi terbaru dari Biro Keuangan dan Aset Universitas Muhammadiyah Riau." />
 
             {/* Hero Section */}
             <PageHero
@@ -108,29 +120,51 @@ export default function BeritaIndex({
                 <div className="bka-container">
                     <div
                         ref={filterRef}
-                        className="bka-reveal flex flex-col gap-5 md:flex-row md:items-center md:justify-between"
+                        className="bka-reveal flex flex-col gap-5 md:flex-row md:items-start md:justify-between"
                     >
-                        {/* Categories */}
-                        <div className="flex flex-wrap gap-2">
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => handleCategoryChange(cat)}
-                                    className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
-                                        activeCategory === cat
-                                            ? 'bg-[#0a6c32] text-white shadow-md'
-                                            : 'bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#e6f4ea] hover:text-[#0a6c32]'
-                                    }`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
+                        {/* Filters (Categories & Bidang) */}
+                        <div className="flex flex-col gap-4">
+                            {/* Categories */}
+                            <div className="flex flex-wrap gap-2 items-center">
+                                <span className="text-sm font-semibold text-neutral-400 mr-2 uppercase tracking-wider text-xs">Kategori:</span>
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => handleCategoryChange(cat)}
+                                        className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
+                                            activeCategory === cat
+                                                ? 'bg-[#0a6c32] text-white shadow-md'
+                                                : 'bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#e6f4ea] hover:text-[#0a6c32]'
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            {/* Bidangs */}
+                            <div className="flex flex-wrap gap-2 items-center">
+                                <span className="text-sm font-semibold text-neutral-400 mr-2 uppercase tracking-wider text-xs">Bidang:</span>
+                                {bidangs.map((bid) => (
+                                    <button
+                                        key={bid}
+                                        onClick={() => handleBidangChange(bid)}
+                                        className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
+                                            activeBidang === bid
+                                                ? 'bg-[#0a6c32] text-white shadow-md'
+                                                : 'bg-[#F7F9F7] text-[#5C6B73] hover:bg-[#e6f4ea] hover:text-[#0a6c32]'
+                                        }`}
+                                    >
+                                        {bid}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Search Bar */}
                         <form
                             onSubmit={handleSearchSubmit}
-                            className="relative w-full md:max-w-xs"
+                            className="relative w-full md:max-w-xs md:mt-2"
                         >
                             <input
                                 type="text"

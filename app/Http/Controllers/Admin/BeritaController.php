@@ -20,7 +20,7 @@ class BeritaController extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = Berita::with(['kategori', 'penulis'])->latest();
+        $query = Berita::with(['kategori', 'penulis', 'bidang'])->latest();
 
         if ($request->has('trashed') && $request->trashed === 'true') {
             $query->onlyTrashed();
@@ -32,6 +32,7 @@ class BeritaController extends Controller
                     'slug' => $item->slug,
                     'thumbnail' => $item->getFirstMediaUrl('thumbnail') ?: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
                     'category' => $item->kategori ? $item->kategori->nama : 'Tanpa Kategori',
+                    'bidang' => $item->bidang ? (str_contains($item->bidang->nama, 'Keuangan') ? 'Keuangan' : (str_contains($item->bidang->nama, 'Aset') ? 'Aset' : $item->bidang->nama)) : 'Umum',
                     'title' => $item->judul,
                     'excerpt' => Str::limit(strip_tags($item->isi), 160),
                     'content' => $item->isi,
@@ -52,9 +53,22 @@ class BeritaController extends Controller
                 ];
             });
 
+        $bidangs = \App\Models\Bidang::orderBy('urutan')
+            ->get()
+            ->map(function ($bid) {
+                $shortName = $bid->nama;
+                if (str_contains($shortName, 'Keuangan')) $shortName = 'Keuangan';
+                elseif (str_contains($shortName, 'Aset')) $shortName = 'Aset';
+                return [
+                    'id' => $bid->id,
+                    'nama' => $shortName,
+                ];
+            });
+
         return Inertia::render('admin/berita/index', [
             'beritas' => $beritas,
             'categories' => $categories,
+            'bidangs' => $bidangs,
         ]);
     }
 
@@ -72,8 +86,21 @@ class BeritaController extends Controller
                 ];
             });
 
+        $bidangs = \App\Models\Bidang::orderBy('urutan')
+            ->get()
+            ->map(function ($bid) {
+                $shortName = $bid->nama;
+                if (str_contains($shortName, 'Keuangan')) $shortName = 'Keuangan';
+                elseif (str_contains($shortName, 'Aset')) $shortName = 'Aset';
+                return [
+                    'id' => $bid->id,
+                    'nama' => $shortName,
+                ];
+            });
+
         return Inertia::render('admin/berita/create', [
             'categories' => $categories,
+            'bidangs' => $bidangs,
         ]);
     }
 
@@ -86,6 +113,7 @@ class BeritaController extends Controller
             'judul' => 'required|string|min:10|max:200',
             'slug' => 'required|string|max:220|unique:beritas,slug|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             'kategori' => 'required|string',
+            'bidang' => 'nullable|string',
             'status' => 'required|string|in:draf,terpublikasi,diarsipkan',
             'tanggal_publikasi' => 'nullable|date',
             'thumbnail' => 'required|string',
@@ -106,6 +134,14 @@ class BeritaController extends Controller
                 }
             }
 
+            $bidangId = null;
+            if ($request->bidang !== 'Umum' && !empty($request->bidang)) {
+                $bid = \App\Models\Bidang::where('nama', 'like', "%{$request->bidang}%")->first();
+                if ($bid) {
+                    $bidangId = $bid->id;
+                }
+            }
+
             $berita = Berita::create([
                 'judul' => $request->judul,
                 'slug' => $request->slug,
@@ -113,6 +149,7 @@ class BeritaController extends Controller
                 'status' => $request->status,
                 'tanggal_publikasi' => $request->tanggal_publikasi ?: now(),
                 'kategori_berita_id' => $kategoriId,
+                'bidang_id' => $bidangId,
                 'user_id' => $request->user()->id,
             ]);
 
@@ -143,11 +180,24 @@ class BeritaController extends Controller
                 ];
             });
 
+        $bidangs = \App\Models\Bidang::orderBy('urutan')
+            ->get()
+            ->map(function ($bid) {
+                $shortName = $bid->nama;
+                if (str_contains($shortName, 'Keuangan')) $shortName = 'Keuangan';
+                elseif (str_contains($shortName, 'Aset')) $shortName = 'Aset';
+                return [
+                    'id' => $bid->id,
+                    'nama' => $shortName,
+                ];
+            });
+
         $berita = [
             'id' => $item->id,
             'judul' => $item->judul,
             'slug' => $item->slug,
             'kategori' => $item->kategori ? $item->kategori->nama : 'Tanpa Kategori',
+            'bidang' => $item->bidang ? (str_contains($item->bidang->nama, 'Keuangan') ? 'Keuangan' : (str_contains($item->bidang->nama, 'Aset') ? 'Aset' : $item->bidang->nama)) : 'Umum',
             'thumbnail' => $item->getFirstMediaUrl('thumbnail') ?: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
             'isi' => $item->isi,
             'status' => $item->status->value,
@@ -157,6 +207,7 @@ class BeritaController extends Controller
         return Inertia::render('admin/berita/edit', [
             'berita' => $berita,
             'categories' => $categories,
+            'bidangs' => $bidangs,
         ]);
     }
 
@@ -171,6 +222,7 @@ class BeritaController extends Controller
             'judul' => 'required|string|min:10|max:200',
             'slug' => 'required|string|max:220|unique:beritas,slug,' . $id . '|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
             'kategori' => 'required|string',
+            'bidang' => 'nullable|string',
             'status' => 'required|string|in:draf,terpublikasi,diarsipkan',
             'tanggal_publikasi' => 'nullable|date',
             'thumbnail' => 'required|string',
@@ -191,6 +243,14 @@ class BeritaController extends Controller
                 }
             }
 
+            $bidangId = null;
+            if ($request->bidang !== 'Umum' && !empty($request->bidang)) {
+                $bid = \App\Models\Bidang::where('nama', 'like', "%{$request->bidang}%")->first();
+                if ($bid) {
+                    $bidangId = $bid->id;
+                }
+            }
+
             MediaUploadHelper::cleanupContentImages($berita->isi, $request->isi);
 
             $berita->update([
@@ -200,6 +260,7 @@ class BeritaController extends Controller
                 'status' => $request->status,
                 'tanggal_publikasi' => $request->tanggal_publikasi ?: now(),
                 'kategori_berita_id' => $kategoriId,
+                'bidang_id' => $bidangId,
             ]);
 
             if (!empty($request->thumbnail)) {

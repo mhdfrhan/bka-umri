@@ -1,9 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
-
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
 @import 'tw-animate-css';
+
+html {
+    scrollbar-gutter: stable;
+}
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -554,14 +556,23 @@
 
 .bka-reveal-left {
     opacity: 0;
-    transform: translateX(-32px);
+    transform: translateY(32px);
     transition: none;
 }
 
 .bka-reveal-right {
     opacity: 0;
-    transform: translateX(32px);
+    transform: translateY(32px);
     transition: none;
+}
+
+@media (min-width: 1024px) {
+    .bka-reveal-left {
+        transform: translateX(-32px);
+    }
+    .bka-reveal-right {
+        transform: translateX(32px);
+    }
 }
 
 .bka-reveal-scale {
@@ -576,11 +587,20 @@
 }
 
 .bka-reveal-left.bka-visible {
-    animation: bka-fadeInLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: bka-fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .bka-reveal-right.bka-visible {
-    animation: bka-fadeInRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: bka-fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (min-width: 1024px) {
+    .bka-reveal-left.bka-visible {
+        animation: bka-fadeInLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .bka-reveal-right.bka-visible {
+        animation: bka-fadeInRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 }
 
 .bka-reveal-scale.bka-visible {
@@ -786,4 +806,10 @@
     outline: 3px solid #0a6c32;
     box-shadow: 0 0 0 6px rgba(10, 108, 50, 0.25);
     transform: scale(0.995);
+}
+
+/* Rendering optimization for off-screen/below-the-fold sections */
+.bka-lazy-section {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 600px;
 }

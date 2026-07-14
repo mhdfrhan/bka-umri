@@ -19,6 +19,7 @@ class Lampiran extends Model implements HasMedia
         'nama_tampilan',
         'deskripsi',
         'kategori_lampiran_id',
+        'urutan',
     ];
 
     public function getActivitylogOptions(): LogOptions

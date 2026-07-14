@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head, Link } from '@inertiajs/react';
 import { FolderOpen, FileText, Search, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -42,12 +43,7 @@ export default function LampiranIndex({
 
     return (
         <>
-            <Head title="Unduh Lampiran & Dokumen Resmi - BKA UMRI">
-                <meta
-                    name="description"
-                    content="Portal unduhan dokumen administrasi, peraturan keuangan, formulir mahasiswa, panduan pembayaran, dan SOP di lingkungan Universitas Muhammadiyah Riau."
-                />
-            </Head>
+            <Seo title="Unduh Lampiran & Dokumen Resmi - BKA UMRI" description="Portal unduhan dokumen administrasi, peraturan keuangan, formulir mahasiswa, panduan pembayaran, dan SOP di lingkungan Universitas Muhammadiyah Riau." />
 
             {/* Page Hero banner */}
             <PageHero

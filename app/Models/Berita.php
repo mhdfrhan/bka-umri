@@ -25,6 +25,7 @@ class Berita extends Model implements HasMedia
         'status',
         'tanggal_publikasi',
         'kategori_berita_id',
+        'bidang_id',
         'user_id',
     ];
 
@@ -60,6 +61,8 @@ class Berita extends Model implements HasMedia
             ->width(400)
             ->height(225)
             ->fit(\Spatie\Image\Enums\Fit::Crop, 400, 225)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 
@@ -98,5 +101,13 @@ class Berita extends Model implements HasMedia
     public function penulis()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Get the bidang (department/division) of the news.
+     */
+    public function bidang()
+    {
+        return $this->belongsTo(Bidang::class, 'bidang_id');
     }
 }

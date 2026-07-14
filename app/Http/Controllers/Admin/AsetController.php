@@ -147,14 +147,16 @@ class AsetController extends Controller
         $request->validate([
             'image' => 'required|string', // base64 data URL
             'name' => 'required|string|max:255',
+            'size' => 'nullable|integer',
+            'originalSize' => 'nullable|integer',
         ]);
 
         $aset = AsetMedia::create([
             'nama' => $request->name,
             'tipe' => 'image',
             'ekstensi' => 'webp',
-            'ukuran' => 0,
-            'ukuran_asli' => 0,
+            'ukuran' => $request->input('size', 0),
+            'ukuran_asli' => $request->input('originalSize', 0),
             'is_visible' => true,
         ]);
 
@@ -169,8 +171,8 @@ class AsetController extends Controller
         $media = $aset->getFirstMedia('berkas');
         if ($media) {
             $aset->update([
-                'ukuran' => $media->size,
-                'ukuran_asli' => $media->size,
+                'ukuran' => $request->input('size', $media->size),
+                'ukuran_asli' => $request->input('originalSize', $media->size),
             ]);
         }
 

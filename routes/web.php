@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\PengumumanController;
 use App\Http\Controllers\Public\DokumentasiController;
 use App\Http\Controllers\Public\LampiranController;
 use App\Http\Controllers\Public\KontakController;
+use App\Http\Controllers\Public\SitemapController;
 
 // ──────────────────────────────────────────────────────────────
 // Route Publik — Tanpa Auth
@@ -31,6 +32,9 @@ Route::get('/lampiran/download/{id}', [LampiranController::class, 'download'])->
 Route::get('/lampiran/{slug}', [LampiranController::class, 'show'])->name('public.lampiran.kategori');
 Route::get('/kontak', [KontakController::class, 'index'])->name('public.kontak.index');
 Route::post('/kontak', [KontakController::class, 'store'])->name('public.kontak.store')->middleware('throttle:kontak');
+
+// Sitemap
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('public.sitemap');
 
 // Pemeliharaan Sistem / Maintenance Page (503)
 Route::inertia('/maintenance', 'error/generic', ['status' => 503])->name('public.maintenance');

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { CheckCircle2, CreditCard, Landmark } from 'lucide-react';
+import { CheckCircle2, CreditCard, Landmark, Play } from 'lucide-react';
 import SectionHeader from '@/components/ui/section-header';
 import {
     useScrollReveal,
@@ -51,6 +52,24 @@ const getCardBgClass = (idx: number) => {
     }
 };
 
+/**
+ * Extract YouTube video ID from various embed/watch URL formats.
+ */
+function getYouTubeVideoId(url: string): string | null {
+    if (!url) return null;
+    // Match /embed/VIDEO_ID or ?v=VIDEO_ID or youtu.be/VIDEO_ID
+    const patterns = [
+        /youtube\.com\/embed\/([a-zA-Z0-9_-]+)/,
+        /youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/,
+        /youtu\.be\/([a-zA-Z0-9_-]+)/,
+    ];
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+    }
+    return null;
+}
+
 export default function LayananSection({
     title = 'Layanan Biro Keuangan dan Aset',
     description = 'BKA memahami kemudahan transaksi adalah penting. Untuk itu, kami memfasilitasi kemudahan transaksi keuangan melalui beberapa hal berikut.',
@@ -59,12 +78,14 @@ export default function LayananSection({
 }: LayananSectionProps) {
     const leftRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
     const videoRef = useScrollReveal<HTMLDivElement>();
+    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
     if (layananList.length === 0) {
         return null;
     }
 
     const hasVideo = !!youtubeEmbedUrl;
+    const videoId = hasVideo ? getYouTubeVideoId(youtubeEmbedUrl) : null;
 
     return (
         <section
@@ -142,7 +163,7 @@ export default function LayananSection({
                         </div>
                     </div>
 
-                    {/* Right: YouTube embed */}
+                    {/* Right: YouTube embed — Lite pattern (loads iframe on click) */}
                     {hasVideo && (
                         <div className="sticky top-28 self-start lg:pl-4">
                             <div ref={videoRef} className="bka-reveal-right">
@@ -150,14 +171,40 @@ export default function LayananSection({
                                 <div className="relative rounded-3xl bg-gradient-to-br from-[#0a6c32]/30 via-transparent to-[#C8A000]/30 p-1.5 shadow-[0_20px_50px_rgba(10,108,50,0.12)]">
                                     <div className="overflow-hidden rounded-[18px] bg-white">
                                         <div className="relative aspect-video w-full">
-                                            <iframe
-                                                src={youtubeEmbedUrl}
-                                                title="Video Layanan BKA UMRI"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                referrerPolicy="strict-origin-when-cross-origin"
-                                                allowFullScreen
-                                                className="absolute inset-0 h-full w-full border-0"
-                                            />
+                                            {isVideoLoaded ? (
+                                                <iframe
+                                                    src={`${youtubeEmbedUrl}${youtubeEmbedUrl.includes('?') ? '&' : '?'}autoplay=1`}
+                                                    title="Video Layanan BKA UMRI"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                    referrerPolicy="strict-origin-when-cross-origin"
+                                                    allowFullScreen
+                                                    className="absolute inset-0 h-full w-full border-0"
+                                                />
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsVideoLoaded(true)}
+                                                    className="group/play absolute inset-0 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-neutral-900"
+                                                    aria-label="Putar video layanan BKA UMRI"
+                                                >
+                                                    {/* YouTube thumbnail */}
+                                                    {videoId && (
+                                                        <img
+                                                            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                                                            alt="Thumbnail video layanan BKA"
+                                                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover/play:scale-105"
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                        />
+                                                    )}
+                                                    {/* Dark overlay */}
+                                                    <div className="absolute inset-0 bg-black/30 transition-colors duration-300 group-hover/play:bg-black/20" />
+                                                    {/* Play button */}
+                                                    <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-red-600 shadow-lg transition-all duration-300 group-hover/play:scale-110 group-hover/play:bg-red-500">
+                                                        <Play className="h-7 w-7 fill-white text-white ml-0.5" />
+                                                    </div>
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -174,3 +221,4 @@ export default function LayananSection({
         </section>
     );
 }
+

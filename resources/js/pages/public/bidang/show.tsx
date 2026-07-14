@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,

@@ -16,7 +16,8 @@ class RichTextSanitizer
     public static function sanitize(string $html): string
     {
         $config = HTMLPurifier_Config::createDefault();
-        $config->set('HTML.Allowed', 'p,br,strong,em,u,s,h2,h3,ul,ol,li,blockquote,a[href|target],img[src|alt],hr');
+        $config->set('HTML.Allowed', 'p[style],br,strong,em,u,s,h1[style],h2[style],h3[style],h4[style],ul,ol,li,blockquote,a[href|target],img[src|alt],hr');
+        $config->set('CSS.AllowedProperties', 'text-align');
         $config->set('HTML.TargetBlank', true);
         $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'data' => true]);
 

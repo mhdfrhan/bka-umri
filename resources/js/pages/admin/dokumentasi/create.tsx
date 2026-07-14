@@ -184,7 +184,7 @@ export default function TambahAlbum({ categories = [] }: TambahAlbumProps) {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="space-y-1.5 md:col-span-1">
                                 <label className="text-sm font-semibold text-neutral-700">
                                     Kategori Album
@@ -226,22 +226,22 @@ export default function TambahAlbum({ categories = [] }: TambahAlbumProps) {
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 />
                             </div>
+                        </div>
 
-                            <div className="space-y-1.5 md:col-span-1">
-                                <label className="text-sm font-semibold text-neutral-700">
-                                    Deskripsi Singkat (Maks 500 Karakter)
-                                </label>
-                                <textarea
-                                    maxLength={500}
-                                    rows={2}
-                                    value={data.deskripsi}
-                                    onChange={(e) =>
-                                        setData('deskripsi', e.target.value)
-                                    }
-                                    placeholder="Rangkuman singkat isi album liputan kegiatan ini..."
-                                    className="w-full resize-none rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                />
-                            </div>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-neutral-700">
+                                Deskripsi Singkat (Maks 500 Karakter)
+                            </label>
+                            <textarea
+                                maxLength={500}
+                                rows={2}
+                                value={data.deskripsi}
+                                onChange={(e) =>
+                                    setData('deskripsi', e.target.value)
+                                }
+                                placeholder="Rangkuman singkat isi album liputan kegiatan ini..."
+                                className="w-full resize-none rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            />
                         </div>
 
                         <div className="space-y-3 pt-2">

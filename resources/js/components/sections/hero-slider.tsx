@@ -75,6 +75,8 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                         <img
                             src={slide.image || undefined}
                             alt={slide.title || 'Banner'}
+                            fetchPriority={idx === 0 ? "high" : "auto"}
+                            loading={idx === 0 ? "eager" : "lazy"}
                             className={`absolute inset-0 h-full w-full object-cover object-center transition-transform ${
                                 idx === current
                                     ? 'scale-100 delay-0 duration-[6000ms] ease-out'

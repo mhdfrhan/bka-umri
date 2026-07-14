@@ -13,8 +13,8 @@ export default function ProfilTabs() {
     return (
         <div className="sticky top-[68px] z-30 w-full border-b border-[#DDE5DD] bg-white shadow-xs">
             <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-                <div className="flex justify-center sm:justify-start">
-                    <div className="inline-flex max-w-full scrollbar-none gap-1 overflow-x-auto rounded-2xl border border-[#E4EAE4] bg-[#F4F6F4] p-1">
+                <div className="flex w-full overflow-x-auto pb-1 scrollbar-none sm:justify-start">
+                    <div className="inline-flex min-w-max gap-1 rounded-2xl border border-[#E4EAE4] bg-[#F4F6F4] p-1">
                         {tabs.map((tab) => {
                             const isActive = currentPath === tab.href;
 

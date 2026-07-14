@@ -490,7 +490,7 @@ export default function AdminDashboard({
                                                 return (
                                                     <div
                                                         key={index}
-                                                        className="group relative mx-1 flex flex-1 flex-col items-center"
+                                                        className="group relative mx-1 flex h-full flex-1 flex-col items-center justify-end"
                                                         onMouseEnter={() =>
                                                             setHoveredBar(index)
                                                         }
@@ -527,9 +527,10 @@ export default function AdminDashboard({
 
                                                         {/* Actual Bar */}
                                                         <div
-                                                            className="relative w-full cursor-pointer rounded-t-lg bg-[linear-gradient(to_top,#0a6c32,#4CAF50)] shadow-2xs transition-all duration-300 group-hover:shadow-md sm:w-10"
+                                                            className="relative w-full cursor-pointer rounded-t-lg shadow-2xs transition-all duration-300 group-hover:shadow-md sm:w-10"
                                                             style={{
                                                                 height: `${Math.max(heightPercent, 3)}%`,
+                                                                backgroundImage: 'linear-gradient(to top, #047857, #34d399)'
                                                             }}
                                                         >
                                                             <div className="absolute inset-0 rounded-t-lg bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />

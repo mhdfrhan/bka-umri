@@ -60,6 +60,8 @@ class Bidang extends Model implements HasMedia
             ->width(1920)
             ->height(600)
             ->fit(Fit::Fill, 1920, 600)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 

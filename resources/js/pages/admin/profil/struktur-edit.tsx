@@ -17,11 +17,14 @@ import { toast } from 'sonner';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
 import { optimizeFile } from '@/lib/image-optimizer';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface AnggotaStaf {
     id: number;
     nama: string;
     jabatan: string;
+    tugas_pokok?: string;
+    jobdesk?: string;
     foto?: string;
     urutan: number;
     isNew?: boolean;
@@ -124,6 +127,8 @@ export default function EditStruktur({ gambarBagan, anggotaList }: Props) {
     const [stafForm, setStafForm] = useState({
         nama: '',
         jabatan: '',
+        tugas_pokok: '',
+        jobdesk: '',
         foto: '',
         urutan: 0,
         isNew: false,
@@ -135,6 +140,8 @@ export default function EditStruktur({ gambarBagan, anggotaList }: Props) {
         setStafForm({
             nama: '',
             jabatan: '',
+            tugas_pokok: '',
+            jobdesk: '',
             foto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
             urutan: data.anggotaList.length + 1,
             isNew: true,
@@ -148,6 +155,8 @@ export default function EditStruktur({ gambarBagan, anggotaList }: Props) {
         setStafForm({
             nama: staf.nama,
             jabatan: staf.jabatan,
+            tugas_pokok: staf.tugas_pokok || '',
+            jobdesk: staf.jobdesk || '',
             foto: staf.foto || '',
             urutan: staf.urutan,
             isNew: staf.isNew || false,
@@ -193,6 +202,8 @@ export default function EditStruktur({ gambarBagan, anggotaList }: Props) {
                 id: nextId,
                 nama: stafForm.nama,
                 jabatan: stafForm.jabatan,
+                tugas_pokok: stafForm.tugas_pokok,
+                jobdesk: stafForm.jobdesk,
                 foto: stafForm.foto,
                 urutan: data.anggotaList.length + 1,
                 isNew: true,
@@ -582,8 +593,14 @@ export default function EditStruktur({ gambarBagan, anggotaList }: Props) {
 
             {/* Custom Modal Popup for Add/Edit Staff (100% Anti-overlap & layout responsive) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-200 fade-in">
-                    <div className="relative w-full max-w-lg animate-in rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl duration-200 zoom-in-95">
+                <div 
+                    className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-200 fade-in"
+                    onClick={() => setIsModalOpen(false)}
+                >
+                    <div 
+                        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl duration-200 zoom-in-95"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         {/* Close button */}
                         <button
                             onClick={() => setIsModalOpen(false)}
@@ -638,6 +655,38 @@ export default function EditStruktur({ gambarBagan, anggotaList }: Props) {
                                     }
                                     placeholder="Contoh: Staf Administrasi Keuangan"
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Tugas Pokok
+                                </label>
+                                <RichTextEditor
+                                    value={stafForm.tugas_pokok}
+                                    onChange={(val) =>
+                                        setStafForm((prev) => ({
+                                            ...prev,
+                                            tugas_pokok: val,
+                                        }))
+                                    }
+                                    placeholder="Tuliskan tugas pokok staf..."
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Jobdesk Lengkap
+                                </label>
+                                <RichTextEditor
+                                    value={stafForm.jobdesk}
+                                    onChange={(val) =>
+                                        setStafForm((prev) => ({
+                                            ...prev,
+                                            jobdesk: val,
+                                        }))
+                                    }
+                                    placeholder="Tuliskan uraian detail jobdesk..."
                                 />
                             </div>
 

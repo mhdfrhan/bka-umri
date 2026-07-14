@@ -80,6 +80,8 @@ Route::middleware(['auth', 'verified', 'check_active', 'admin'])
             Route::delete('/kategori/{id}', [DokumenController::class, 'destroyKategori'])->name('admin.dokumen.kategori.destroy');
             Route::post('/kategori/reorder', [DokumenController::class, 'reorderKategori'])->name('admin.dokumen.kategori.reorder');
             
+            Route::post('/berkas/reorder', [DokumenController::class, 'reorderBerkas'])->name('admin.dokumen.berkas.reorder');
+            Route::post('/berkas/reorder-unified', [DokumenController::class, 'reorderUnified'])->name('admin.dokumen.berkas.reorder-unified');
             Route::post('/berkas/{id}/restore', [DokumenController::class, 'restoreBerkas'])->name('admin.dokumen.berkas.restore');
             Route::post('/berkas', [DokumenController::class, 'storeBerkas'])->name('admin.dokumen.berkas.store');
             Route::post('/berkas/multiple', [DokumenController::class, 'storeMultipleBerkas'])->name('admin.dokumen.berkas.store-multiple');

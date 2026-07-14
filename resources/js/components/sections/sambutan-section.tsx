@@ -81,6 +81,8 @@ export default function SambutanSection({ kepalaBiro }: SambutanSectionProps) {
                                     src={kepalaBiro.foto}
                                     alt={`Foto ${kepalaBiro.nama}`}
                                     className="h-full w-full object-cover object-[center_top]"
+                                    loading="lazy"
+                                    decoding="async"
                                     onError={(e) => {
                                         (
                                             e.currentTarget as HTMLImageElement

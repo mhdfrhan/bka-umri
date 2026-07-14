@@ -34,6 +34,9 @@ class ContextBuilder
         $context[] = self::getStatistikInfo();
         $context[] = self::getKepalaBiroInfo();
 
+        // Always include latest important announcements and news as baseline context
+        $context[] = self::getLatestAnnouncementsAndNews();
+
         // Search for relevant organizational structure/staff
         $strukturContext = self::searchStrukturOrganisasi($keywords);
         if ($strukturContext) {
@@ -90,7 +93,7 @@ class ContextBuilder
             'ya', 'dong', 'deh', 'sih', 'nih', 'lah', 'kah', 'tah',
         ];
 
-        $words = preg_split('/\s+/', mb_strtolower($message));
+        $words = preg_split('/\s+/u', mb_strtolower($message));
         $keywords = [];
 
         foreach ($words as $word) {
@@ -104,39 +107,72 @@ class ContextBuilder
     }
 
     /**
+     * Always include latest important announcements and news regardless of query.
+     */
+    private static function getLatestAnnouncementsAndNews(): string
+    {
+        $sections = [];
+
+        // Latest important/penting announcements (always shown)
+        $penting = Pengumuman::terpublikasi()
+            ->where('is_penting', true)
+            ->pentingFirst()
+            ->limit(3)
+            ->get(['judul', 'isi', 'tanggal_publikasi']);
+
+        if ($penting->isNotEmpty()) {
+            $lines = $penting->map(function ($p) {
+                $snippet = Str::limit(strip_tags($p->isi), 200);
+                return "- ⚠️ PENTING: {$p->judul} ({$p->tanggal_publikasi?->format('d/m/Y')})\n  {$snippet}";
+            })->join("\n\n");
+            $sections[] = "[PENGUMUMAN PENTING TERBARU]\n{$lines}";
+        }
+
+        // Latest 3 regular announcements
+        $latest = Pengumuman::terpublikasi()
+            ->pentingFirst()
+            ->limit(5)
+            ->get(['judul', 'isi', 'tanggal_publikasi', 'is_penting']);
+
+        if ($latest->isNotEmpty()) {
+            $lines = $latest->map(function ($p) {
+                $prefix = $p->is_penting ? '⚠️ PENTING: ' : '';
+                $snippet = Str::limit(strip_tags($p->isi), 150);
+                return "- {$prefix}{$p->judul} ({$p->tanggal_publikasi?->format('d/m/Y')})\n  {$snippet}";
+            })->join("\n\n");
+            $sections[] = "[PENGUMUMAN TERBARU]\n{$lines}";
+        }
+
+        // Latest 3 news
+        $news = Berita::terpublikasi()->terbaru()->limit(3)->get(['judul', 'isi', 'tanggal_publikasi']);
+        if ($news->isNotEmpty()) {
+            $lines = $news->map(function ($b) {
+                $snippet = Str::limit(strip_tags($b->isi), 150);
+                return "- {$b->judul} ({$b->tanggal_publikasi?->format('d/m/Y')})\n  {$snippet}";
+            })->join("\n\n");
+            $sections[] = "[BERITA TERBARU]\n{$lines}";
+        }
+
+        return implode("\n\n", array_filter($sections));
+    }
+
+    /**
      * Search Berita (news) table for relevant content.
      */
     private static function searchBerita(array $keywords): ?string
     {
-        if (empty($keywords)) {
-            // Return latest 5 news titles as general context
-            $latest = Berita::terpublikasi()->terbaru()->limit(5)->get(['judul', 'tanggal_publikasi']);
-            if ($latest->isEmpty()) return null;
-
-            $lines = $latest->map(fn($b) => "- {$b->judul} ({$b->tanggal_publikasi?->format('d/m/Y')})")->join("\n");
-            return "[BERITA TERBARU]\n{$lines}";
-        }
+        if (empty($keywords)) return null;
 
         $query = Berita::terpublikasi();
-        foreach ($keywords as $kw) {
-            $query->where(function ($q) use ($kw) {
-                $q->where('judul', 'LIKE', "%{$kw}%")
-                  ->orWhere('isi', 'LIKE', "%{$kw}%");
-            });
-        }
+        $query->where(function ($q) use ($keywords) {
+            foreach ($keywords as $kw) {
+                $kw = mb_strtolower($kw);
+                $q->orWhereRaw('LOWER(judul) LIKE ?', ["%{$kw}%"])
+                  ->orWhereRaw('LOWER(isi) LIKE ?', ["%{$kw}%"]);
+            }
+        });
 
-        // Also try OR-based search if AND returns nothing
-        $results = $query->limit(3)->get(['judul', 'isi', 'tanggal_publikasi']);
-
-        if ($results->isEmpty()) {
-            $orQuery = Berita::terpublikasi();
-            $orQuery->where(function ($q) use ($keywords) {
-                foreach ($keywords as $kw) {
-                    $q->orWhere('judul', 'LIKE', "%{$kw}%");
-                }
-            });
-            $results = $orQuery->limit(3)->get(['judul', 'isi', 'tanggal_publikasi']);
-        }
+        $results = $query->terbaru()->limit(3)->get(['judul', 'isi', 'tanggal_publikasi']);
 
         if ($results->isEmpty()) return null;
 
@@ -153,23 +189,18 @@ class ContextBuilder
      */
     private static function searchPengumuman(array $keywords): ?string
     {
-        if (empty($keywords)) {
-            $latest = Pengumuman::terpublikasi()->pentingFirst()->limit(5)->get(['judul', 'is_penting', 'tanggal_publikasi']);
-            if ($latest->isEmpty()) return null;
+        if (empty($keywords)) return null;
 
-            $lines = $latest->map(fn($p) => "- " . ($p->is_penting ? '⚠️ PENTING: ' : '') . "{$p->judul} ({$p->tanggal_publikasi?->format('d/m/Y')})")->join("\n");
-            return "[PENGUMUMAN TERBARU]\n{$lines}";
-        }
-
-        $query = Pengumuman::terpublikasi();
+        $query = Pengumuman::terpublikasi()->pentingFirst();
         $query->where(function ($q) use ($keywords) {
             foreach ($keywords as $kw) {
-                $q->orWhere('judul', 'LIKE', "%{$kw}%")
-                  ->orWhere('isi', 'LIKE', "%{$kw}%");
+                $kw = mb_strtolower($kw);
+                $q->orWhereRaw('LOWER(judul) LIKE ?', ["%{$kw}%"])
+                  ->orWhereRaw('LOWER(isi) LIKE ?', ["%{$kw}%"]);
             }
         });
 
-        $results = $query->limit(3)->get(['judul', 'isi', 'is_penting', 'tanggal_publikasi']);
+        $results = $query->limit(5)->get(['judul', 'isi', 'is_penting', 'tanggal_publikasi']);
 
         if ($results->isEmpty()) return null;
 
@@ -180,6 +211,7 @@ class ContextBuilder
 
         return "[PENGUMUMAN RELEVAN]\n{$lines}";
     }
+
 
     private static function searchBidang(array $keywords): ?string
     {
@@ -218,8 +250,9 @@ class ContextBuilder
         $query = Lampiran::query()->with('kategori');
         $query->where(function ($q) use ($keywords) {
             foreach ($keywords as $kw) {
-                $q->orWhere('nama_tampilan', 'LIKE', "%{$kw}%")
-                  ->orWhere('deskripsi', 'LIKE', "%{$kw}%");
+                $kw = mb_strtolower($kw);
+                $q->orWhereRaw('LOWER(nama_tampilan) LIKE ?', ["%{$kw}%"])
+                  ->orWhereRaw('LOWER(deskripsi) LIKE ?', ["%{$kw}%"]);
             }
         });
 
@@ -313,9 +346,10 @@ class ContextBuilder
         $query = ChatbotFaq::query();
         $query->where(function ($q) use ($keywords) {
             foreach ($keywords as $kw) {
-                $q->orWhere('label', 'LIKE', "%{$kw}%")
-                  ->orWhere('question', 'LIKE', "%{$kw}%")
-                  ->orWhere('answer', 'LIKE', "%{$kw}%");
+                $kw = mb_strtolower($kw);
+                $q->orWhereRaw('LOWER(label) LIKE ?', ["%{$kw}%"])
+                  ->orWhereRaw('LOWER(question) LIKE ?', ["%{$kw}%"])
+                  ->orWhereRaw('LOWER(answer) LIKE ?', ["%{$kw}%"]);
             }
         });
 

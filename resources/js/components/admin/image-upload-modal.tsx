@@ -58,7 +58,7 @@ const cropImage = (
                 } else {
                     reject(new Error('Canvas toBlob failed'));
                 }
-            }, 'image/jpeg', 0.95);
+            }, 'image/webp', 0.95);
         };
         img.onerror = (err) => reject(err);
     });
@@ -381,7 +381,7 @@ export function ImageUploadModal({
                 // First crop the image using canvas
                 const croppedBlob = await cropImage(originalUrl, crop);
                 const croppedFile = new File([croppedBlob], file.name, {
-                    type: 'image/jpeg',
+                    type: 'image/webp',
                 });
 
                 // Optimize the cropped image file
@@ -492,7 +492,9 @@ export function ImageUploadModal({
                     },
                     body: JSON.stringify({
                         image: optimizedResult.base64,
-                        name: file.name,
+                        name: optimizedResult.name,
+                        size: optimizedResult.size,
+                        originalSize: file.size,
                     }),
                 });
                 
@@ -504,7 +506,7 @@ export function ImageUploadModal({
                     base64: data.url,
                     size: optimizedResult.size,
                     originalSize: file.size,
-                    name: file.name,
+                    name: optimizedResult.name,
                     isVisible: true,
                 }, true);
                 
@@ -526,7 +528,7 @@ export function ImageUploadModal({
             base64: optimizedResult.base64,
             size: optimizedResult.size,
             originalSize: file.size,
-            name: file.name,
+            name: optimizedResult.name,
             isVisible: addToGallery,
         }, addToGallery);
 
@@ -735,7 +737,7 @@ export function ImageUploadModal({
                             <span className="max-w-md truncate font-semibold text-neutral-700">
                                 Nama Berkas:{' '}
                                 <span className="font-mono font-normal text-neutral-500">
-                                    {file.name}
+                                    {optimizedResult ? optimizedResult.name : file.name}
                                 </span>
                             </span>
                             <span className="shrink-0">
@@ -764,6 +766,7 @@ export function ImageUploadModal({
                                         {[
                                             { label: 'Bebas / Free', val: undefined },
                                             { label: '1:1 (Kotak)', val: 1 },
+                                            { label: '4:5 (Potret)', val: 4 / 5 },
                                             { label: '16:9 (Landscape)', val: 16 / 9 },
                                             { label: '4:3 (Dokumentasi)', val: 4 / 3 },
                                         ].map((preset, idx) => {

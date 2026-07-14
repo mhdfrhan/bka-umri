@@ -17,8 +17,8 @@ class LampiranController extends Controller
      */
     public function index(): Response
     {
-        $kategoriLampirans = cache()->remember('kategori_lampirans', 3600, function () {
-            return KategoriLampiran::orderBy('urutan', 'asc')->get()->map(function ($cat) {
+        $kategoriLampirans = cache()->remember('kategori_lampirans_root', 3600, function () {
+            return KategoriLampiran::whereNull('parent_id')->orderBy('urutan', 'asc')->get()->map(function ($cat) {
                 return [
                     'nama' => $cat->nama,
                     'slug' => $cat->slug,
@@ -46,7 +46,7 @@ class LampiranController extends Controller
             'deskripsi' => $category->deskripsi ?: '',
         ];
 
-        $berkas = $category->lampirans()->latest()->get()->map(function ($item) {
+        $berkas = $category->lampirans()->orderBy('urutan', 'asc')->latest()->get()->map(function ($item) {
             $media = $item->getFirstMedia('berkas');
             return [
                 'id' => (string)$item->id,
@@ -55,13 +55,25 @@ class LampiranController extends Controller
                 'tipe_file' => strtolower(pathinfo($media?->file_name, PATHINFO_EXTENSION) ?: 'pdf'),
                 'ukuran' => (int)($media?->size ?: 0),
                 'tanggal_upload' => $item->created_at->format('Y-m-d'),
-                'download_url' => $media ? route('public.lampiran.download', ['id' => $item->id]) : '',
+                'download_url' => $media?->getUrl() ?: '',
+                'urutan' => (int)$item->urutan,
+            ];
+        });
+
+        $subcategories = $category->children()->orderBy('urutan', 'asc')->get()->map(function ($cat) {
+            return [
+                'nama' => $cat->nama,
+                'slug' => $cat->slug,
+                'deskripsi' => $cat->deskripsi ?: '',
+                'jumlah_berkas' => $cat->lampirans()->count(),
+                'urutan' => (int)$cat->urutan,
             ];
         });
 
         return Inertia::render('public/lampiran/kategori', [
             'kategori' => $kategori,
             'berkas' => $berkas,
+            'subcategories' => $subcategories,
         ]);
     }
 
@@ -77,13 +89,6 @@ class LampiranController extends Controller
             abort(404, 'Berkas tidak ditemukan.');
         }
 
-        $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
-        $filename = $lampiran->nama_tampilan;
-
-        if (!Str::endsWith(strtolower($filename), '.' . strtolower($extension))) {
-            $filename .= '.' . $extension;
-        }
-
-        return response()->download($media->getPath(), $filename);
+        return redirect($media->getUrl());
     }
 }

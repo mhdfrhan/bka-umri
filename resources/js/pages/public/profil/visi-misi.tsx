@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head } from '@inertiajs/react';
 import { Compass, Target } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -28,13 +29,7 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
 
     return (
         <>
-            <Head>
-                <title>Visi & Misi - Profil BKA UMRI</title>
-                <meta
-                    name="description"
-                    content="Visi dan Misi Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI) sebagai dasar nilai operasional."
-                />
-            </Head>
+            <Seo title="Visi & Misi - Profil BKA UMRI" description="Visi dan Misi Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI) sebagai dasar nilai operasional." />
 
             <div className="flex min-h-screen w-full flex-col bg-[#F7F9F7] pb-16">
                 {/* Reusable PageHero */}
@@ -69,7 +64,7 @@ export default function VisiMisi({ visi, misiItems }: VisiMisiProps) {
                                 Visi BKA UMRI
                             </h2>
                             <div
-                                className="prose max-w-3xl text-center text-xl leading-relaxed font-bold tracking-tight text-gray-900 italic prose-emerald"
+                                className="prose prose-lg max-w-3xl mx-auto text-[#1A1A1A] prose-emerald text-left"
                                 dangerouslySetInnerHTML={{ __html: liveVisi }}
                             />
                         </div>

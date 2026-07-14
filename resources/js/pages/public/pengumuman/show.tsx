@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -8,9 +9,13 @@ import {
     Linkedin,
     Twitter,
     Link as LinkIcon,
+    ZoomIn,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
+import { useState } from 'react';
+import Lightbox from 'yet-another-react-lightbox';
+import 'yet-another-react-lightbox/styles.css';
 
 interface Attachment {
     name: string;
@@ -63,6 +68,7 @@ export default function PengumumanShow({
     announcement: AnnouncementDetail;
 }) {
     const articleRef = useScrollReveal<HTMLDivElement>();
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -99,14 +105,20 @@ export default function PengumumanShow({
         window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     };
 
+    const rawExcerpt = announcement.content.replace(/<[^>]+>/g, '').substring(0, 160).trim();
+    const finalExcerpt = rawExcerpt.length > 0 ? `${rawExcerpt}...` : "Detail pengumuman resmi dari Biro Keuangan dan Aset Universitas Muhammadiyah Riau.";
+
     return (
         <>
-            <Head title={`${announcement.title} - BKA UMRI`}>
-                <meta
-                    name="description"
-                    content="Detail pengumuman resmi dari Biro Keuangan dan Aset Universitas Muhammadiyah Riau."
-                />
-            </Head>
+            <Seo 
+                title={announcement.title}
+                description={finalExcerpt}
+                image={announcement.thumbnail ? (announcement.thumbnail.startsWith('http') ? announcement.thumbnail : `/storage/${announcement.thumbnail}`) : undefined}
+                type="article"
+                author="Admin BKA"
+                publishedTime={announcement.date ? new Date(announcement.date).toISOString() : undefined}
+                keywords={`Pengumuman BKA, BKA UMRI, Universitas Muhammadiyah Riau, ${announcement.title.split(' ').slice(0,3).join(', ')}`}
+            />
 
             {/* Header */}
             <section className="bg-gradient-to-b from-[#e8f3ec]/40 via-[#F7F9F7]/10 to-white pt-24 pb-8 md:pt-32 md:pb-12">
@@ -149,6 +161,35 @@ export default function PengumumanShow({
                         ref={articleRef}
                         className="bka-reveal mx-auto max-w-[800px] bg-white rounded-3xl border border-[#DDE5DD] p-6 sm:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.02)]"
                     >
+                        {/* Thumbnail */}
+                        {announcement.thumbnail && (
+                            <>
+                                <div 
+                                    className="group relative cursor-zoom-in overflow-hidden rounded-2xl shadow-sm border border-[#DDE5DD] mb-8 bg-neutral-100/50"
+                                    onClick={() => setIsOpen(true)}
+                                >
+                                    <img
+                                        src={announcement.thumbnail}
+                                        alt={announcement.title}
+                                        className="w-full h-auto max-h-[550px] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                                        loading="lazy"
+                                    />
+                                    {/* Zoom overlay indicator */}
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                        <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 font-medium text-white backdrop-blur-md">
+                                            <ZoomIn size={20} />
+                                            <span>Perbesar Gambar</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Lightbox
+                                    open={isOpen}
+                                    close={() => setIsOpen(false)}
+                                    slides={[{ src: announcement.thumbnail }]}
+                                />
+                            </>
+                        )}
+
                         {/* Prose Content */}
                         <div
                             className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-black prose-headings:text-[#1A1A1A] prose-h3:text-xl prose-a:text-[#0a6c32] prose-a:font-bold prose-a:no-underline hover:prose-a:underline prose-li:marker:text-[#C8A000]"

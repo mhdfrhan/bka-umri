@@ -928,7 +928,7 @@ export default function WebSettingsCMS({
                                         {/* Logo Branding */}
                                         <div className="flex flex-col gap-2">
                                             <span className="text-xs font-bold text-neutral-800">
-                                                Logo Portal Resmi (SVG/PNG)
+                                                Logo Portal Resmi (SVG/PNG/WEBP)
                                             </span>
                                             <div className="border-neutral-150 flex items-center gap-4 rounded-2xl border bg-neutral-50/30 p-4">
                                                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 shadow-2xs">
@@ -950,7 +950,7 @@ export default function WebSettingsCMS({
                                                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                                                     <input
                                                         type="file"
-                                                        accept=".png,.svg,.jpg,.jpeg"
+                                                        accept=".png,.svg,.jpg,.jpeg,.webp"
                                                         onChange={(e) =>
                                                             handleImageUpload(
                                                                 e,
@@ -1006,7 +1006,7 @@ export default function WebSettingsCMS({
                                                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                                                     <input
                                                         type="file"
-                                                        accept=".ico,.png"
+                                                        accept=".ico,.png,.webp"
                                                         onChange={(e) =>
                                                             handleImageUpload(
                                                                 e,

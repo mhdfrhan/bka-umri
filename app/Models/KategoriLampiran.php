@@ -20,6 +20,7 @@ class KategoriLampiran extends Model
         'slug',
         'deskripsi',
         'urutan',
+        'parent_id',
     ];
 
     protected $casts = [
@@ -42,10 +43,26 @@ class KategoriLampiran extends Model
     }
 
     /**
+     * Get the parent category.
+     */
+    public function parent()
+    {
+        return $this->belongsTo(KategoriLampiran::class, 'parent_id');
+    }
+
+    /**
+     * Get the subcategories.
+     */
+    public function children()
+    {
+        return $this->hasMany(KategoriLampiran::class, 'parent_id')->orderBy('urutan', 'asc');
+    }
+
+    /**
      * Get the lampirans (documents) belonging to this category.
      */
     public function lampirans()
     {
-        return $this->hasMany(Lampiran::class, 'kategori_lampiran_id')->orderBy('created_at', 'desc');
+        return $this->hasMany(Lampiran::class, 'kategori_lampiran_id');
     }
 }

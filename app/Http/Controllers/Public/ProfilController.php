@@ -68,6 +68,8 @@ class ProfilController extends Controller
                 'id' => $anggota->id,
                 'nama' => $anggota->nama,
                 'jabatan' => $anggota->jabatan,
+                'tugas_pokok' => $anggota->tugas_pokok,
+                'jobdesk' => $anggota->jobdesk,
                 'foto' => $anggota->getFirstMediaUrl('foto') ?: null,
                 'urutan' => $anggota->urutan,
             ];

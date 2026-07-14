@@ -17,6 +17,16 @@ import {
     Upload,
     Image as ImageIcon,
     Loader2,
+    FileText,
+    Megaphone,
+    Images,
+    Building2,
+    FolderDown,
+    Users,
+    Settings2,
+    Coins,
+    HelpCircle,
+    ChevronDown,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -24,7 +34,6 @@ import { AdminModal } from '@/components/admin/admin-modal';
 import { AssetPickerModal } from '@/components/admin/asset-picker-modal';
 import { ImageUploadModal } from '@/components/admin/image-upload-modal';
 import { cn } from '@/lib/utils';
-import * as LucideIcons from 'lucide-react';
 
 // Curated list of Lucide icons for statistics and services dropdowns
 const CURATED_ICONS = [
@@ -39,6 +48,18 @@ const CURATED_ICONS = [
     { name: 'Coins', label: 'Keuangan / Koin' },
 ];
 
+const ICON_MAP: Record<string, any> = {
+    FileText,
+    Megaphone,
+    Images,
+    Building2,
+    FolderDown,
+    Users,
+    Settings2,
+    Award,
+    Coins,
+};
+
 interface IconPickerProps {
     value: string;
     onChange: (val: string) => void;
@@ -48,7 +69,7 @@ function IconPicker({ value, onChange }: IconPickerProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const currentIcon = CURATED_ICONS.find((i) => i.name === value) || CURATED_ICONS[0];
-    const LucideIcon = (LucideIcons as any)[currentIcon.name] || LucideIcons.HelpCircle;
+    const LucideIcon = ICON_MAP[currentIcon.name] || HelpCircle;
 
     return (
         <div className="relative">
@@ -59,7 +80,7 @@ function IconPicker({ value, onChange }: IconPickerProps) {
             >
                 <LucideIcon className="size-4.5 text-emerald-600 shrink-0" />
                 <span className="truncate">{currentIcon.label}</span>
-                <LucideIcons.ChevronDown className="ml-auto size-4 text-neutral-400 shrink-0" />
+                <ChevronDown className="ml-auto size-4 text-neutral-400 shrink-0" />
             </button>
 
             {isOpen && (
@@ -71,7 +92,7 @@ function IconPicker({ value, onChange }: IconPickerProps) {
                     <div className="absolute left-0 mt-1.5 z-40 w-[260px] rounded-xl border border-neutral-200 bg-white p-3 shadow-xl animate-in fade-in slide-in-from-top-1 duration-150">
                         <div className="grid grid-cols-3 gap-2">
                             {CURATED_ICONS.map((i) => {
-                                const ItemIcon = (LucideIcons as any)[i.name] || LucideIcons.HelpCircle;
+                                const ItemIcon = ICON_MAP[i.name] || HelpCircle;
                                 const isSelected = i.name === value;
                                 return (
                                     <button

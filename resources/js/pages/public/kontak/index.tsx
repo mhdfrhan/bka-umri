@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head } from '@inertiajs/react';
 import {
     MapPin,
@@ -129,20 +130,23 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 `;
 
                 // Add popup
-                const popup = new maplibregl.Popup({
+                new maplibregl.Popup({
                     offset: 25,
                     closeButton: false,
-                }).setHTML(`
+                    closeOnClick: false,
+                })
+                    .setLngLat([101.415461, 0.498705])
+                    .setHTML(`
                     <div class="p-2 text-center select-none font-sans">
                         <p class="font-extrabold text-[#1A1A1A] text-xs">Kantor BKA UMRI</p>
                         <p class="text-[10px] text-neutral-500 font-light mt-0.5">Gedung Rektorat Kampus Utama</p>
                     </div>
-                `);
+                `)
+                    .addTo(map);
 
                 // Create and add marker
                 new maplibregl.Marker({ element: el })
                     .setLngLat([101.415461, 0.498705])
-                    .setPopup(popup)
                     .addTo(map);
             });
 
@@ -375,12 +379,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
     return (
         <>
-            <Head title="Hubungi Kami - BKA UMRI">
-                <meta
-                    name="description"
-                    content="Kirim pesan langsung, kritik, saran, atau pertanyaan mengenai layanan administrasi keuangan dan pengelolaan aset di Universitas Muhammadiyah Riau."
-                />
-            </Head>
+            <Seo title="Hubungi Kami - BKA UMRI" description="Kirim pesan langsung, kritik, saran, atau pertanyaan mengenai layanan administrasi keuangan dan pengelolaan aset di Universitas Muhammadiyah Riau." />
 
             {/* Page Hero */}
             <PageHero

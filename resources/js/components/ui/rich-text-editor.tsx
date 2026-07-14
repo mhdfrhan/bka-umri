@@ -4,18 +4,26 @@ import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
 import ImageExtension from "@tiptap/extension-image"
+import TextAlign from "@tiptap/extension-text-align"
 import { NodeSelection } from "@tiptap/pm/state"
 import { cn } from "@/lib/utils"
 import {
   BoldIcon,
   ItalicIcon,
   UnderlineIcon,
+  StrikethroughIcon,
   LinkIcon,
   ListIcon,
   ListOrderedIcon,
   QuoteIcon,
+  Heading1Icon,
   Heading2Icon,
   Heading3Icon,
+  Heading4Icon,
+  AlignLeftIcon,
+  AlignCenterIcon,
+  AlignRightIcon,
+  AlignJustifyIcon,
   ImageIcon,
   FolderIcon,
 } from "lucide-react"
@@ -55,8 +63,12 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [2, 3],
+          levels: [1, 2, 3, 4],
         },
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
       }),
       Underline,
       Link.configure({
@@ -68,6 +80,7 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
       ImageExtension.configure({
         HTMLAttributes: {
           class: "max-w-full rounded-xl my-4",
+          loading: "lazy",
         },
       }),
     ],
@@ -153,11 +166,11 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
 
   return (
     <div className={cn(
-      "flex flex-col rounded-xl border border-input bg-surface overflow-hidden transition-colors focus-within:border-primary focus-within:ring-[3px] focus-within:ring-primary/20",
+      "flex flex-col rounded-xl border border-input bg-surface transition-colors focus-within:border-primary focus-within:ring-[3px] focus-within:ring-primary/20",
       error ? "border-destructive focus-within:border-destructive focus-within:ring-destructive/20" : "",
       className
     )}>
-      <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted/30 p-2">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-xl border-b border-border bg-muted/80 p-2 backdrop-blur-sm">
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -176,14 +189,32 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("underline") ? "bg-muted text-foreground" : "")}
+          title="Underline"
         >
           <UnderlineIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("strike") ? "bg-muted text-foreground" : "")}
+          title="Strikethrough"
+        >
+          <StrikethroughIcon className="size-4" />
         </button>
         <div className="h-4 w-[1px] bg-border mx-1" />
         <button
           type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("heading", { level: 1 }) ? "bg-muted text-foreground" : "")}
+          title="Heading 1"
+        >
+          <Heading1Icon className="size-4" />
+        </button>
+        <button
+          type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("heading", { level: 2 }) ? "bg-muted text-foreground" : "")}
+          title="Heading 2"
         >
           <Heading2Icon className="size-4" />
         </button>
@@ -191,14 +222,24 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("heading", { level: 3 }) ? "bg-muted text-foreground" : "")}
+          title="Heading 3"
         >
           <Heading3Icon className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+          className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("heading", { level: 4 }) ? "bg-muted text-foreground" : "")}
+          title="Heading 4"
+        >
+          <Heading4Icon className="size-4" />
         </button>
         <div className="h-4 w-[1px] bg-border mx-1" />
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("bulletList") ? "bg-muted text-foreground" : "")}
+          title="Bullet List"
         >
           <ListIcon className="size-4" />
         </button>
@@ -206,6 +247,7 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
           type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("orderedList") ? "bg-muted text-foreground" : "")}
+          title="Numbered List"
         >
           <ListOrderedIcon className="size-4" />
         </button>
@@ -213,8 +255,42 @@ export function RichTextEditor({ value, onChange, error, className }: RichTextEd
           type="button"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive("blockquote") ? "bg-muted text-foreground" : "")}
+          title="Blockquote"
         >
           <QuoteIcon className="size-4" />
+        </button>
+        <div className="h-4 w-[1px] bg-border mx-1" />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive({ textAlign: 'left' }) ? "bg-muted text-foreground" : "")}
+          title="Align Left"
+        >
+          <AlignLeftIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive({ textAlign: 'center' }) ? "bg-muted text-foreground" : "")}
+          title="Align Center"
+        >
+          <AlignCenterIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive({ textAlign: 'right' }) ? "bg-muted text-foreground" : "")}
+          title="Align Right"
+        >
+          <AlignRightIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+          className={cn("flex size-8 items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors", editor.isActive({ textAlign: 'justify' }) ? "bg-muted text-foreground" : "")}
+          title="Justify"
+        >
+          <AlignJustifyIcon className="size-4" />
         </button>
         <div className="h-4 w-[1px] bg-border mx-1" />
         <button

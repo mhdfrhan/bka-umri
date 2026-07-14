@@ -132,6 +132,8 @@ class ProfilController extends Controller
                 'id' => $anggota->id,
                 'nama' => $anggota->nama,
                 'jabatan' => $anggota->jabatan,
+                'tugas_pokok' => $anggota->tugas_pokok,
+                'jobdesk' => $anggota->jobdesk,
                 'foto' => $anggota->getFirstMediaUrl('foto') ?: '',
                 'urutan' => $anggota->urutan,
             ];
@@ -201,6 +203,8 @@ class ProfilController extends Controller
                     [
                         'nama' => $item['nama'],
                         'jabatan' => $item['jabatan'],
+                        'tugas_pokok' => $item['tugas_pokok'] ?? null,
+                        'jobdesk' => $item['jobdesk'] ?? null,
                         'urutan' => $item['urutan'],
                     ]
                 );

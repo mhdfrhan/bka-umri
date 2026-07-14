@@ -30,7 +30,7 @@ export default function BeritaSection({ beritaList }: BeritaSectionProps) {
     }
 
     const featured = beritaList[0];
-    const secondary = beritaList.slice(1, 4);
+    const secondary = beritaList.slice(1, 5);
 
     return (
         <section

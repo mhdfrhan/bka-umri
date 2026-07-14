@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     Calendar,
@@ -98,12 +99,7 @@ export default function DokumentasiIndex({
 
     return (
         <>
-            <Head title="Galeri Dokumentasi Kegiatan - BKA UMRI">
-                <meta
-                    name="description"
-                    content="Kumpulan dokumentasi foto kegiatan, rapat kerja, sosialisasi, dan arsip visual Biro Keuangan dan Aset Universitas Muhammadiyah Riau."
-                />
-            </Head>
+            <Seo title="Galeri Dokumentasi Kegiatan - BKA UMRI" description="Kumpulan dokumentasi foto kegiatan, rapat kerja, sosialisasi, dan arsip visual Biro Keuangan dan Aset Universitas Muhammadiyah Riau." />
 
             <PageHero
                 title="Galeri Dokumentasi"

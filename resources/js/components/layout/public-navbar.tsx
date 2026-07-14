@@ -140,6 +140,8 @@ export default function PublicNavbar() {
                             <img
                                 src={logoUrl}
                                 alt="Logo BKA UMRI"
+                                width="124"
+                                height="48"
                                 className="h-12 w-auto object-contain"
                             />
                         </Link>
@@ -366,6 +368,8 @@ export default function PublicNavbar() {
                         <img
                             src={logoUrl}
                             alt="Logo BKA UMRI"
+                            width="109"
+                            height="42"
                             style={{ height: '42px', width: 'auto' }}
                         />
                     </div>

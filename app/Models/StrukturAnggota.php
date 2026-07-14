@@ -18,6 +18,8 @@ class StrukturAnggota extends Model implements HasMedia
     protected $fillable = [
         'nama',
         'jabatan',
+        'tugas_pokok',
+        'jobdesk',
         'urutan',
     ];
 
@@ -45,6 +47,8 @@ class StrukturAnggota extends Model implements HasMedia
             ->width(200)
             ->height(200)
             ->fit(\Spatie\Image\Enums\Fit::Crop, 200, 200)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 }

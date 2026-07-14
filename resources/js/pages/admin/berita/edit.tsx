@@ -23,25 +23,34 @@ interface NewsItem {
     judul: string;
     slug: string;
     kategori: string;
+    bidang: string;
     thumbnail: string;
     isi: string;
     status: 'draf' | 'terpublikasi' | 'diarsipkan';
     tanggal_publikasi: string;
 }
 
+interface BidangItem {
+    id: number;
+    nama: string;
+}
+
 interface EditBeritaProps {
     berita: NewsItem;
     categories: CategoryItem[];
+    bidangs: BidangItem[];
 }
 
 export default function EditBerita({
     berita,
     categories = [],
+    bidangs = [],
 }: EditBeritaProps) {
     const { data, setData, post, processing, errors } = useForm({
         judul: berita.judul || '',
         slug: berita.slug || '',
         kategori: berita.kategori || 'Tanpa Kategori',
+        bidang: berita.bidang || 'Umum',
         status: berita.status || 'draf',
         tanggal_publikasi: berita.tanggal_publikasi || '',
         thumbnail: berita.thumbnail || '',
@@ -234,8 +243,8 @@ export default function EditBerita({
                             )}
                         </div>
 
-                        {/* Kategori & Status (Grid) */}
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {/* Kategori, Bidang & Status (Grid) */}
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div className="space-y-1.5">
                                 <label className="text-sm font-semibold text-neutral-700">
                                     Kategori Artikel
@@ -255,6 +264,26 @@ export default function EditBerita({
                                     <option value="Tanpa Kategori">
                                         Tanpa Kategori
                                     </option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-neutral-700">
+                                    Klasifikasi Bidang (Opsional)
+                                </label>
+                                <select
+                                    value={data.bidang}
+                                    onChange={(e) =>
+                                        setData('bidang', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-colors focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                                >
+                                    <option value="Umum">Umum (Tidak Ada)</option>
+                                    {bidangs.map((b) => (
+                                        <option key={b.id} value={b.nama}>
+                                            {b.nama}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -302,7 +331,7 @@ export default function EditBerita({
                             <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
                                 <label className="flex items-center gap-2 text-sm font-bold text-neutral-700">
                                     <ImageIcon className="size-4 text-emerald-600" />
-                                    Gambar Cover Berita (Rasio 16:9)
+                                    Gambar Cover Berita (Bebas / 4:5 / 16:9)
                                 </label>
                                 <div className="flex gap-2">
                                     <button
@@ -378,7 +407,6 @@ export default function EditBerita({
                             }}
                             file={selectedUploadFile}
                             onConfirm={handleUploadConfirm}
-                            aspectRatio={16 / 9}
                         />
 
                         {/* Editor Konten */}
@@ -405,17 +433,17 @@ export default function EditBerita({
                     </div>
 
                     {/* Action Bar */}
-                    <div className="flex items-center justify-end gap-3">
+                    <div className="flex items-center justify-end gap-3 md:fixed md:bottom-8 md:right-8 md:z-50 md:rounded-2xl md:border md:border-neutral-200/60 md:bg-white/90 md:p-3 md:shadow-xl md:backdrop-blur-md">
                         <Link
                             href="/admin/berita"
-                            className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 hover:bg-neutral-50"
+                            className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-50 shadow-sm"
                         >
                             Batal
                         </Link>
                         <button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-98 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
                         >
                             <Save className="size-4" />
                             {processing ? 'Menyimpan...' : 'Perbarui Berita'}

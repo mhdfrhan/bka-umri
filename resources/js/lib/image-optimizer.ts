@@ -60,11 +60,14 @@ export function optimizeFile(
                           : 0;
                     const size = Math.round((base64.length * 3) / 4 - padding);
 
+                    const uniqueSuffix = '-' + Math.random().toString(36).substring(2, 8) + '-' + Date.now();
+                    const newName = file.name.replace(/\.[^/.]+$/, "") + uniqueSuffix + ".webp";
+
                     resolve({
                         base64,
                         size,
                         originalSize: file.size,
-                        name: file.name,
+                        name: newName,
                         type: 'image',
                         extension: 'webp',
                     });
@@ -80,11 +83,13 @@ export function optimizeFile(
             reader.readAsDataURL(file);
             reader.onload = (event) => {
                 const base64 = event.target?.result as string;
+                const uniqueSuffix = '-' + Math.random().toString(36).substring(2, 8) + '-' + Date.now();
+                const newName = file.name.replace(/\.[^/.]+$/, "") + uniqueSuffix + (extension ? '.' + extension : '');
                 resolve({
                     base64,
                     size: file.size,
                     originalSize: file.size,
-                    name: file.name,
+                    name: newName,
                     type: 'file',
                     extension,
                 });

@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head } from '@inertiajs/react';
 import { Landmark, ShieldCheck } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -20,13 +21,7 @@ export default function Tentang({ konten }: TentangProps) {
 
     return (
         <>
-            <Head>
-                <title>Tentang Kami - Profil BKA UMRI</title>
-                <meta
-                    name="description"
-                    content="Ketahui profil lengkap, sejarah singkat, dan fungsi utama Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI)."
-                />
-            </Head>
+            <Seo title="Tentang Kami - Profil BKA UMRI" description="Ketahui profil lengkap, sejarah singkat, dan fungsi utama Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI)." />
 
             <div className="flex min-h-screen w-full flex-col bg-[#F7F9F7] pb-16">
                 {/* Reusable PageHero */}

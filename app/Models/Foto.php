@@ -34,6 +34,8 @@ class Foto extends Model implements HasMedia
             ->width(400)
             ->height(300)
             ->fit(\Spatie\Image\Enums\Fit::Crop, 400, 300)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 

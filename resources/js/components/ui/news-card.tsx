@@ -6,13 +6,14 @@ interface NewsCardProps {
     slug: string;
     thumbnail: string;
     category?: string;
+    bidang?: string;
     title: string;
     excerpt: string;
     date: string;
     author?: string;
 }
 
-export default function NewsCard({ slug, thumbnail, category, title, excerpt, date, author }: NewsCardProps) {
+export default function NewsCard({ slug, thumbnail, category, bidang, title, excerpt, date, author }: NewsCardProps) {
     return (
         <Link
             href={`/berita/${slug}`}
@@ -25,6 +26,8 @@ export default function NewsCard({ slug, thumbnail, category, title, excerpt, da
                     <img
                         src={thumbnail}
                         alt={title}
+                        width="400"
+                        height="225"
                         loading="lazy"
                         className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                         onError={(e) => {
@@ -62,6 +65,11 @@ export default function NewsCard({ slug, thumbnail, category, title, excerpt, da
                             <span className="flex items-center gap-1.5 text-xs text-[#9EAAB2]">
                                 <User size={12} />
                                 {author}
+                            </span>
+                        )}
+                        {bidang && bidang !== 'Umum' && (
+                            <span className="flex items-center gap-1.5 text-xs text-[#0a6c32] font-semibold bg-[#e6f4ea] px-2 py-0.5 rounded-md ml-auto">
+                                {bidang}
                             </span>
                         )}
                     </div>

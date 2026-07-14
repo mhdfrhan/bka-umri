@@ -7,6 +7,8 @@ import {
     Edit2,
     ArrowUp,
     ArrowDown,
+    FolderPlus,
+    ChevronLeft,
     Search,
     Upload,
     Download,
@@ -15,6 +17,7 @@ import {
     AlertCircle,
     Info,
     FileArchive,
+    GripVertical,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -28,6 +31,7 @@ interface KategoriLampiran {
     slug: string;
     deskripsi: string;
     urutan: number;
+    parent_id?: string | null;
     deleted_at?: string | null;
 }
 
@@ -150,7 +154,8 @@ export default function LampiranDokumenCMS({
         id?: string;
         nama: string;
         deskripsi: string;
-    }>({ isOpen: false, mode: 'add', nama: '', deskripsi: '' });
+        parent_id?: string | null;
+    }>({ isOpen: false, mode: 'add', nama: '', deskripsi: '', parent_id: null });
 
     const [fileModal, setFileModal] = useState<{
         isOpen: boolean;
@@ -159,10 +164,16 @@ export default function LampiranDokumenCMS({
         kategori_id: string;
         nama_tampilan: string;
         deskripsi: string;
+        file?: File;
         fileDataUrl?: string;
         fileName?: string;
         fileSize?: number;
-        files?: { fileDataUrl: string; fileName: string; fileSize: number }[];
+        files?: {
+            file: File;
+            fileDataUrl: string;
+            fileName: string;
+            fileSize: number;
+        }[];
         compress?: boolean;
     }>({
         isOpen: false,
@@ -180,6 +191,8 @@ export default function LampiranDokumenCMS({
         title: string;
     } | null>(null);
 
+    const [isSubmittingFile, setIsSubmittingFile] = useState(false);
+
     // Auto-select first category when categories are loaded
     useEffect(() => {
         if (categories.length > 0 && !selectedCategoryId) {
@@ -190,7 +203,10 @@ export default function LampiranDokumenCMS({
     // Trash logic
     const [showTrashed, setShowTrashed] = useState(() => {
         if (typeof window !== 'undefined') {
-            return new URLSearchParams(window.location.search).get('trashed') === 'true';
+            return (
+                new URLSearchParams(window.location.search).get('trashed') ===
+                'true'
+            );
         }
         return false;
     });
@@ -198,38 +214,52 @@ export default function LampiranDokumenCMS({
     const toggleTrashed = () => {
         const newValue = !showTrashed;
         setShowTrashed(newValue);
-        router.get('/admin/dokumen', { trashed: newValue ? 'true' : undefined }, { preserveState: true });
+        router.get(
+            '/admin/dokumen',
+            { trashed: newValue ? 'true' : undefined },
+            { preserveState: true },
+        );
     };
 
     const handleRestoreKategori = (id: string) => {
         toast.promise(
             new Promise((resolve, reject) => {
-                router.post(`/admin/dokumen/kategori/${id}/restore`, {}, {
-                    onSuccess: () => resolve(true),
-                    onError: () => reject(new Error('Gagal memulihkan kategori')),
-                });
+                router.post(
+                    `/admin/dokumen/kategori/${id}/restore`,
+                    {},
+                    {
+                        onSuccess: () => resolve(true),
+                        onError: () =>
+                            reject(new Error('Gagal memulihkan kategori')),
+                    },
+                );
             }),
             {
                 loading: 'Memulihkan...',
                 success: 'Kategori berhasil dipulihkan!',
                 error: 'Terjadi kesalahan saat memulihkan.',
-            }
+            },
         );
     };
 
     const handleRestoreBerkas = (id: string) => {
         toast.promise(
             new Promise((resolve, reject) => {
-                router.post(`/admin/dokumen/berkas/${id}/restore`, {}, {
-                    onSuccess: () => resolve(true),
-                    onError: () => reject(new Error('Gagal memulihkan berkas')),
-                });
+                router.post(
+                    `/admin/dokumen/berkas/${id}/restore`,
+                    {},
+                    {
+                        onSuccess: () => resolve(true),
+                        onError: () =>
+                            reject(new Error('Gagal memulihkan berkas')),
+                    },
+                );
             }),
             {
                 loading: 'Memulihkan...',
                 success: 'Berkas berhasil dipulihkan!',
                 error: 'Terjadi kesalahan saat memulihkan.',
-            }
+            },
         );
     };
 
@@ -263,22 +293,105 @@ export default function LampiranDokumenCMS({
         );
     };
 
+    const activeSubCategoriesForReorder = categories.filter(c => c.parent_id === selectedCategoryId && (showTrashed ? true : !c.deleted_at));
+    const activeFilesForReorder = files.filter(f => f.kategori_id === selectedCategoryId);
+
+    type UnifiedItem =
+        | ({ type: 'folder' } & KategoriLampiran)
+        | ({ type: 'file' } & Lampiran);
+
+    const [localUnifiedList, setLocalUnifiedList] = useState<UnifiedItem[]>([]);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    const unifiedList: UnifiedItem[] = [
+        ...activeSubCategoriesForReorder.map(s => ({ ...s, type: 'folder' as const })),
+        ...activeFilesForReorder.map(f => ({ ...f, type: 'file' as const }))
+    ].sort((a, b) => (a.urutan || 0) - (b.urutan || 0));
+
+    useEffect(() => {
+        setLocalUnifiedList(unifiedList);
+    }, [categories, files, selectedCategoryId, showTrashed]);
+
+    const filteredUnifiedList = localUnifiedList.filter((item) => {
+        if (item.type === 'folder') {
+            return item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                   (item.deskripsi?.toLowerCase().includes(searchQuery.toLowerCase()));
+        } else {
+            return item.nama_tampilan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                   (item.deskripsi?.toLowerCase().includes(searchQuery.toLowerCase()));
+        }
+    });
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === index) return;
+        setDragOverIndex(index);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === targetIndex) {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+
+        const updated = [...localUnifiedList];
+        const draggedItem = updated[draggedIndex];
+        
+        updated.splice(draggedIndex, 1);
+        updated.splice(targetIndex, 0, draggedItem);
+
+        setLocalUnifiedList(updated);
+
+        const items = updated.map((item) => ({ id: item.id, type: item.type }));
+
+        router.post(
+            '/admin/dokumen/berkas/reorder-unified',
+            { items },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Urutan berhasil diperbarui');
+                },
+                onError: () => {
+                    toast.error('Gagal memperbarui urutan');
+                    setLocalUnifiedList(unifiedList);
+                },
+            },
+        );
+
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+
     // Category Add / Update on backend
     const handleCategorySubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmittingFile(true);
 
-        if (!categoryModal.nama.trim()) {
-            toast.error('Nama kategori wajib diisi');
-            return;
-        }
+        const payload = {
+            nama: categoryModal.nama,
+            deskripsi: categoryModal.deskripsi,
+            parent_id: categoryModal.parent_id,
+        };
 
         if (categoryModal.mode === 'add') {
             router.post(
                 '/admin/dokumen/kategori',
-                {
-                    nama: categoryModal.nama,
-                    deskripsi: categoryModal.deskripsi,
-                },
+                payload,
                 {
                     preserveScroll: true,
                     onSuccess: () => {
@@ -302,10 +415,7 @@ export default function LampiranDokumenCMS({
         } else {
             router.put(
                 `/admin/dokumen/kategori/${categoryModal.id}`,
-                {
-                    nama: categoryModal.nama,
-                    deskripsi: categoryModal.deskripsi,
-                },
+                payload,
                 {
                     preserveScroll: true,
                     onSuccess: () => {
@@ -334,8 +444,19 @@ export default function LampiranDokumenCMS({
         const selectedFiles = e.target.files;
         if (!selectedFiles || selectedFiles.length === 0) return;
 
-        const extMatch = (name: string) => name.split('.').pop()?.toLowerCase() || '';
-        const allowedExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar'];
+        const extMatch = (name: string) =>
+            name.split('.').pop()?.toLowerCase() || '';
+        const allowedExts = [
+            'pdf',
+            'doc',
+            'docx',
+            'xls',
+            'xlsx',
+            'ppt',
+            'pptx',
+            'zip',
+            'rar',
+        ];
         const validFiles: File[] = [];
 
         for (let i = 0; i < selectedFiles.length; i++) {
@@ -355,10 +476,16 @@ export default function LampiranDokumenCMS({
         if (validFiles.length === 0) return;
 
         const readFiles = validFiles.map((file) => {
-            return new Promise<{ fileDataUrl: string; fileName: string; fileSize: number }>((resolve) => {
+            return new Promise<{
+                file: File;
+                fileDataUrl: string;
+                fileName: string;
+                fileSize: number;
+            }>((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     resolve({
+                        file: file,
                         fileDataUrl: event.target?.result as string,
                         fileName: file.name,
                         fileSize: file.size,
@@ -372,10 +499,11 @@ export default function LampiranDokumenCMS({
 
         setFileModal((prev) => {
             const currentFiles = prev.files || [];
-            
+
             if (prev.mode === 'edit') {
                 return {
                     ...prev,
+                    file: newFilesData[0].file,
                     fileDataUrl: newFilesData[0].fileDataUrl,
                     fileName: newFilesData[0].fileName,
                     fileSize: newFilesData[0].fileSize,
@@ -388,10 +516,13 @@ export default function LampiranDokumenCMS({
             return {
                 ...prev,
                 files: updatedFiles,
+                file: updatedFiles[0].file,
                 fileDataUrl: updatedFiles[0].fileDataUrl,
                 fileName: updatedFiles[0].fileName,
                 fileSize: updatedFiles[0].fileSize,
-                nama_tampilan: isMultiple ? '' : (prev.nama_tampilan || updatedFiles[0].fileName),
+                nama_tampilan: isMultiple
+                    ? ''
+                    : prev.nama_tampilan || updatedFiles[0].fileName,
             };
         });
 
@@ -400,20 +531,30 @@ export default function LampiranDokumenCMS({
     };
 
     const removeFile = (indexToRemove: number) => {
-        setFileModal(prev => {
-            const updatedFiles = (prev.files || []).filter((_, i) => i !== indexToRemove);
-            
+        setFileModal((prev) => {
+            const updatedFiles = (prev.files || []).filter(
+                (_, i) => i !== indexToRemove,
+            );
+
             if (updatedFiles.length === 0) {
-                return { ...prev, files: [], fileDataUrl: undefined, fileName: undefined, fileSize: undefined, nama_tampilan: '' };
+                return {
+                    ...prev,
+                    files: [],
+                    fileDataUrl: undefined,
+                    fileName: undefined,
+                    fileSize: undefined,
+                    nama_tampilan: '',
+                };
             }
-            
+
             return {
                 ...prev,
                 files: updatedFiles,
                 fileDataUrl: updatedFiles[0].fileDataUrl,
                 fileName: updatedFiles[0].fileName,
                 fileSize: updatedFiles[0].fileSize,
-                nama_tampilan: updatedFiles.length > 1 ? '' : updatedFiles[0].fileName,
+                nama_tampilan:
+                    updatedFiles.length > 1 ? '' : updatedFiles[0].fileName,
             };
         });
     };
@@ -422,7 +563,10 @@ export default function LampiranDokumenCMS({
     const handleFileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (fileModal.mode === 'add' && (!fileModal.files || fileModal.files.length === 0)) {
+        if (
+            fileModal.mode === 'add' &&
+            (!fileModal.files || fileModal.files.length === 0)
+        ) {
             toast.error('Anda harus mengunggah berkas terlebih dahulu');
             return;
         }
@@ -435,40 +579,81 @@ export default function LampiranDokumenCMS({
         }
 
         if (fileModal.mode === 'add') {
-            
+            setIsSubmittingFile(true);
             if (isMultiple) {
-                const payload = fileModal.files!.map(f => ({
-                    fileDataUrl: f.fileDataUrl,
-                    fileName: f.fileName,
-                    nama_tampilan: f.fileName.split('.').slice(0, -1).join('.').slice(0, 150),
-                    deskripsi: '',
-                }));
+                const totalFiles = fileModal.files!.length;
+                let uploadedCount = 0;
+                let hasError = false;
 
-                router.post(
-                    '/admin/dokumen/berkas/multiple',
-                    {
-                        kategori_id: selectedCategoryId,
-                        berkas_files: payload,
-                        compress: fileModal.compress,
-                    },
-                    {
-                        preserveScroll: true,
-                        onSuccess: () => {
-                            toast.success('Berkas berhasil diunggah');
-                            setFileModal({
-                                isOpen: false,
-                                mode: 'add',
-                                kategori_id: '',
-                                nama_tampilan: '',
-                                deskripsi: '',
-                                files: [],
+                const uploadSequentially = async () => {
+                    for (let i = 0; i < totalFiles; i++) {
+                        const fileItem = fileModal.files![i];
+                        toast.info(
+                            `Mengunggah file ${i + 1} dari ${totalFiles}: ${fileItem.fileName}...`,
+                            {
+                                id: 'upload-progress',
+                                duration: 10000,
+                            },
+                        );
+
+                        try {
+                            await new Promise<void>((resolve, reject) => {
+                                router.post(
+                                    '/admin/dokumen/berkas',
+                                    {
+                                        kategori_id: selectedCategoryId,
+                                        nama_tampilan: fileItem.fileName
+                                            .split('.')
+                                            .slice(0, -1)
+                                            .join('.')
+                                            .slice(0, 150),
+                                        deskripsi: '',
+                                        berkas: fileItem.file,
+                                        fileName: fileItem.fileName,
+                                        compress: fileModal.compress,
+                                    },
+                                    {
+                                        preserveScroll: true,
+                                        preserveState: true,
+                                        onSuccess: () => {
+                                            uploadedCount++;
+                                            resolve();
+                                        },
+                                        onError: (err) => {
+                                            reject(err);
+                                        },
+                                    },
+                                );
                             });
-                        },
-                        onError: () => {
-                            toast.error('Gagal mengunggah berkas');
-                        },
-                    },
-                );
+                        } catch (err) {
+                            hasError = true;
+                            toast.error(
+                                `Gagal mengunggah ${fileItem.fileName}`,
+                            );
+                            break;
+                        }
+                    }
+
+                    setIsSubmittingFile(false);
+                    toast.dismiss('upload-progress');
+
+                    if (!hasError) {
+                        toast.success(
+                            `${uploadedCount} berkas berhasil diunggah`,
+                        );
+                        setFileModal({
+                            isOpen: false,
+                            mode: 'add',
+                            kategori_id: '',
+                            nama_tampilan: '',
+                            deskripsi: '',
+                            files: [],
+                        });
+                        router.reload();
+                    }
+                };
+
+                uploadSequentially();
             } else {
                 router.post(
                     '/admin/dokumen/berkas',
@@ -476,12 +661,14 @@ export default function LampiranDokumenCMS({
                         kategori_id: selectedCategoryId,
                         nama_tampilan: fileModal.nama_tampilan,
                         deskripsi: fileModal.deskripsi,
-                        fileDataUrl: fileModal.fileDataUrl,
+                        berkas: fileModal.file,
                         fileName: fileModal.fileName,
                         compress: fileModal.compress,
                     },
                     {
                         preserveScroll: true,
+                        onStart: () => setIsSubmittingFile(true),
+                        onFinish: () => setIsSubmittingFile(false),
                         onSuccess: () => {
                             toast.success('Berkas berhasil diunggah');
                             setFileModal({
@@ -500,17 +687,21 @@ export default function LampiranDokumenCMS({
                 );
             }
         } else {
-            router.put(
+            // Use POST with method spoofing _method: 'PUT' for binary file uploads in Laravel
+            router.post(
                 `/admin/dokumen/berkas/${fileModal.id}`,
                 {
+                    _method: 'PUT',
                     nama_tampilan: fileModal.nama_tampilan,
                     deskripsi: fileModal.deskripsi,
-                    fileDataUrl: fileModal.fileDataUrl || null,
+                    berkas: fileModal.file || null,
                     fileName: fileModal.fileName || null,
                     compress: fileModal.compress,
                 },
                 {
                     preserveScroll: true,
+                    onStart: () => setIsSubmittingFile(true),
+                    onFinish: () => setIsSubmittingFile(false),
                     onSuccess: () => {
                         toast.success('Informasi berkas berhasil diperbarui');
                         setFileModal({
@@ -519,6 +710,7 @@ export default function LampiranDokumenCMS({
                             kategori_id: '',
                             nama_tampilan: '',
                             deskripsi: '',
+                            files: [],
                         });
                     },
                     onError: () => {
@@ -537,7 +729,11 @@ export default function LampiranDokumenCMS({
             router.delete(`/admin/dokumen/kategori/${deleteConfirm.id}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success(showTrashed ? 'Kategori berhasil dihapus permanen' : 'Kategori berhasil dipindahkan ke Sampah');
+                    toast.success(
+                        showTrashed
+                            ? 'Kategori berhasil dihapus permanen'
+                            : 'Kategori berhasil dipindahkan ke Sampah',
+                    );
                     setDeleteConfirm(null);
                     // Select another category if possible
                     const remaining = categories.filter(
@@ -557,7 +753,11 @@ export default function LampiranDokumenCMS({
             router.delete(`/admin/dokumen/berkas/${deleteConfirm.id}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success(showTrashed ? 'Berkas berhasil dihapus permanen' : 'Berkas berhasil dipindahkan ke Sampah');
+                    toast.success(
+                        showTrashed
+                            ? 'Berkas berhasil dihapus permanen'
+                            : 'Berkas berhasil dipindahkan ke Sampah',
+                    );
                     setDeleteConfirm(null);
                 },
                 onError: () => {
@@ -592,21 +792,19 @@ export default function LampiranDokumenCMS({
         }
     };
 
-    // Filter files list based on selected category & query search
-    const filteredFiles = files.filter(
-        (f) =>
-            f.kategori_id === selectedCategoryId &&
-            (f.nama_tampilan
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase()) ||
-                f.deskripsi.toLowerCase().includes(searchQuery.toLowerCase())),
-    );
+    const activeCategory = categories.find((c) => c.id === selectedCategoryId);
+    const activeCategoryName = activeCategory?.nama || 'Pilih Kategori';
+    const activeCategoryDesc = activeCategory?.deskripsi || '';
 
-    const activeCategoryName =
-        categories.find((c) => c.id === selectedCategoryId)?.nama ||
-        'Pilih Kategori';
-    const activeCategoryDesc =
-        categories.find((c) => c.id === selectedCategoryId)?.deskripsi || '';
+    // Build hierarchical tree
+    const buildCategoryTree = (list: KategoriLampiran[], parentId: string | null = null, depth = 0): (KategoriLampiran & { depth: number })[] => {
+        const children = list.filter(c => c.parent_id === parentId);
+        return children.reduce((acc, curr) => {
+            return [...acc, { ...curr, depth }, ...buildCategoryTree(list, curr.id, depth + 1)];
+        }, [] as (KategoriLampiran & { depth: number })[]);
+    };
+
+    const categoryTree = buildCategoryTree(categories);
 
     return (
         <>
@@ -638,10 +836,14 @@ export default function LampiranDokumenCMS({
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={toggleTrashed}
-                                    className={`inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-bold shadow-xs transition-colors ${showTrashed ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300' : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'}`}
+                                    className={`inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-bold shadow-xs transition-colors ${showTrashed ? 'border border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200' : 'border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50'}`}
                                 >
                                     <Trash2 className="size-4" />
-                                    <span>{showTrashed ? 'Data Aktif' : 'Lihat Sampah'}</span>
+                                    <span>
+                                        {showTrashed
+                                            ? 'Data Aktif'
+                                            : 'Lihat Sampah'}
+                                    </span>
                                 </button>
                                 <button
                                     onClick={() =>
@@ -661,8 +863,8 @@ export default function LampiranDokumenCMS({
                         </div>
 
                         <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
-                            {categories.length > 0 ? (
-                                categories.map((cat, index) => {
+                            {categoryTree.length > 0 ? (
+                                categoryTree.map((cat, index) => {
                                     const fileCount = files.filter(
                                         (f) => f.kategori_id === cat.id,
                                     ).length;
@@ -675,6 +877,7 @@ export default function LampiranDokumenCMS({
                                             onClick={() =>
                                                 setSelectedCategoryId(cat.id)
                                             }
+                                            style={{ marginLeft: `${cat.depth * 1.5}rem` }}
                                             className={`group relative flex cursor-pointer items-start justify-between gap-3 rounded-xl border p-4 transition-all ${
                                                 isSelected
                                                     ? 'border-[#0a6c32] bg-emerald-50/20 shadow-xs'
@@ -754,6 +957,7 @@ export default function LampiranDokumenCMS({
                                                             nama: cat.nama,
                                                             deskripsi:
                                                                 cat.deskripsi,
+                                                            parent_id: cat.parent_id,
                                                         });
                                                     }}
                                                     className="rounded-md p-1 text-blue-500 hover:bg-blue-50"
@@ -765,12 +969,16 @@ export default function LampiranDokumenCMS({
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleRestoreKategori(cat.id);
+                                                            handleRestoreKategori(
+                                                                cat.id,
+                                                            );
                                                         }}
                                                         className="rounded-md p-1 text-emerald-500 hover:bg-emerald-50"
                                                         title="Pulihkan Kategori"
                                                     >
-                                                        <AlertCircle size={13} />
+                                                        <AlertCircle
+                                                            size={13}
+                                                        />
                                                     </button>
                                                 )}
                                                 <button
@@ -783,7 +991,11 @@ export default function LampiranDokumenCMS({
                                                         });
                                                     }}
                                                     className="rounded-md p-1 text-red-500 hover:bg-red-50"
-                                                    title={cat.deleted_at ? "Hapus Permanen" : "Hapus (Soft Delete)"}
+                                                    title={
+                                                        cat.deleted_at
+                                                            ? 'Hapus Permanen'
+                                                            : 'Hapus (Soft Delete)'
+                                                    }
                                                 >
                                                     <Trash2 size={13} />
                                                 </button>
@@ -829,22 +1041,47 @@ export default function LampiranDokumenCMS({
                                                 </p>
                                             )}
                                         </div>
-                                        <button
-                                            onClick={() =>
-                                                setFileModal({
-                                                    isOpen: true,
-                                                    mode: 'add',
-                                                    kategori_id:
-                                                        selectedCategoryId,
-                                                    nama_tampilan: '',
-                                                    deskripsi: '',
-                                                })
-                                            }
-                                            className="inline-flex items-center gap-1.5 self-start rounded-xl bg-[#0a6c32] px-4 py-2 text-xs font-bold whitespace-nowrap text-white shadow-xs transition-all hover:bg-[#085627]"
-                                        >
-                                            <Upload size={14} />
-                                            <span>Unggah Berkas Baru</span>
-                                        </button>
+                                        <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0">
+                                            {activeCategory?.parent_id && (
+                                                <button
+                                                    onClick={() => setSelectedCategoryId(activeCategory.parent_id!)}
+                                                    className="inline-flex items-center justify-center gap-1.5 self-start rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-700 shadow-xs transition-all hover:bg-neutral-50"
+                                                    title="Kembali ke Induk"
+                                                >
+                                                    <ChevronLeft size={14} />
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() =>
+                                                    setCategoryModal({
+                                                        isOpen: true,
+                                                        mode: 'add',
+                                                        nama: '',
+                                                        deskripsi: '',
+                                                        parent_id: selectedCategoryId,
+                                                    })
+                                                }
+                                                className="inline-flex items-center justify-center gap-1.5 self-start rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold whitespace-nowrap text-neutral-700 shadow-xs transition-all hover:bg-neutral-50"
+                                            >
+                                                <FolderPlus size={14} />
+                                                <span>Buat Sub-Folder</span>
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    setFileModal({
+                                                        isOpen: true,
+                                                        mode: 'add',
+                                                        kategori_id: selectedCategoryId,
+                                                        nama_tampilan: '',
+                                                        deskripsi: '',
+                                                    })
+                                                }
+                                                className="inline-flex items-center justify-center gap-1.5 self-start rounded-xl bg-[#0a6c32] px-4 py-2 text-xs font-bold whitespace-nowrap text-white shadow-xs transition-all hover:bg-[#085627]"
+                                            >
+                                                <Upload size={14} />
+                                                <span>Unggah Berkas</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {/* Search input in Folder */}
@@ -867,14 +1104,77 @@ export default function LampiranDokumenCMS({
 
                                 {/* Files Table */}
                                 <div className="flex-1 overflow-y-auto p-4">
-                                    {filteredFiles.length > 0 ? (
+                                    {filteredUnifiedList.length > 0 ? (
                                         <div className="flex flex-col gap-3">
-                                            {filteredFiles.map((file) => (
+                                            {filteredUnifiedList.map((item, index) => {
+                                                if (item.type === 'folder') {
+                                                    const subcat = item as any;
+                                                    const subFileCount = files.filter(f => f.kategori_id === subcat.id).length;
+                                                    return (
+                                                        <div
+                                                            key={`folder-${subcat.id}`}
+                                                            draggable={!searchQuery}
+                                                            onDragStart={(e) => handleDragStart(e, index)}
+                                                            onDragOver={(e) => handleDragOver(e, index)}
+                                                            onDrop={(e) => handleDrop(e, index)}
+                                                            onDragEnd={handleDragEnd}
+                                                            className={`border-neutral-150 hover:border-[#0a6c32] flex flex-col justify-between gap-3 rounded-xl border bg-neutral-50/50 p-4 transition-all hover:bg-emerald-50/20 sm:flex-row sm:items-center cursor-pointer ${
+                                                                draggedIndex === index ? 'opacity-40 border-dashed border-[#0a6c32]' : ''
+                                                            } ${dragOverIndex === index ? 'border-[#0a6c32] bg-emerald-50/10' : ''}`}
+                                                            onClick={(e) => {
+                                                                if ((e.target as HTMLElement).closest('button')) return;
+                                                                setSelectedCategoryId(subcat.id);
+                                                            }}
+                                                        >
+                                                            <div className="flex min-w-0 flex-1 items-start gap-3">
+                                                                {!searchQuery && (
+                                                                    <div className="flex shrink-0 items-center self-center cursor-grab active:cursor-grabbing text-neutral-400 p-1 hover:text-neutral-600">
+                                                                        <GripVertical size={16} />
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-[#0a6c32]">
+                                                                    <FolderOpen size={18} />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <h3 className="text-sm leading-snug font-bold break-all text-neutral-900 group-hover:text-[#0a6c32]">
+                                                                        {subcat.nama}
+                                                                    </h3>
+                                                                    {subcat.deskripsi && (
+                                                                        <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">
+                                                                            {subcat.deskripsi}
+                                                                        </p>
+                                                                    )}
+                                                                    <div className="mt-2 flex items-center gap-4 text-[10px] font-semibold text-neutral-400">
+                                                                        <span>{subFileCount} Berkas di dalam</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex shrink-0 items-center justify-end gap-1 sm:mt-0">
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                // File Rendering
+                                                const file = item as any;
+                                                return (
                                                 <div
-                                                    key={file.id}
-                                                    className="border-neutral-150 hover:border-neutral-250 flex flex-col justify-between gap-3 rounded-xl border bg-white p-4 transition-all hover:bg-neutral-50/20 sm:flex-row sm:items-center"
+                                                    key={`file-${file.id}`}
+                                                    draggable={!searchQuery}
+                                                    onDragStart={(e) => handleDragStart(e, index)}
+                                                    onDragOver={(e) => handleDragOver(e, index)}
+                                                    onDrop={(e) => handleDrop(e, index)}
+                                                    onDragEnd={handleDragEnd}
+                                                    className={`border-neutral-150 hover:border-neutral-250 flex flex-col justify-between gap-3 rounded-xl border bg-white p-4 transition-all hover:bg-neutral-50/20 sm:flex-row sm:items-center ${
+                                                        draggedIndex === index ? 'opacity-40 border-dashed border-[#0a6c32]' : ''
+                                                    } ${dragOverIndex === index ? 'border-[#0a6c32] bg-emerald-50/10' : ''}`}
                                                 >
                                                     <div className="flex min-w-0 flex-1 items-start gap-3">
+                                                        {!searchQuery && (
+                                                            <div className="flex shrink-0 items-center self-center cursor-grab active:cursor-grabbing text-neutral-400 p-1 hover:text-neutral-600">
+                                                                <GripVertical size={16} />
+                                                            </div>
+                                                        )}
                                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-neutral-100 bg-neutral-50">
                                                             {getFileIconComponent(
                                                                 file.tipe_file,
@@ -915,64 +1215,88 @@ export default function LampiranDokumenCMS({
                                                     </div>
 
                                                     <div className="flex shrink-0 items-center justify-end gap-1 sm:mt-0">
-                                                    {!file.deleted_at && file.download_url && (
-                                                        <a
-                                                            href={file.download_url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 shadow-xs transition-colors hover:bg-neutral-50"
-                                                            title="Unduh Berkas"
-                                                        >
-                                                            <Download size={14} />
-                                                        </a>
-                                                    )}
-                                                    {!file.deleted_at && (
+                                                        {!file.deleted_at &&
+                                                            file.download_url && (
+                                                                <a
+                                                                    href={
+                                                                        file.download_url
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 shadow-xs transition-colors hover:bg-neutral-50"
+                                                                    title="Unduh Berkas"
+                                                                >
+                                                                    <Download
+                                                                        size={
+                                                                            14
+                                                                        }
+                                                                    />
+                                                                </a>
+                                                            )}
+                                                        {!file.deleted_at && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    setFileModal(
+                                                                        {
+                                                                            isOpen: true,
+                                                                            mode: 'edit',
+                                                                            id: file.id,
+                                                                            kategori_id:
+                                                                                file.kategori_id,
+                                                                            nama_tampilan:
+                                                                                file.nama_tampilan,
+                                                                            deskripsi:
+                                                                                file.deskripsi,
+                                                                            compress: false,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 shadow-xs transition-colors hover:bg-neutral-50"
+                                                                title="Edit Detail"
+                                                            >
+                                                                <Edit2
+                                                                    size={14}
+                                                                />
+                                                            </button>
+                                                        )}
+                                                        {file.deleted_at && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleRestoreBerkas(
+                                                                        file.id,
+                                                                    )
+                                                                }
+                                                                className="flex items-center justify-center rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 shadow-xs transition-colors hover:bg-emerald-100"
+                                                                title="Pulihkan Berkas"
+                                                            >
+                                                                <AlertCircle
+                                                                    size={14}
+                                                                />
+                                                            </button>
+                                                        )}
                                                         <button
                                                             onClick={() =>
-                                                                setFileModal({
-                                                                    isOpen: true,
-                                                                    mode: 'edit',
-                                                                    id: file.id,
-                                                                    kategori_id:
-                                                                        file.kategori_id,
-                                                                    nama_tampilan:
-                                                                        file.nama_tampilan,
-                                                                    deskripsi:
-                                                                        file.deskripsi,
-                                                                    compress: false,
-                                                                })
+                                                                setDeleteConfirm(
+                                                                    {
+                                                                        type: 'file',
+                                                                        id: file.id,
+                                                                        title: file.nama_tampilan,
+                                                                    },
+                                                                )
                                                             }
-                                                            className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 shadow-xs transition-colors hover:bg-neutral-50"
-                                                            title="Edit Detail"
+                                                            className="flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 shadow-xs transition-colors hover:bg-red-100"
+                                                            title={
+                                                                file.deleted_at
+                                                                    ? 'Hapus Permanen'
+                                                                    : 'Hapus Berkas (Soft Delete)'
+                                                            }
                                                         >
-                                                            <Edit2 size={14} />
+                                                            <Trash2 size={14} />
                                                         </button>
-                                                    )}
-                                                    {file.deleted_at && (
-                                                        <button
-                                                            onClick={() => handleRestoreBerkas(file.id)}
-                                                            className="flex items-center justify-center rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 shadow-xs transition-colors hover:bg-emerald-100"
-                                                            title="Pulihkan Berkas"
-                                                        >
-                                                            <AlertCircle size={14} />
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() =>
-                                                            setDeleteConfirm({
-                                                                type: 'file',
-                                                                id: file.id,
-                                                                title: file.nama_tampilan,
-                                                            })
-                                                        }
-                                                        className="flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-2 text-red-600 shadow-xs transition-colors hover:bg-red-100"
-                                                        title={file.deleted_at ? "Hapus Permanen" : "Hapus Berkas (Soft Delete)"}
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
+                                                    </div>
                                                 </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center py-20 text-center text-neutral-400">
@@ -1059,6 +1383,28 @@ export default function LampiranDokumenCMS({
                                         className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                         required
                                     />
+                                    <label className="mb-1 block text-[13px] font-bold text-neutral-800">
+                                        Pilih Induk Folder (Opsional)
+                                    </label>
+                                    <select
+                                        value={categoryModal.parent_id || ''}
+                                        onChange={(e) =>
+                                            setCategoryModal({
+                                                ...categoryModal,
+                                                parent_id: e.target.value || null,
+                                            })
+                                        }
+                                        className="w-full rounded-xl border border-neutral-300 bg-neutral-50 p-3 text-sm outline-none transition-all focus:border-[#0a6c32] focus:bg-white focus:ring-1 focus:ring-[#0a6c32]"
+                                    >
+                                        <option value="">-- Tidak ada induk (Folder Utama) --</option>
+                                        {categories
+                                            .filter(c => c.id !== categoryModal.id)
+                                            .map((c) => (
+                                                <option key={c.id} value={c.id}>
+                                                    {c.nama}
+                                                </option>
+                                            ))}
+                                    </select>
                                 </div>
 
                                 <div className="space-y-1.5">
@@ -1161,73 +1507,138 @@ export default function LampiranDokumenCMS({
                                         />
                                         <span className="text-xs font-bold text-neutral-700">
                                             {fileModal.fileName
-                                                ? (fileModal.mode === 'edit' ? 'Ganti File Terpilih' : 'Tambah File Lainnya')
+                                                ? fileModal.mode === 'edit'
+                                                    ? 'Ganti File Terpilih'
+                                                    : 'Tambah File Lainnya'
                                                 : 'Klik atau Seret Berkas ke Sini'}
                                         </span>
                                         <span className="mt-1 max-w-[280px] text-[10px] leading-normal text-neutral-400">
-                                            Mendukung PDF, Word, Excel, PPT, ZIP/RAR. Bisa memilih banyak file sekaligus.
+                                            Mendukung PDF, Word, Excel, PPT,
+                                            ZIP/RAR. Bisa memilih banyak file
+                                            sekaligus.
                                         </span>
                                     </div>
 
                                     {/* Preview selected file info */}
-                                    {fileModal.mode === 'edit' && fileModal.fileName && (
-                                        <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#e6f4ea] bg-emerald-50/20 p-3">
-                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0a6c32] text-white">
-                                                <FileText size={16} />
+                                    {fileModal.mode === 'edit' &&
+                                        fileModal.fileName && (
+                                            <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#e6f4ea] bg-emerald-50/20 p-3">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0a6c32] text-white">
+                                                    <FileText size={16} />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-xs font-bold text-neutral-800">
+                                                        {fileModal.fileName}
+                                                    </p>
+                                                    {fileModal.fileSize && (
+                                                        <span className="text-[10px] font-semibold text-neutral-400">
+                                                            {formatFileSize(
+                                                                fileModal.fileSize,
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-xs font-bold text-neutral-800">
-                                                    {fileModal.fileName}
-                                                </p>
-                                                {fileModal.fileSize && (
-                                                    <span className="text-[10px] font-semibold text-neutral-400">
-                                                        {formatFileSize(
-                                                            fileModal.fileSize,
-                                                        )}
-                                                    </span>
+                                        )}
+
+                                    {fileModal.mode === 'add' &&
+                                        fileModal.files &&
+                                        fileModal.files.length > 0 && (
+                                            <div className="mt-2 flex max-h-48 flex-col gap-2 overflow-y-auto pr-1">
+                                                {fileModal.files.map(
+                                                    (f, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="flex items-center justify-between gap-3 rounded-xl border border-[#e6f4ea] bg-emerald-50/20 p-2.5"
+                                                        >
+                                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0a6c32] text-white">
+                                                                <FileText
+                                                                    size={14}
+                                                                />
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="truncate text-xs font-bold text-neutral-800">
+                                                                    {f.fileName}
+                                                                </p>
+                                                                <span className="text-[10px] font-semibold text-neutral-400">
+                                                                    {formatFileSize(
+                                                                        f.fileSize,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removeFile(
+                                                                        idx,
+                                                                    )
+                                                                }
+                                                                className="rounded-lg bg-red-50 p-1 text-red-500 outline-none hover:bg-red-100 hover:text-red-700"
+                                                            >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width="16"
+                                                                    height="16"
+                                                                    viewBox="0 0 24 24"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    strokeWidth="2"
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                >
+                                                                    <line
+                                                                        x1="18"
+                                                                        y1="6"
+                                                                        x2="6"
+                                                                        y2="18"
+                                                                    ></line>
+                                                                    <line
+                                                                        x1="6"
+                                                                        y1="6"
+                                                                        x2="18"
+                                                                        y2="18"
+                                                                    ></line>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    ),
                                                 )}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {fileModal.mode === 'add' && fileModal.files && fileModal.files.length > 0 && (
-                                        <div className="mt-2 flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                                            {fileModal.files.map((f, idx) => (
-                                                <div key={idx} className="flex items-center justify-between gap-3 rounded-xl border border-[#e6f4ea] bg-emerald-50/20 p-2.5">
-                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0a6c32] text-white">
-                                                        <FileText size={14} />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate text-xs font-bold text-neutral-800">
-                                                            {f.fileName}
-                                                        </p>
-                                                        <span className="text-[10px] font-semibold text-neutral-400">
-                                                            {formatFileSize(f.fileSize)}
-                                                        </span>
-                                                    </div>
-                                                    <button type="button" onClick={() => removeFile(idx)} className="p-1 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg outline-none">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    
-                                    {fileModal.fileName?.toLowerCase().endsWith('.pdf') && (
-                                        <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3 border border-amber-100">
+                                    {fileModal.fileName
+                                        ?.toLowerCase()
+                                        .endsWith('.pdf') && (
+                                        <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 p-3">
                                             <input
                                                 type="checkbox"
                                                 id="compress-pdf"
-                                                checked={fileModal.compress || false}
-                                                onChange={(e) => setFileModal(prev => ({ ...prev, compress: e.target.checked }))}
+                                                checked={
+                                                    fileModal.compress || false
+                                                }
+                                                onChange={(e) =>
+                                                    setFileModal((prev) => ({
+                                                        ...prev,
+                                                        compress:
+                                                            e.target.checked,
+                                                    }))
+                                                }
                                                 className="mt-0.5 rounded border-neutral-300 text-amber-600 focus:ring-amber-600"
                                             />
                                             <div>
-                                                <label htmlFor="compress-pdf" className="text-xs font-bold text-neutral-800 cursor-pointer">
+                                                <label
+                                                    htmlFor="compress-pdf"
+                                                    className="cursor-pointer text-xs font-bold text-neutral-800"
+                                                >
                                                     Kompres Ukuran PDF
                                                 </label>
-                                                <p className="text-[10px] text-neutral-500 mt-0.5 leading-relaxed">
-                                                    Centang untuk memperkecil ukuran file PDF (menghemat penyimpanan server). Resolusi dan kualitas gambar di dalam PDF mungkin sedikit berkurang.
+                                                <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">
+                                                    Centang untuk memperkecil
+                                                    ukuran file PDF (menghemat
+                                                    penyimpanan server).
+                                                    Resolusi dan kualitas gambar
+                                                    di dalam PDF mungkin sedikit
+                                                    berkurang.
                                                 </p>
                                             </div>
                                         </div>
@@ -1235,7 +1646,8 @@ export default function LampiranDokumenCMS({
                                 </div>
 
                                 {/* Show individual inputs only if uploading a single file or editing */}
-                                {(!fileModal.files || fileModal.files.length <= 1) && (
+                                {(!fileModal.files ||
+                                    fileModal.files.length <= 1) && (
                                     <>
                                         <div className="space-y-1.5">
                                             <label className="text-sm font-semibold text-neutral-700">
@@ -1248,14 +1660,19 @@ export default function LampiranDokumenCMS({
                                                 onChange={(e) =>
                                                     setFileModal((prev) => ({
                                                         ...prev,
-                                                        nama_tampilan: e.target.value,
+                                                        nama_tampilan:
+                                                            e.target.value,
                                                     }))
                                                 }
                                                 className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                                required={fileModal.files && fileModal.files.length <= 1}
+                                                required={
+                                                    fileModal.files &&
+                                                    fileModal.files.length <= 1
+                                                }
                                             />
                                             <p className="mt-0.5 text-[10px] leading-normal text-neutral-400">
-                                                Judul ini yang akan dibaca oleh publik saat mengunduh dokumen.
+                                                Judul ini yang akan dibaca oleh
+                                                publik saat mengunduh dokumen.
                                             </p>
                                         </div>
 
@@ -1269,7 +1686,8 @@ export default function LampiranDokumenCMS({
                                                 onChange={(e) =>
                                                     setFileModal((prev) => ({
                                                         ...prev,
-                                                        deskripsi: e.target.value,
+                                                        deskripsi:
+                                                            e.target.value,
                                                     }))
                                                 }
                                                 rows={3}
@@ -1278,16 +1696,29 @@ export default function LampiranDokumenCMS({
                                         </div>
                                     </>
                                 )}
-                                
+
                                 {/* Notification for multiple upload mode */}
-                                {fileModal.mode === 'add' && fileModal.files && fileModal.files.length > 1 && (
-                                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-                                        <p className="text-xs font-medium text-emerald-800">
-                                            <strong>Mode Unggah Sekaligus Aktif!</strong><br />
-                                            Anda akan mengunggah {fileModal.files.length} dokumen. Nama tampilan akan otomatis disesuaikan dengan nama asli file (tanpa ekstensi). Anda dapat mengedit keterangan masing-masing file secara spesifik setelah file berhasil diunggah.
-                                        </p>
-                                    </div>
-                                )}
+                                {fileModal.mode === 'add' &&
+                                    fileModal.files &&
+                                    fileModal.files.length > 1 && (
+                                        <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                                            <p className="text-xs font-medium text-emerald-800">
+                                                <strong>
+                                                    Mode Unggah Sekaligus Aktif!
+                                                </strong>
+                                                <br />
+                                                Anda akan mengunggah{' '}
+                                                {fileModal.files.length}{' '}
+                                                dokumen. Nama tampilan akan
+                                                otomatis disesuaikan dengan nama
+                                                asli file (tanpa ekstensi). Anda
+                                                dapat mengedit keterangan
+                                                masing-masing file secara
+                                                spesifik setelah file berhasil
+                                                diunggah.
+                                            </p>
+                                        </div>
+                                    )}
 
                                 <div className="mt-4 flex items-center justify-end gap-3 border-t border-neutral-100 pt-4">
                                     <button
@@ -1307,11 +1738,44 @@ export default function LampiranDokumenCMS({
                                     </button>
                                     <button
                                         type="submit"
-                                        className="rounded-xl bg-[#0a6c32] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none hover:bg-[#085627]"
+                                        disabled={isSubmittingFile}
+                                        className={`flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all outline-none ${
+                                            isSubmittingFile
+                                                ? 'cursor-not-allowed bg-neutral-400'
+                                                : 'bg-[#0a6c32] hover:bg-[#085627]'
+                                        }`}
                                     >
-                                        {fileModal.mode === 'add'
-                                            ? 'Unggah Berkas'
-                                            : 'Simpan Perubahan'}
+                                        {isSubmittingFile ? (
+                                            <>
+                                                <svg
+                                                    className="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <circle
+                                                        className="opacity-25"
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="10"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                    ></circle>
+                                                    <path
+                                                        className="opacity-75"
+                                                        fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                    ></path>
+                                                </svg>
+                                                {fileModal.mode === 'add'
+                                                    ? 'Mengunggah...'
+                                                    : 'Menyimpan...'}
+                                            </>
+                                        ) : fileModal.mode === 'add' ? (
+                                            'Unggah Berkas'
+                                        ) : (
+                                            'Simpan Perubahan'
+                                        )}
                                     </button>
                                 </div>
                             </form>
@@ -1326,15 +1790,21 @@ export default function LampiranDokumenCMS({
                     onConfirm={handleConfirmDelete}
                     title={
                         deleteConfirm?.type === 'category'
-                            ? (showTrashed ? "Hapus Permanen Kategori Folder?" : "Pindah ke Sampah?")
-                            : (showTrashed ? "Hapus Permanen Berkas?" : "Pindah ke Sampah?")
+                            ? showTrashed
+                                ? 'Hapus Permanen Kategori Folder?'
+                                : 'Pindah ke Sampah?'
+                            : showTrashed
+                              ? 'Hapus Permanen Berkas?'
+                              : 'Pindah ke Sampah?'
                     }
                     description={
                         deleteConfirm?.type === 'category'
-                            ? `Apakah Anda yakin ingin ${showTrashed ? 'menghapus permanen' : 'memindahkan'} folder "${deleteConfirm?.title}"? ${showTrashed ? "Seluruh berkas dokumen di dalamnya akan dihapus secara permanen." : "Folder beserta dokumen di dalamnya akan dipindahkan ke Sampah."}`
-                            : `Apakah Anda yakin ingin ${showTrashed ? 'menghapus permanen' : 'memindahkan'} berkas "${deleteConfirm?.title}"? ${showTrashed ? "Tautan unduhan berkas ini tidak akan dapat diakses lagi." : "Berkas akan dipindahkan ke Sampah."}`
+                            ? `Apakah Anda yakin ingin ${showTrashed ? 'menghapus permanen' : 'memindahkan'} folder "${deleteConfirm?.title}"? ${showTrashed ? 'Seluruh berkas dokumen di dalamnya akan dihapus secara permanen.' : 'Folder beserta dokumen di dalamnya akan dipindahkan ke Sampah.'}`
+                            : `Apakah Anda yakin ingin ${showTrashed ? 'menghapus permanen' : 'memindahkan'} berkas "${deleteConfirm?.title}"? ${showTrashed ? 'Tautan unduhan berkas ini tidak akan dapat diakses lagi.' : 'Berkas akan dipindahkan ke Sampah.'}`
                     }
-                    confirmText={showTrashed ? "Hapus Permanen" : "Pindah ke Sampah"}
+                    confirmText={
+                        showTrashed ? 'Hapus Permanen' : 'Pindah ke Sampah'
+                    }
                     danger={true}
                 />
             </div>

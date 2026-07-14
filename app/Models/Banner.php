@@ -49,6 +49,8 @@ class Banner extends Model implements HasMedia
             ->width(1920)
             ->height(1080)
             ->fit(Fit::Fill, 1920, 1080)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 }

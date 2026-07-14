@@ -18,7 +18,7 @@ class DokumenController extends Controller
     public function index(Request $request): Response
     {
         $catQuery = KategoriLampiran::orderBy('urutan', 'asc');
-        $fileQuery = Lampiran::latest();
+        $fileQuery = Lampiran::orderBy('kategori_lampiran_id')->orderBy('urutan', 'asc')->orderBy('created_at', 'desc');
 
         if ($request->has('trashed') && $request->trashed === 'true') {
             $catQuery->onlyTrashed();
@@ -30,8 +30,9 @@ class DokumenController extends Controller
                 'id' => (string)$cat->id,
                 'nama' => $cat->nama,
                 'slug' => $cat->slug,
-                'deskripsi' => $cat->deskripsi,
+                'deskripsi' => $cat->deskripsi ?: '',
                 'urutan' => (int)$cat->urutan,
+                'parent_id' => $cat->parent_id ? (string)$cat->parent_id : null,
                 'deleted_at' => $cat->deleted_at,
             ];
         });
@@ -48,6 +49,7 @@ class DokumenController extends Controller
                 'tanggal_upload' => $item->created_at->format('Y-m-d'),
                 'download_url' => $media?->getUrl() ?: '',
                 'deleted_at' => $item->deleted_at,
+                'urutan' => (int)$item->urutan,
             ];
         });
 
@@ -65,17 +67,20 @@ class DokumenController extends Controller
         $request->validate([
             'nama' => 'required|string|max:100|unique:kategori_lampirans,nama',
             'deskripsi' => 'nullable|string|max:300',
+            'parent_id' => 'nullable|exists:kategori_lampirans,id',
         ]);
 
-        $maxUrutan = KategoriLampiran::max('urutan') ?: 0;
+        $maxUrutan = KategoriLampiran::where('parent_id', $request->parent_id)->max('urutan') ?: 0;
 
         KategoriLampiran::create([
             'nama' => $request->nama,
             'deskripsi' => $request->deskripsi,
+            'parent_id' => $request->parent_id,
             'urutan' => $maxUrutan + 1,
         ]);
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', 'Folder kategori berhasil ditambahkan.');
     }
@@ -90,14 +95,17 @@ class DokumenController extends Controller
         $request->validate([
             'nama' => 'required|string|max:100|unique:kategori_lampirans,nama,' . $id,
             'deskripsi' => 'nullable|string|max:300',
+            'parent_id' => 'nullable|exists:kategori_lampirans,id|not_in:' . $id,
         ]);
 
         $category->update([
             'nama' => $request->nama,
             'deskripsi' => $request->deskripsi,
+            'parent_id' => $request->parent_id,
         ]);
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', 'Kategori berhasil diperbarui.');
     }
@@ -126,6 +134,7 @@ class DokumenController extends Controller
         }
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', $message);
     }
@@ -143,6 +152,7 @@ class DokumenController extends Controller
         }
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', 'Kategori beserta berkas di dalamnya berhasil dipulihkan.');
     }
@@ -164,8 +174,55 @@ class DokumenController extends Controller
         });
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', 'Urutan kategori berhasil diperbarui.');
+    }
+
+    /**
+     * Reorder files.
+     */
+    public function reorderBerkas(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|exists:lampirans,id',
+        ]);
+
+        DB::transaction(function () use ($request) {
+            foreach ($request->ids as $index => $id) {
+                Lampiran::where('id', $id)->update(['urutan' => $index + 1]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Urutan berkas berhasil diperbarui.');
+    }
+
+    /**
+     * Reorder unified list of folders and files.
+     */
+    public function reorderUnified(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|string',
+            'items.*.type' => 'required|in:folder,file',
+        ]);
+
+        DB::transaction(function () use ($request) {
+            foreach ($request->items as $index => $item) {
+                if ($item['type'] === 'folder') {
+                    KategoriLampiran::where('id', $item['id'])->update(['urutan' => $index + 1]);
+                } else {
+                    Lampiran::where('id', $item['id'])->update(['urutan' => $index + 1]);
+                }
+            }
+        });
+
+        cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
+
+        return redirect()->back()->with('success', 'Urutan berhasil diperbarui.');
     }
 
     /**
@@ -177,19 +234,42 @@ class DokumenController extends Controller
             'kategori_id' => 'required|exists:kategori_lampirans,id',
             'nama_tampilan' => 'required|string|max:150',
             'deskripsi' => 'nullable|string|max:300',
-            'fileDataUrl' => 'required|string',
+            'berkas' => 'nullable|file|max:51200',
+            'fileDataUrl' => 'nullable|string',
             'fileName' => 'required|string|max:255',
             'compress' => 'nullable|boolean',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $kategori = KategoriLampiran::findOrFail($request->kategori_id);
+        $maxUrutan = Lampiran::where('kategori_lampiran_id', $kategori->id)->max('urutan') ?? 0;
+
+        DB::transaction(function () use ($request, $kategori, $maxUrutan) {
             $lampiran = Lampiran::create([
+                'kategori_lampiran_id' => $kategori->id,
                 'nama_tampilan' => $request->nama_tampilan,
                 'deskripsi' => $request->deskripsi,
-                'kategori_lampiran_id' => $request->kategori_id,
+                'urutan' => $maxUrutan + 1,
             ]);
 
-            if (str_starts_with($request->fileDataUrl, 'data:')) {
+            if ($request->hasFile('berkas')) {
+                $file = $request->file('berkas');
+                if ($request->compress) {
+                    $tempPath = $file->getRealPath();
+                    $compressedPath = \App\Services\PdfCompressorService::compress($tempPath);
+                    
+                    $lampiran->addMedia($compressedPath)
+                        ->usingFileName($request->fileName)
+                        ->toMediaCollection('berkas');
+                        
+                    if (file_exists($compressedPath) && $compressedPath !== $tempPath) {
+                        @unlink($compressedPath);
+                    }
+                } else {
+                    $lampiran->addMedia($file)
+                        ->usingFileName($request->fileName)
+                        ->toMediaCollection('berkas');
+                }
+            } else if ($request->fileDataUrl && str_starts_with($request->fileDataUrl, 'data:')) {
                 if ($request->compress) {
                     $base64 = substr($request->fileDataUrl, strpos($request->fileDataUrl, ',') + 1);
                     $tempFile = sys_get_temp_dir() . '/' . uniqid('upload_') . '.pdf';
@@ -212,6 +292,7 @@ class DokumenController extends Controller
         });
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->route('admin.dokumen.index')->with('success', 'Berkas berhasil diunggah.');
     }
@@ -263,6 +344,7 @@ class DokumenController extends Controller
         });
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', count($request->input('berkas_files')) . ' berkas berhasil diunggah.');
     }
@@ -277,6 +359,7 @@ class DokumenController extends Controller
         $request->validate([
             'nama_tampilan' => 'required|string|max:150',
             'deskripsi' => 'nullable|string|max:300',
+            'berkas' => 'nullable|file|max:51200',
             'fileDataUrl' => 'nullable|string',
             'fileName' => 'nullable|string|max:255',
             'compress' => 'nullable|boolean',
@@ -288,7 +371,25 @@ class DokumenController extends Controller
                 'deskripsi' => $request->deskripsi,
             ]);
 
-            if ($request->fileDataUrl && str_starts_with($request->fileDataUrl, 'data:')) {
+            if ($request->hasFile('berkas')) {
+                $file = $request->file('berkas');
+                if ($request->compress) {
+                    $tempPath = $file->getRealPath();
+                    $compressedPath = \App\Services\PdfCompressorService::compress($tempPath);
+                    
+                    $lampiran->addMedia($compressedPath)
+                        ->usingFileName($request->fileName ?? $file->getClientOriginalName())
+                        ->toMediaCollection('berkas');
+                        
+                    if (file_exists($compressedPath) && $compressedPath !== $tempPath) {
+                        @unlink($compressedPath);
+                    }
+                } else {
+                    $lampiran->addMedia($file)
+                        ->usingFileName($request->fileName ?? $file->getClientOriginalName())
+                        ->toMediaCollection('berkas');
+                }
+            } else if ($request->fileDataUrl && str_starts_with($request->fileDataUrl, 'data:')) {
                 if ($request->compress) {
                     $base64 = substr($request->fileDataUrl, strpos($request->fileDataUrl, ',') + 1);
                     $tempFile = sys_get_temp_dir() . '/' . uniqid('upload_') . '.pdf';
@@ -311,6 +412,7 @@ class DokumenController extends Controller
         });
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', 'Informasi berkas berhasil diperbarui.');
     }
@@ -331,6 +433,7 @@ class DokumenController extends Controller
         }
 
         cache()->forget('kategori_lampirans');
+        cache()->forget('kategori_lampirans_root');
 
         return redirect()->back()->with('success', $message);
     }

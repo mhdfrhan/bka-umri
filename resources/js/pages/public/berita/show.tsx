@@ -1,3 +1,7 @@
+import { useState } from 'react';
+import Lightbox from 'yet-another-react-lightbox';
+import 'yet-another-react-lightbox/styles.css';
+import { Seo } from '@/components/seo';
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -6,6 +10,7 @@ import {
     Linkedin,
     Twitter,
     User,
+    ZoomIn,
     Link as LinkIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +20,7 @@ interface NewsItem {
     slug: string;
     thumbnail: string;
     category?: string;
+    bidang?: string;
     title: string;
     date: string;
     author?: string;
@@ -51,6 +57,7 @@ const formatDateIndo = (dateStr: string) => {
 
 export default function BeritaShow({ berita }: { berita: NewsItem }) {
     const articleRef = useScrollReveal<HTMLDivElement>();
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -87,68 +94,93 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
         window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     };
 
+    const rawExcerpt = berita.content.replace(/<[^>]+>/g, '').substring(0, 160).trim();
+    const finalExcerpt = rawExcerpt.length > 0 ? `${rawExcerpt}...` : "Baca berita lengkap dari Biro Keuangan dan Aset (BKA) Universitas Muhammadiyah Riau (UMRI).";
+
     return (
         <>
-            <Head title={`${berita.title} - BKA UMRI`}>
-                <meta
-                    name="description"
-                    content="Detail berita Biro Keuangan dan Aset Universitas Muhammadiyah Riau."
-                />
-            </Head>
+            <Seo 
+                title={berita.title}
+                description={finalExcerpt}
+                image={berita.thumbnail ? (berita.thumbnail.startsWith('http') ? berita.thumbnail : `/storage/${berita.thumbnail}`) : undefined}
+                type="article"
+                author={berita.author || 'Admin BKA'}
+                publishedTime={berita.date ? new Date(berita.date).toISOString() : undefined}
+                keywords={`${berita.category || 'Berita'}, ${berita.bidang || 'BKA'}, BKA UMRI, Universitas Muhammadiyah Riau, ${berita.title.split(' ').slice(0,3).join(', ')}`}
+            />
 
-            {/* Article Header / Hero */}
-            <section className="relative pt-28 pb-16 md:pt-36 md:pb-24">
-                {/* Background Image with Overlay */}
-                <div className="absolute inset-0 z-0">
-                    <img
-                        src={berita.thumbnail}
-                        alt=""
-                        aria-hidden="true"
-                        className="h-full w-full object-cover"
-                    />
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            background:
-                                'linear-gradient(to bottom, rgba(13, 59, 17, 0.85) 0%, rgba(10, 40, 14, 0.95) 100%)',
-                        }}
-                    />
-                </div>
-
-                <div className="bka-container relative z-10">
+            {/* Article Header */}
+            <section className="pt-28 pb-10 md:pt-36 bg-[#F7F9F7]">
+                <div className="bka-container">
                     <div className="mx-auto max-w-[800px] text-center">
-                        {/* Category Badge */}
-                        <div className="mb-6">
-                            <span className="inline-block rounded-full bg-[#C8A000] px-4 py-1.5 text-xs font-bold tracking-widest text-[#1A1A1A] uppercase shadow-md">
+                        {/* Category & Bidang Badges */}
+                        <div className="mb-6 flex flex-wrap justify-center gap-2">
+                            <span className="inline-block rounded-full bg-[#e6f4ea] px-4 py-1.5 text-xs font-bold tracking-widest text-[#0a6c32] uppercase shadow-sm border border-[#0a6c32]/20">
                                 {berita.category}
                             </span>
+                            {berita.bidang && berita.bidang !== 'Umum' && (
+                                <span className="inline-block rounded-full bg-white px-4 py-1.5 text-xs font-bold tracking-widest text-[#5C6B73] uppercase shadow-sm border border-[#DDE5DD]">
+                                    {berita.bidang}
+                                </span>
+                            )}
                         </div>
 
                         {/* Title */}
                         <h1
-                            className="mb-8 leading-tight font-bold text-white"
+                            className="mb-6 leading-tight font-bold text-gray-900"
                             style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}
                         >
                             {berita.title}
                         </h1>
 
                         {/* Meta Data */}
-                        <div className="flex flex-wrap items-center justify-center gap-6 text-[14px] font-medium text-white/80">
+                        <div className="flex flex-wrap items-center justify-center gap-6 text-[14px] font-medium text-[#5C6B73]">
                             <div className="flex items-center gap-2">
                                 <Calendar
                                     size={16}
-                                    className="text-[#C8A000]"
+                                    className="text-[#0a6c32]"
                                 />
                                 <span>{formatDateIndo(berita.date)}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <User size={16} className="text-[#C8A000]" />
+                                <User size={16} className="text-[#0a6c32]" />
                                 <span>{berita.author}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
+
+            {/* Thumbnail Image with Lightbox */}
+            <section className="bg-white pt-8 pb-4">
+                <div className="bka-container">
+                     <div className="mx-auto max-w-[900px]">
+                        <div 
+                            className="group relative cursor-zoom-in overflow-hidden rounded-2xl shadow-sm border border-[#DDE5DD] bg-neutral-100/50"
+                            onClick={() => setIsOpen(true)}
+                        >
+                            <img
+                                src={berita.thumbnail}
+                                alt={berita.title}
+                                className="w-full h-auto max-h-[550px] object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                            />
+                            {/* Zoom overlay indicator */}
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 font-medium text-white backdrop-blur-md">
+                                    <ZoomIn size={20} />
+                                    <span>Perbesar Gambar</span>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+            </section>
+
+            <Lightbox
+                open={isOpen}
+                close={() => setIsOpen(false)}
+                slides={[{ src: berita.thumbnail }]}
+            />
 
             {/* Main Content Area */}
             <section className="bg-white py-12 md:py-20">

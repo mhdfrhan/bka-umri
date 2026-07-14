@@ -1,5 +1,6 @@
+import { Seo } from '@/components/seo';
 import { Head } from '@inertiajs/react';
-import { Users, ZoomIn } from 'lucide-react';
+import { Users, ZoomIn, X } from 'lucide-react';
 import { useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -13,6 +14,8 @@ interface AnggotaProps {
     id: number;
     nama: string;
     jabatan: string;
+    tugas_pokok?: string;
+    jobdesk?: string;
     foto?: string;
     urutan: number;
 }
@@ -36,6 +39,8 @@ export default function Struktur({
     anggotaList,
 }: StrukturProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [selectedAnggota, setSelectedAnggota] = useState<AnggotaProps | null>(null);
+    const [activeTab, setActiveTab] = useState<'tugas' | 'jobdesk'>('tugas');
 
     const liveGambarBagan = gambarBagan || '';
     const liveKepalaBiro = kepalaBiro || null;
@@ -49,13 +54,7 @@ export default function Struktur({
 
     return (
         <>
-            <Head>
-                <title>Struktur Organisasi - Profil BKA UMRI</title>
-                <meta
-                    name="description"
-                    content="Bagan struktur organisasi dan daftar personalia/anggota resmi Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI)."
-                />
-            </Head>
+            <Seo title="Struktur Organisasi - Profil BKA UMRI" description="Bagan struktur organisasi dan daftar personalia/anggota resmi Biro Keuangan & Aset Universitas Muhammadiyah Riau (UMRI)." />
 
             <div className="flex min-h-screen w-full flex-col bg-[#F7F9F7] pb-20">
                 {/* Reusable PageHero */}
@@ -99,6 +98,10 @@ export default function Struktur({
                             <img
                                 src={liveGambarBagan}
                                 alt="Diagram Bagan Struktur Organisasi BKA UMRI"
+                                width="1120"
+                                height="500"
+                                loading="lazy"
+                                decoding="async"
                                 className="max-h-[500px] w-full rounded-xl object-contain transition-all duration-300 group-hover:scale-[1.01]"
                             />
 
@@ -149,6 +152,10 @@ export default function Struktur({
                                         <img
                                             src={liveKepalaBiro.foto}
                                             alt={liveKepalaBiro.nama}
+                                            width="128"
+                                            height="128"
+                                            loading="lazy"
+                                            decoding="async"
                                             className="h-full w-full object-cover"
                                         />
                                     </div>
@@ -175,12 +182,20 @@ export default function Struktur({
                                 .map((anggota) => (
                                     <div
                                         key={anggota.id}
-                                        className="flex transform flex-col items-center rounded-2xl border border-[#DDE5DD] bg-white p-6 text-center shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:border-[#0a6c32]/30 hover:shadow-md"
+                                        onClick={() => {
+                                            setSelectedAnggota(anggota);
+                                            setActiveTab('tugas');
+                                        }}
+                                        className="flex cursor-pointer transform flex-col items-center rounded-2xl border border-[#DDE5DD] bg-white p-6 text-center shadow-sm transition-all duration-200 hover:translate-y-[-2px] hover:border-[#0a6c32]/30 hover:shadow-md"
                                     >
                                         <div className="mb-4 h-24 w-24 overflow-hidden rounded-full border-2 border-[#e6f4ea] shadow-sm">
                                             <img
                                                 src={anggota.foto}
                                                 alt={anggota.nama}
+                                                width="96"
+                                                height="96"
+                                                loading="lazy"
+                                                decoding="async"
                                                 className="h-full w-full object-cover"
                                             />
                                         </div>
@@ -196,7 +211,7 @@ export default function Struktur({
                                         <div className="my-4 h-[1px] w-8 bg-gray-100" />
 
                                         <span className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
-                                            Staf BKA UMRI
+                                            Klik untuk detail
                                         </span>
                                     </div>
                                 ))}
@@ -204,6 +219,111 @@ export default function Struktur({
                     </div>
                 </div>
             </div>
+
+            {/* Modal Detail Personalia */}
+            {selectedAnggota && (
+                <div 
+                    className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200 fade-in"
+                    onClick={() => setSelectedAnggota(null)}
+                >
+                    <div 
+                        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in rounded-2xl border border-[#DDE5DD] bg-white p-6 md:p-10 shadow-xl duration-200 zoom-in-95"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Close button */}
+                        <button
+                            onClick={() => setSelectedAnggota(null)}
+                            className="absolute top-4 right-4 rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                        >
+                            <X className="size-5" />
+                        </button>
+
+                        {/* Profile Section */}
+                        <div className="flex flex-col items-center md:flex-row md:items-start gap-6 border-b border-[#DDE5DD] pb-6 mb-6">
+                            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-[#e6f4ea] bg-gray-50 shadow-sm md:h-28 md:w-28">
+                                <img
+                                    src={selectedAnggota.foto}
+                                    alt={selectedAnggota.nama}
+                                    width="112"
+                                    height="112"
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="h-full w-full object-cover"
+                                />
+                            </div>
+                            <div className="text-center md:text-left pt-2">
+                                <h3 className="text-2xl font-bold tracking-tight text-gray-900">
+                                    {selectedAnggota.nama}
+                                </h3>
+                                <p className="mt-1.5 text-sm font-semibold text-[#0a6c32]">
+                                    {selectedAnggota.jabatan}
+                                </p>
+                                <span className="mt-2 inline-block text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                                    Staf Pelaksana BKA UMRI
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Tab Navigation */}
+                        <div className="flex border-b border-[#DDE5DD] mb-6">
+                            <button
+                                onClick={() => setActiveTab('tugas')}
+                                className={`pb-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 mr-6 outline-none ${
+                                    activeTab === 'tugas'
+                                        ? 'border-[#0a6c32] text-[#0a6c32]'
+                                        : 'border-transparent text-gray-400 hover:text-gray-600'
+                                }`}
+                            >
+                                Tugas Pokok
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('jobdesk')}
+                                className={`pb-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 outline-none ${
+                                    activeTab === 'jobdesk'
+                                        ? 'border-[#0a6c32] text-[#0a6c32]'
+                                        : 'border-transparent text-gray-400 hover:text-gray-600'
+                                }`}
+                            >
+                                Rincian Jobdesk
+                            </button>
+                        </div>
+
+                        {/* Details Area */}
+                        <div className="min-h-[150px]">
+                            {activeTab === 'tugas' ? (
+                                selectedAnggota.tugas_pokok ? (
+                                    <div
+                                        className="prose prose-sm prose-emerald max-w-none text-gray-600 prose-ul:list-disc prose-ul:pl-4 prose-li:my-1"
+                                        dangerouslySetInnerHTML={{ __html: selectedAnggota.tugas_pokok }}
+                                    />
+                                ) : (
+                                    <p className="text-sm italic text-gray-400">Belum ada rincian tugas pokok.</p>
+                                )
+                            ) : (
+                                selectedAnggota.jobdesk ? (
+                                    <div
+                                        className="prose prose-sm prose-emerald max-w-none text-gray-600 prose-ul:list-disc prose-ul:pl-4 prose-li:my-1"
+                                        dangerouslySetInnerHTML={{ __html: selectedAnggota.jobdesk }}
+                                    />
+                                ) : (
+                                    <p className="text-sm italic text-gray-400">Belum ada rincian jobdesk.</p>
+                                )
+                            )}
+                        </div>
+
+                        {/* Footer Action */}
+                        <div className="mt-8 pt-6 border-t border-[#DDE5DD] text-right">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedAnggota(null)}
+                                className="inline-flex items-center justify-center rounded-xl border border-[#DDE5DD] bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                            >
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

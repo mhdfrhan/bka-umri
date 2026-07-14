@@ -1,4 +1,5 @@
-import { Head, router, Link } from '@inertiajs/react';
+import { Seo } from '@/components/seo';
+import { Head, router, Link, usePage } from '@inertiajs/react';
 import { Search, ArrowRight, PhoneCall, MessageSquare, FileText, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -45,6 +46,7 @@ export default function PengumumanIndex({
 }: PengumumanIndexProps) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [activeTab, setActiveTab] = useState<'semua' | 'penting' | 'umum'>('semua');
+    const { pengaturan } = usePage().props as any;
 
     const heroRef = useScrollReveal<HTMLDivElement>();
     const listRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
@@ -81,12 +83,7 @@ export default function PengumumanIndex({
 
     return (
         <>
-            <Head title="Pengumuman Resmi - BKA UMRI">
-                <meta
-                    name="description"
-                    content="Daftar pengumuman dan informasi resmi penting dari Biro Keuangan dan Aset Universitas Muhammadiyah Riau."
-                />
-            </Head>
+            <Seo title="Pengumuman Resmi - BKA UMRI" description="Daftar pengumuman dan informasi resmi penting dari Biro Keuangan dan Aset Universitas Muhammadiyah Riau." />
 
             {/* Hero Section */}
             <PageHero
@@ -280,40 +277,13 @@ export default function PengumumanIndex({
                                         Ada kendala registrasi keuangan mahasiswa, Virtual Account bank, atau bebas keuangan? Hubungi layanan Care Desk BKA.
                                     </p>
                                     <a
-                                        href="https://wa.me/628123456789"
+                                        href={`https://wa.me/${(pengaturan?.telepon || '').includes('/') ? (pengaturan?.telepon || '').split('/')[1].replace(/\D/g, '') : (pengaturan?.telepon || '628117676000').replace(/\D/g, '')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="group flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-white text-[#0a6c32] text-xs font-black tracking-wider uppercase shadow-md transition-all duration-300 hover:bg-[#E8C840] hover:text-[#0a6c32] hover:scale-102 active:scale-98"
                                     >
                                         <MessageSquare size={14} className="stroke-[2.5]" />
                                         WhatsApp Care BKA
-                                    </a>
-                                </div>
-                            </div>
-
-                            {/* Quick Downloads Widget */}
-                            <div className="bg-white rounded-3xl border border-[#DDE5DD] p-6 shadow-[0_4px_15px_rgba(0,0,0,0.01)]">
-                                <h3 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest mb-4 border-b border-neutral-100 pb-2.5">Unduhan Penting</h3>
-                                <div className="flex flex-col gap-3">
-                                    <a
-                                        href="#"
-                                        className="group flex items-center justify-between p-3 rounded-xl border border-[#DDE5DD] bg-neutral-50/50 hover:bg-[#e6f4ea] hover:border-[#0a6c32]/20 hover:text-[#0a6c32] transition-all duration-200"
-                                    >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <FileText size={16} className="text-[#0a6c32] shrink-0" />
-                                            <span className="text-[12px] font-bold text-neutral-800 group-hover:text-[#0a6c32] truncate">Panduan SPP Semester</span>
-                                        </div>
-                                        <Download size={14} className="text-neutral-400 group-hover:text-[#0a6c32] transition-colors" />
-                                    </a>
-                                    <a
-                                        href="#"
-                                        className="group flex items-center justify-between p-3 rounded-xl border border-[#DDE5DD] bg-neutral-50/50 hover:bg-[#e6f4ea] hover:border-[#0a6c32]/20 hover:text-[#0a6c32] transition-all duration-200"
-                                    >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <FileText size={16} className="text-[#0a6c32] shrink-0" />
-                                            <span className="text-[12px] font-bold text-neutral-800 group-hover:text-[#0a6c32] truncate">Dispensasi Pembayaran</span>
-                                        </div>
-                                        <Download size={14} className="text-neutral-400 group-hover:text-[#0a6c32] transition-colors" />
                                     </a>
                                 </div>
                             </div>

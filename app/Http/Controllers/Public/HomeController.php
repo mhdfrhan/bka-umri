@@ -11,6 +11,7 @@ use App\Models\Statistik;
 use App\Models\Pengaturan;
 use App\Models\Berita;
 use App\Models\Pengumuman;
+use App\Models\Album;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -100,7 +101,7 @@ class HomeController extends Controller
                 $beritaQuery->where('status', 'terpublikasi');
             }
             $beritaTerbaru = $beritaQuery->latest()
-                ->limit(3)
+                ->limit(5)
                 ->get()
                 ->map(function ($news) {
                     return [
@@ -136,6 +137,46 @@ class HomeController extends Controller
                 })
                 ->toArray();
 
+            // 8. Galeri Dokumentasi (Album Covers & Photos)
+            $albumCount = Album::count();
+            $galeriTerbaru = [];
+
+            if ($albumCount < 5) {
+                // Ambil album beserta isian foto-fotonya
+                $albums = Album::with('fotos')->latest()->get();
+                foreach ($albums as $album) {
+                    // Tambahkan cover utama
+                    $galeriTerbaru[] = [
+                        'src' => $album->getFirstMediaUrl('cover') ?: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
+                        'title' => $album->judul,
+                    ];
+                    // Tambahkan isi foto-foto dari album tersebut
+                    foreach ($album->fotos as $foto) {
+                        $url = $foto->getFirstMediaUrl('foto');
+                        if ($url) {
+                            $galeriTerbaru[] = [
+                                'src' => $url,
+                                'title' => $album->judul . ' - Dokumentasi',
+                            ];
+                        }
+                    }
+                }
+            } else {
+                // Jika album >= 5, hanya ambil cover dari 8 album terbaru
+                $albums = Album::latest()->limit(8)->get();
+                foreach ($albums as $album) {
+                    $galeriTerbaru[] = [
+                        'src' => $album->getFirstMediaUrl('cover') ?: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80',
+                        'title' => $album->judul,
+                    ];
+                }
+            }
+
+            // Pastikan tidak ada array yang src-nya kosong
+            $galeriTerbaru = array_values(array_filter($galeriTerbaru, function($img) {
+                return !empty($img['src']);
+            }));
+
             return [
                 'banners' => $banners,
                 'kepalaBiro' => $kepalaBiro,
@@ -144,8 +185,13 @@ class HomeController extends Controller
                 'stats' => $stats,
                 'beritaTerbaru' => $beritaTerbaru,
                 'pengumumanTerbaru' => $pengumumanTerbaru,
+                'galeriTerbaru' => $galeriTerbaru,
             ];
         });
+
+        if (!empty($data['banners'])) {
+            \Illuminate\Support\Facades\View::share('first_banner_image', $data['banners'][0]['image']);
+        }
 
         return Inertia::render('public/home', $data);
     }

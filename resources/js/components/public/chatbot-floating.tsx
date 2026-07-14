@@ -15,7 +15,10 @@ import {
     ArrowDown,
     RotateCcw,
     HelpCircle,
+    Loader2,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
     id: string;
@@ -40,222 +43,6 @@ const getCsrfToken = (): string => {
         .find(row => row.startsWith('XSRF-TOKEN='))
         ?.split('=')[1];
     return xsrfCookie ? decodeURIComponent(xsrfCookie) : '';
-};
-
-// Helper to parse inline markdown (links, bold, and italic tags recursively)
-const parseInlineMarkdown = (text: string, baseKey: string): React.ReactNode[] => {
-    // Regex matches bold (**text**), italic (*text*), or markdown link ([label](url))
-    const inlineRegex = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+|\/[^\s)]+)\))/g;
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    let match;
-    let count = 0;
-
-    while ((match = inlineRegex.exec(text)) !== null) {
-        const matchIndex = match.index;
-
-        // Add preceding text as plain text
-        if (matchIndex > lastIndex) {
-            parts.push(
-                <span key={`text-${baseKey}-${count}`}>
-                    {text.substring(lastIndex, matchIndex)}
-                </span>
-            );
-        }
-
-        const [fullMatch, boldFull, boldText, italicFull, italicText, linkFull, linkLabel, linkUrl] = match;
-
-        if (boldFull) {
-            parts.push(
-                <strong key={`bold-${baseKey}-${count}`} className="font-extrabold text-slate-900">
-                    {parseInlineMarkdown(boldText, `${baseKey}-b-${count}`)}
-                </strong>
-            );
-        } else if (italicFull) {
-            parts.push(
-                <em key={`italic-${baseKey}-${count}`} className="italic text-slate-700 font-medium">
-                    {parseInlineMarkdown(italicText, `${baseKey}-i-${count}`)}
-                </em>
-            );
-        } else if (linkFull) {
-            parts.push(
-                <a
-                    key={`link-${baseKey}-${count}`}
-                    href={linkUrl}
-                    target={linkUrl.startsWith('mailto:') ? '_self' : '_blank'}
-                    rel="noopener noreferrer"
-                    className="font-semibold text-emerald-700 hover:text-emerald-900 underline decoration-[#0a6c32] hover:decoration-emerald-900 inline-flex items-center gap-0.5 mx-0.5"
-                >
-                    {parseInlineMarkdown(linkLabel, `${baseKey}-l-${count}`)}
-                </a>
-            );
-        }
-
-        lastIndex = inlineRegex.lastIndex;
-        count++;
-    }
-
-    if (lastIndex < text.length) {
-        parts.push(
-            <span key={`text-${baseKey}-post`}>
-                {text.substring(lastIndex)}
-            </span>
-        );
-    }
-
-    return parts;
-};
-
-interface ListItem {
-    text: string;
-    indent: number;
-}
-
-interface MessageBlock {
-    type: 'p' | 'ul' | 'ol';
-    items?: ListItem[];
-    text?: string;
-}
-
-// Markdown Block & List Parser helper
-const renderMessageText = (text: string, isGeneratingActive: boolean = false) => {
-    if (!text) {
-        if (isGeneratingActive) {
-            return (
-                <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-600 animate-pulse align-middle" />
-            );
-        }
-        return null;
-    }
-
-    const lines = text.split(/\r?\n/);
-    const blocks: MessageBlock[] = [];
-    let currentList: { type: 'ul' | 'ol'; items: ListItem[] } | null = null;
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        
-        // Match bullet lists: start with optional whitespace, then *, -, or •, then space, then content
-        const bulletMatch = line.match(/^(\s*)([*\-•])\s+(.*)$/);
-        // Match numbered lists: start with optional whitespace, then digits, then dot, then space, then content
-        const numberMatch = line.match(/^(\s*)(\d+)\.\s+(.*)$/);
-
-        if (bulletMatch) {
-            const indent = bulletMatch[1].length;
-            const content = bulletMatch[3];
-            
-            if (currentList && currentList.type === 'ul') {
-                currentList.items.push({ text: content, indent });
-            } else {
-                if (currentList) {
-                    blocks.push({ type: currentList.type, items: currentList.items });
-                }
-                currentList = { type: 'ul', items: [{ text: content, indent }] };
-            }
-        } else if (numberMatch) {
-            const indent = numberMatch[1].length;
-            const content = numberMatch[3];
-            
-            if (currentList && currentList.type === 'ol') {
-                currentList.items.push({ text: content, indent });
-            } else {
-                if (currentList) {
-                    blocks.push({ type: currentList.type, items: currentList.items });
-                }
-                currentList = { type: 'ol', items: [{ text: content, indent }] };
-            }
-        } else {
-            if (currentList) {
-                blocks.push({ type: currentList.type, items: currentList.items });
-                currentList = null;
-            }
-            blocks.push({ type: 'p', text: line });
-        }
-    }
-
-    if (currentList) {
-        blocks.push({ type: currentList.type, items: currentList.items });
-    }
-
-    return (
-        <>
-            {blocks.map((block, index) => {
-                const key = `block-${index}`;
-                const isLastBlock = index === blocks.length - 1;
-
-                if (block.type === 'ul' && block.items) {
-                    return (
-                        <ul key={key} className="list-disc pl-5 my-2 space-y-1 text-slate-800">
-                            {block.items.map((item, itemIdx) => {
-                                const isLastItem = itemIdx === block.items!.length - 1;
-                                return (
-                                    <li 
-                                        key={`li-${key}-${itemIdx}`} 
-                                        className="marker:text-emerald-600"
-                                        style={{
-                                            marginLeft: item.indent > 0 ? `${item.indent * 8}px` : undefined,
-                                            listStyleType: item.indent > 0 ? 'circle' : 'disc'
-                                        }}
-                                    >
-                                        {parseInlineMarkdown(item.text, `${key}-${itemIdx}`)}
-                                        {isGeneratingActive && isLastBlock && isLastItem && (
-                                            <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-600 animate-pulse align-middle" />
-                                        )}
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    );
-                }
-
-                if (block.type === 'ol' && block.items) {
-                    return (
-                        <ol key={key} className="list-decimal pl-5 my-2 space-y-1 text-slate-800">
-                            {block.items.map((item, itemIdx) => {
-                                const isLastItem = itemIdx === block.items!.length - 1;
-                                return (
-                                    <li 
-                                        key={`li-${key}-${itemIdx}`} 
-                                        className="marker:text-emerald-600"
-                                        style={{
-                                            marginLeft: item.indent > 0 ? `${item.indent * 8}px` : undefined
-                                        }}
-                                    >
-                                        {parseInlineMarkdown(item.text, `${key}-${itemIdx}`)}
-                                        {isGeneratingActive && isLastBlock && isLastItem && (
-                                            <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-600 animate-pulse align-middle" />
-                                        )}
-                                    </li>
-                                );
-                            })}
-                        </ol>
-                    );
-                }
-
-                // Paragraph block
-                const isParagraphEmpty = !block.text || block.text.trim() === '';
-                if (isParagraphEmpty) {
-                    if (isGeneratingActive && isLastBlock) {
-                        return (
-                            <p key={key} className="my-1.5 first:mt-0 last:mb-0 leading-relaxed text-slate-800">
-                                <span className="inline-block w-1.5 h-3.5 bg-emerald-600 animate-pulse align-middle" />
-                            </p>
-                        );
-                    }
-                    return <div key={key} className="h-2" />;
-                }
-
-                return (
-                    <p key={key} className="my-1.5 first:mt-0 last:mb-0 leading-relaxed text-slate-800">
-                        {parseInlineMarkdown(block.text || '', key)}
-                        {isGeneratingActive && isLastBlock && (
-                            <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-600 animate-pulse align-middle" />
-                        )}
-                    </p>
-                );
-            })}
-        </>
-    );
 };
 
 
@@ -782,13 +569,13 @@ export default function ChatbotFloating() {
                         {/* Fullscreen backdrop */}
                         {isFullscreen && (
                             <div
-                                className="cb-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs"
+                                className="cb-backdrop fixed inset-0 z-[65] bg-slate-900/40 backdrop-blur-xs"
                                 onClick={() => setIsFullscreen(false)}
                             />
                         )}
 
                         <div
-                            className={`fixed z-50 flex flex-col overflow-hidden bg-white shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                            className={`fixed z-[70] flex flex-col overflow-hidden bg-white shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                                 isFullscreen
                                     ? 'inset-4 rounded-2xl sm:inset-8 md:right-1/2 md:bottom-1/2 md:left-auto md:top-auto md:h-[680px] md:w-[90%] md:max-w-3xl md:translate-x-1/2 md:translate-y-1/2 md:rounded-2xl'
                                     : 'right-6 bottom-6 h-[540px] w-[400px] rounded-2xl max-sm:right-0 max-sm:bottom-0 max-sm:h-full max-sm:w-full max-sm:rounded-none'
@@ -878,21 +665,61 @@ export default function ChatbotFloating() {
                                         className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                                     >
                                         <div
-                                            className={`relative max-w-[82%] px-4 py-3 text-[13px] leading-relaxed transition-all ${
+                                            className={`relative max-w-[82%] overflow-x-auto px-4 py-3 text-[13px] leading-relaxed transition-all ${
                                                 msg.sender === 'user'
                                                     ? 'rounded-2xl rounded-tr-sm bg-[#0a6c32] text-white shadow-xs'
                                                     : 'rounded-2xl rounded-tl-sm bg-slate-100/80 text-slate-800'
                                             }`}
                                         >
-                                             {msg.sender === 'bot' ? (
-                                                 <div className="space-y-1">
-                                                     {renderMessageText(msg.text, msg.id === activeMsgIdRef.current && isGenerating)}
-                                                 </div>
-                                             ) : (
-                                                 <div className="whitespace-pre-line">
-                                                     {msg.text}
-                                                 </div>
-                                             )}
+                                            {msg.sender === 'bot' ? (
+                                                <div className="space-y-1 relative">
+                                                    <div className="max-w-none">
+                                                        <ReactMarkdown
+                                                            remarkPlugins={[remarkGfm]}
+                                                            components={{
+                                                                table: ({ node, ...props }) => (
+                                                                    <div className="my-2.5 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                                                                        <table className="min-w-full divide-y divide-slate-200 border-collapse" {...props} />
+                                                                    </div>
+                                                                ),
+                                                                thead: ({ node, ...props }) => <thead className="bg-slate-50/70" {...props} />,
+                                                                tbody: ({ node, ...props }) => <tbody className="divide-y divide-slate-100 bg-white" {...props} />,
+                                                                tr: ({ node, ...props }) => <tr className="hover:bg-slate-50/40" {...props} />,
+                                                                th: ({ node, ...props }) => (
+                                                                    <th className="px-3 py-1.5 text-left text-xs font-bold text-slate-700 border-r border-slate-200 last:border-r-0" {...props} />
+                                                                ),
+                                                                td: ({ node, ...props }) => (
+                                                                    <td className="px-3 py-1.5 text-[12.5px] text-slate-600 border-r border-slate-200 last:border-r-0" {...props} />
+                                                                ),
+                                                                ul: ({ node, ...props }) => <ul className="my-2 list-disc pl-5 space-y-1 text-slate-700" {...props} />,
+                                                                ol: ({ node, ...props }) => <ol className="my-2 list-decimal pl-5 space-y-1 text-slate-700" {...props} />,
+                                                                li: ({ node, ...props }) => <li className="text-[13px] leading-relaxed" {...props} />,
+                                                                p: ({ node, ...props }) => <p className="my-1.5 text-[13px] leading-relaxed text-slate-700" {...props} />,
+                                                                pre: ({ node, ...props }) => (
+                                                                    <div className="my-2 overflow-x-auto rounded-xl bg-slate-900 p-3 shadow-inner">
+                                                                        <pre className="text-xs text-slate-100 font-mono" {...props} />
+                                                                    </div>
+                                                                ),
+                                                                code: ({ node, inline, ...props }) => (
+                                                                    inline 
+                                                                        ? <code className="rounded bg-slate-200 px-1 py-0.5 text-xs text-[#0a6c32] font-semibold font-mono" {...props} />
+                                                                        : <code className="text-xs font-mono" {...props} />
+                                                                ),
+                                                                a: ({ node, ...props }) => <a className="text-[#0a6c32] font-bold underline hover:text-[#048d46]" {...props} />,
+                                                            }}
+                                                        >
+                                                            {msg.text}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                    {(msg.id === activeMsgIdRef.current && isGenerating) && (
+                                                        <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-600 animate-pulse align-middle" />
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="whitespace-pre-line">
+                                                    {msg.text}
+                                                </div>
+                                            )}
                                             <span
                                                 className={`mt-1.5 block text-right text-[9px] font-semibold ${
                                                     msg.sender === 'user'

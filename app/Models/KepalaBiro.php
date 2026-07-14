@@ -42,6 +42,8 @@ class KepalaBiro extends Model implements HasMedia
             ->width(400)
             ->height(533)
             ->fit(\Spatie\Image\Enums\Fit::Crop, 400, 533)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 }

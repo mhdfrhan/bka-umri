@@ -156,6 +156,8 @@ export default function PublicFooter() {
                             <img
                                 src={logoUrl}
                                 alt="Logo BKA UMRI"
+                                width="145"
+                                height="56"
                                 style={{
                                     height: '56px',
                                     width: 'auto',

@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import PublicFooter from '@/components/layout/public-footer';
 import PublicNavbar from '@/components/layout/public-navbar';
-import ChatbotFloating from '@/components/public/chatbot-floating';
+
+const ChatbotFloating = lazy(() => import('@/components/public/chatbot-floating'));
 
 interface PublicLayoutProps {
     children: React.ReactNode;
@@ -61,7 +62,10 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             <PublicNavbar />
             <main className="flex-1">{children}</main>
             <PublicFooter />
-            <ChatbotFloating />
+            <Suspense fallback={null}>
+                <ChatbotFloating />
+            </Suspense>
         </div>
     );
 }
+

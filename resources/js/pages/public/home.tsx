@@ -1,5 +1,38 @@
 import { Head, usePage } from '@inertiajs/react';
-import * as Icons from 'lucide-react';
+import { Seo } from '@/components/seo';
+import {
+    Building2,
+    Users,
+    Award,
+    BookOpen,
+    CheckCircle2,
+    CreditCard,
+    Landmark,
+    FileText,
+    Megaphone,
+    Images,
+    FolderDown,
+    Settings2,
+    Coins,
+    X,
+} from 'lucide-react';
+
+const IconMap: Record<string, any> = {
+    Building2,
+    Users,
+    Award,
+    BookOpen,
+    CheckCircle2,
+    CreditCard,
+    Landmark,
+    FileText,
+    Megaphone,
+    Images,
+    FolderDown,
+    Settings2,
+    Coins,
+    X,
+};
 import { useState, useEffect } from 'react';
 import BeritaSection from '@/components/sections/berita-section';
 import BidangSection from '@/components/sections/bidang-section';
@@ -76,6 +109,7 @@ interface HomeProps {
     stats?: any[];
     beritaTerbaru?: NewsItem[];
     pengumumanTerbaru?: PengumumanItem[];
+    galeriTerbaru?: any[];
 }
 
 export default function Home({
@@ -86,6 +120,7 @@ export default function Home({
     stats = [],
     beritaTerbaru = [],
     pengumumanTerbaru = [],
+    galeriTerbaru = [],
 }: HomeProps) {
     const { pengaturan } = usePage().props as any;
     const siteName = pengaturan?.nama_website || 'Biro Keuangan & Aset UMRI';
@@ -161,8 +196,7 @@ export default function Home({
     const resolvedLayananItems =
         layanan?.items && layanan.items.length > 0
             ? layanan.items.map((item: any) => {
-                  const IconComponent =
-                      (Icons as any)[item.icon] || Icons.CheckCircle2;
+                  const IconComponent = IconMap[item.icon] || CheckCircle2;
                   return {
                       icon: IconComponent,
                       title: item.title,
@@ -172,22 +206,15 @@ export default function Home({
             : [];
 
     const finalLayanan = {
-        judul_section:
-            layanan?.judul_section ||
-            '',
-        deskripsi_section:
-            layanan?.deskripsi_section ||
-            '',
-        youtube_url:
-            layanan?.youtube_url ||
-            '',
+        judul_section: layanan?.judul_section || '',
+        deskripsi_section: layanan?.deskripsi_section || '',
+        youtube_url: layanan?.youtube_url || '',
         layananList: resolvedLayananItems,
     };
     const finalStats =
         stats && stats.length > 0
             ? stats.map((item: any) => {
-                  const IconComponent =
-                      (Icons as any)[item.icon] || Icons.Award;
+                  const IconComponent = IconMap[item.icon] || Award;
                   return {
                       icon: IconComponent,
                       value: item.value,
@@ -201,41 +228,54 @@ export default function Home({
 
     return (
         <>
-            <Head>
-                <title>{`Beranda - ${siteName}`}</title>
-                <meta name="description" content={siteDescription} />
-            </Head>
+            <Seo title="Beranda" />
 
             <div className="flex w-full flex-col">
-                {/* Seksi 1: Hero Slider */}
-                <HeroSlider slides={finalBanners} />
+                    {/* Seksi 1: Hero Slider */}
+                    <div className="overflow-hidden">
+                        <HeroSlider slides={finalBanners} />
+                    </div>
 
-                {/* Seksi 2: Kata Sambutan */}
-                <SambutanSection kepalaBiro={finalKepalaBiro} />
+                    {/* Seksi 2: Kata Sambutan */}
+                    <div className="overflow-hidden">
+                        <SambutanSection kepalaBiro={finalKepalaBiro} />
+                    </div>
 
-                {/* Seksi 3: Bidang / Bagian */}
-                <BidangSection bidangList={finalBidangs} />
+                    {/* Seksi 3: Bidang / Bagian */}
+                    <div className="overflow-hidden bka-lazy-section">
+                        <BidangSection bidangList={finalBidangs} />
+                    </div>
 
-                {/* Seksi 4: Layanan */}
-                <LayananSection
-                    title={finalLayanan.judul_section}
-                    description={finalLayanan.deskripsi_section}
-                    youtubeEmbedUrl={finalLayanan.youtube_url}
-                    layananList={finalLayanan.layananList}
-                />
+                    {/* Seksi 4: Layanan */}
+                    <div className="bka-lazy-section">
+                        <LayananSection
+                            title={finalLayanan.judul_section}
+                            description={finalLayanan.deskripsi_section}
+                            youtubeEmbedUrl={finalLayanan.youtube_url}
+                            layananList={finalLayanan.layananList}
+                        />
+                    </div>
 
-                {/* Seksi 5: Sorotan Berita Terbaru */}
-                <BeritaSection beritaList={finalBerita} />
+                    {/* Seksi 5: Sorotan Berita Terbaru */}
+                    <div className="overflow-hidden bka-lazy-section">
+                        <BeritaSection beritaList={finalBerita} />
+                    </div>
 
-                {/* Seksi 6: Sorotan Pengumuman Terbaru */}
-                <PengumumanSection pengumumanList={finalPengumuman} />
+                    {/* Seksi 6: Sorotan Pengumuman Terbaru */}
+                    <div className="overflow-hidden bka-lazy-section">
+                        <PengumumanSection pengumumanList={finalPengumuman} />
+                    </div>
 
-                {/* Seksi 7: Statistik Kelembagaan */}
-                <StatistikSection stats={finalStats} />
+                    {/* Seksi 7: Statistik Kelembagaan */}
+                    <div className="overflow-hidden bka-lazy-section">
+                        <StatistikSection stats={finalStats} />
+                    </div>
 
-                {/* Seksi Tambahan: CTA Dokumentasi */}
-                <CtaDokumentasi />
-            </div>
+                    {/* Seksi Tambahan: CTA Dokumentasi */}
+                    <div className="overflow-hidden bka-lazy-section">
+                        <CtaDokumentasi images={galeriTerbaru} />
+                    </div>
+                </div>
 
             {/* Modal Popup Pemberitahuan */}
             {showPopup && (
@@ -261,7 +301,7 @@ export default function Home({
                             className="text-neutral-850 border-neutral-250/30 absolute -top-4 -right-4 z-50 cursor-pointer rounded-full border bg-white p-2 shadow-md transition-all hover:bg-neutral-100 hover:text-black"
                             aria-label="Tutup"
                         >
-                            <Icons.X className="size-5 stroke-[2.5]" />
+                            <X className="size-5 stroke-[2.5]" />
                         </button>
 
                         {/* Flyer image */}
@@ -277,6 +317,8 @@ export default function Home({
                                     <img
                                         src={pengaturan.pemberitahuan_gambar}
                                         alt="Flyer Pemberitahuan"
+                                        width="800"
+                                        height="1000"
                                         className="h-auto max-h-[75vh] w-full rounded-2xl object-contain"
                                     />
                                 </a>
@@ -284,6 +326,8 @@ export default function Home({
                                 <img
                                     src={pengaturan.pemberitahuan_gambar}
                                     alt="Flyer Pemberitahuan"
+                                    width="800"
+                                    height="1000"
                                     className="h-auto max-h-[75vh] w-full rounded-2xl object-contain"
                                 />
                             )}

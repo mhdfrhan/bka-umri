@@ -58,6 +58,7 @@ export default function StatistikSection({
                     background:
                         'radial-gradient(circle, rgba(200,160,0,0.15) 0%, rgba(200,160,0,0) 70%)',
                     filter: 'blur(40px)',
+                    willChange: 'filter',
                 }}
             />
             <div
@@ -67,6 +68,7 @@ export default function StatistikSection({
                     background:
                         'radial-gradient(circle, rgba(4,141,70,0.3) 0%, rgba(4,141,70,0) 70%)',
                     filter: 'blur(30px)',
+                    willChange: 'filter',
                 }}
             />
 

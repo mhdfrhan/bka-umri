@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -27,6 +28,7 @@ interface BerkasItem {
     ukuran: number; // in bytes
     tanggal_upload: string;
     download_url: string;
+    urutan: number;
 }
 
 interface KategoriDetail {
@@ -35,9 +37,18 @@ interface KategoriDetail {
     deskripsi?: string;
 }
 
+interface SubCategory {
+    nama: string;
+    slug: string;
+    deskripsi?: string;
+    jumlah_berkas: number;
+    urutan: number;
+}
+
 interface Props {
     kategori?: KategoriDetail;
     berkas?: BerkasItem[];
+    subcategories?: SubCategory[];
 }
 
 // No mock categories for production
@@ -69,7 +80,11 @@ const getFileColorClasses = (filename: string | undefined | null) => {
     }
 };
 
-export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
+type UnifiedItem =
+    | ({ type: 'file' } & BerkasItem)
+    | ({ type: 'folder' } & SubCategory);
+
+export default function KategoriLampiranShow({ kategori, berkas = [], subcategories = [] }: Props) {
     const { url } = usePage();
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -77,18 +92,26 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
     const descRef = useScrollReveal<HTMLDivElement>();
     const listRef = useScrollRevealChildren<HTMLDivElement>('.bka-reveal');
 
+    if (!kategori) return null;
+
     // ─── Data Resolution ───
     const resolvedKategori = kategori;
-    const resolvedBerkas = berkas;
+
+    const unifiedList: UnifiedItem[] = [
+        ...subcategories.map(s => ({ ...s, type: 'folder' as const })),
+        ...berkas.map(b => ({ ...b, type: 'file' as const }))
+    ].sort((a, b) => a.urutan - b.urutan);
 
     // Local search filter based on query search
-    const filteredBerkas = resolvedBerkas.filter(
-        (file) =>
-            file.nama_tampilan
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase()) ||
-            file.deskripsi.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    const filteredList = unifiedList.filter((item) => {
+        if (item.type === 'folder') {
+            return item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                   (item.deskripsi?.toLowerCase().includes(searchQuery.toLowerCase()));
+        } else {
+            return item.nama_tampilan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                   (item.deskripsi?.toLowerCase().includes(searchQuery.toLowerCase()));
+        }
+    });
 
     const handleDownload = (filename: string) => {
         toast.success(`Mengunduh berkas: "${filename}"`);
@@ -142,7 +165,7 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e6f4ea] px-3.5 py-1 text-xs font-bold text-[#0a6c32]">
                                 <FolderOpen size={13} />
                                 <span>
-                                    {resolvedBerkas.length} Berkas Aktif
+                                    {unifiedList.length} Item
                                 </span>
                             </span>
                         </div>
@@ -192,70 +215,89 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                 </div>
             </section>
 
-            {/* List Berkas Section */}
+            {/* List Berkas & Subkategori Section */}
             <section className="min-h-[400px] flex-1 bg-[#F7F9F7] py-12 md:py-16">
                 <div className="bka-container">
                     <div className="mx-auto max-w-[900px]">
-                        {filteredBerkas.length > 0 ? (
+                        <h2 className="mb-4 text-lg font-bold text-[#1A1A1A]">Daftar Lampiran & Berkas</h2>
+                        {filteredList.length > 0 ? (
                             <div ref={listRef} className="flex flex-col gap-4">
-                                {filteredBerkas.map((file, idx) => {
-                                    const FileIconComponent = getFileIcon(
-                                        file.nama_tampilan,
-                                    );
-                                    const colorClasses = getFileColorClasses(
-                                        file.nama_tampilan,
-                                    );
+                                {filteredList.map((item, idx) => {
+                                    if (item.type === 'folder') {
+                                        return (
+                                            <div
+                                                key={`folder-${idx}`}
+                                                className={`bka-reveal bka-stagger-${(idx % 6) + 1} flex flex-col justify-between gap-5 rounded-2xl border border-[#DDE5DD] bg-white p-5 shadow-xs transition-all duration-300 hover:shadow-sm hover:border-[#0a6c32] sm:flex-row sm:items-center`}
+                                            >
+                                                <div className="flex flex-1 items-start gap-4">
+                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border bg-[#e6f4ea] text-[#0a6c32] border-[#DDE5DD]">
+                                                        <FolderOpen size={24} />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <h3 className="mb-1 text-[15px] leading-snug font-bold break-words text-[#1A1A1A] hover:text-[#0a6c32]">
+                                                            {item.nama}
+                                                        </h3>
+                                                        {item.deskripsi && (
+                                                            <p className="mb-3 text-[13px] leading-normal text-[#5C6B73]">
+                                                                {item.deskripsi}
+                                                            </p>
+                                                        )}
+                                                        <div className="flex flex-wrap items-center gap-6 gap-y-1.5 text-xs font-semibold text-[#9EAAB2] sm:gap-8">
+                                                            <span className="flex items-center gap-1.5">
+                                                                <FolderOpen size={13} className="text-[#5C6B73]/60" />
+                                                                <span>{item.jumlah_berkas} file di dalam</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="shrink-0 border-t border-[#F1F3F1] pt-3 sm:self-center sm:border-0 sm:pt-0">
+                                                    <Link
+                                                        href={`/lampiran/${item.slug}`}
+                                                        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl border border-[#0a6c32] text-[#0a6c32] px-4 py-2 text-xs font-bold transition-colors hover:bg-[#0a6c32] hover:text-white sm:w-auto"
+                                                    >
+                                                        <FolderOpen size={13} />
+                                                        <span>Buka Folder</span>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    const FileIconComponent = getFileIcon(item.nama_tampilan);
+                                    const colorClasses = getFileColorClasses(item.nama_tampilan);
 
                                     return (
                                         <div
-                                            key={idx}
+                                            key={`file-${idx}`}
                                             className={`bka-reveal bka-stagger-${(idx % 6) + 1} flex flex-col justify-between gap-5 rounded-2xl border border-[#DDE5DD] bg-white p-5 shadow-xs transition-all duration-300 hover:shadow-sm sm:flex-row sm:items-center`}
                                         >
                                             {/* Left Column: Icon and Info */}
                                             <div className="flex flex-1 items-start gap-4">
                                                 {/* File Icon Block */}
-                                                <div
-                                                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${colorClasses}`}
-                                                >
-                                                    <FileIconComponent
-                                                        size={24}
-                                                    />
+                                                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${colorClasses}`}>
+                                                    <FileIconComponent size={24} />
                                                 </div>
 
                                                 {/* Details */}
                                                 <div className="flex flex-col">
                                                     <h3 className="mb-1 text-[15px] leading-snug font-bold break-words text-[#1A1A1A] hover:text-[#0a6c32]">
-                                                        {file.nama_tampilan}
+                                                        {item.nama_tampilan}
                                                     </h3>
-                                                    <p className="mb-3 text-[13px] leading-normal text-[#5C6B73]">
-                                                        {file.deskripsi}
-                                                    </p>
+                                                    {item.deskripsi && (
+                                                        <p className="mb-3 text-[13px] leading-normal text-[#5C6B73]">
+                                                            {item.deskripsi}
+                                                        </p>
+                                                    )}
 
                                                     {/* Meta Metadata tags */}
                                                     <div className="flex flex-wrap items-center gap-6 gap-y-1.5 text-xs font-semibold text-[#9EAAB2] sm:gap-8">
                                                         <span className="flex items-center gap-1.5">
-                                                            <HardDrive
-                                                                size={13}
-                                                                className="text-[#5C6B73]/60"
-                                                            />
-                                                            <span>
-                                                                Ukuran:{' '}
-                                                                {formatFileSize(
-                                                                    file.ukuran,
-                                                                )}
-                                                            </span>
+                                                            <HardDrive size={13} className="text-[#5C6B73]/60" />
+                                                            <span>Ukuran: {formatFileSize(item.ukuran)}</span>
                                                         </span>
                                                         <span className="flex items-center gap-1.5">
-                                                            <Calendar
-                                                                size={13}
-                                                                className="text-[#5C6B73]/60"
-                                                            />
-                                                            <span>
-                                                                Diunggah:{' '}
-                                                                {formatDate(
-                                                                    file.tanggal_upload,
-                                                                )}
-                                                            </span>
+                                                            <Calendar size={13} className="text-[#5C6B73]/60" />
+                                                            <span>Diunggah: {formatDate(item.tanggal_upload)}</span>
                                                         </span>
                                                     </div>
                                                 </div>
@@ -264,15 +306,9 @@ export default function KategoriLampiranShow({ kategori, berkas = [] }: Props) {
                                             {/* Right Column: Download Button */}
                                             <div className="shrink-0 border-t border-[#F1F3F1] pt-3 sm:self-center sm:border-0 sm:pt-0">
                                                 <a
-                                                    href={file.download_url}
-                                                    download={
-                                                        file.nama_tampilan
-                                                    }
-                                                    onClick={() =>
-                                                        handleDownload(
-                                                            file.nama_tampilan,
-                                                        )
-                                                    }
+                                                    href={item.download_url}
+                                                    download={item.nama_tampilan}
+                                                    onClick={() => handleDownload(item.nama_tampilan)}
                                                     className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-[#0a6c32] px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#085627] sm:w-auto"
                                                 >
                                                     <Download size={13} />

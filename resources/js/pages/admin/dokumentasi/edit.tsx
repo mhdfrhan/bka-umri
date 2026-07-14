@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import {
     Images,
     ArrowLeft,
@@ -55,6 +55,7 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
     const [pickerTarget, setPickerTarget] = useState<'cover' | 'photos' | null>(
         null,
     );
+    const [uploadTarget, setUploadTarget] = useState<'cover' | 'photos'>('cover');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
         null,
@@ -116,14 +117,35 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
             return;
         }
 
+        setUploadTarget('cover');
         setSelectedUploadFile(file);
         setIsUploadModalOpen(true);
         e.target.value = '';
     };
 
     const handleUploadConfirm = (result: { base64: string }) => {
-        setData('coverUrl', result.base64);
-        toast.success('Cover album berhasil diunggah & dioptimasi!');
+        if (uploadTarget === 'cover') {
+            setData('coverUrl', result.base64);
+            toast.success('Cover album berhasil diunggah & dioptimasi!');
+        } else if (uploadTarget === 'photos') {
+            const nextOrder =
+                data.photos.length > 0
+                    ? Math.max(...data.photos.map((p) => p.order)) + 1
+                    : 1;
+
+            const newPhoto: PhotoItem = {
+                id: String(Date.now()),
+                url: result.base64,
+                order: nextOrder,
+            };
+
+            const newPhotos = [...data.photos, newPhoto];
+            setData('photos', newPhotos);
+            toast.success(`Foto berhasil ditambahkan ke draf. Jangan lupa klik Simpan Perubahan.`);
+        }
+        
+        setIsUploadModalOpen(false);
+        setSelectedUploadFile(null);
     };
 
     const handlePhotosUpload = async (
@@ -174,7 +196,21 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
 
         if (successCount > 0) {
             setData('photos', newPhotos);
-            toast.success(`${successCount} foto berhasil dimasukkan ke album!`);
+            toast.success(`${successCount} foto diproses. Menyimpan otomatis ke server...`);
+            
+            router.post(`/admin/dokumentasi/${album.id}`, {
+                ...data,
+                _method: 'PUT',
+                photos: newPhotos,
+            }, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Album berhasil diperbarui dengan foto terbaru!');
+                },
+                onError: () => {
+                    toast.error('Gagal menyimpan foto secara otomatis. Silakan klik tombol Simpan Perubahan.');
+                }
+            });
         }
 
         setIsUploadingPhotos(false);
@@ -322,7 +358,7 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="space-y-1.5 md:col-span-1">
                                 <label className="text-sm font-semibold text-neutral-700">
                                     Kategori Album
@@ -367,22 +403,22 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
                                     className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                                 />
                             </div>
+                        </div>
 
-                            <div className="space-y-1.5 md:col-span-1">
-                                <label className="text-sm font-semibold text-neutral-700">
-                                    Deskripsi Singkat (Maks 500 Karakter)
-                                </label>
-                                <textarea
-                                    maxLength={500}
-                                    rows={2}
-                                    value={data.deskripsi}
-                                    onChange={(e) =>
-                                        setData('deskripsi', e.target.value)
-                                    }
-                                    placeholder="Rangkuman singkat isi album liputan kegiatan ini..."
-                                    className="w-full resize-none rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                                />
-                            </div>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-neutral-700">
+                                Deskripsi Singkat (Maks 500 Karakter)
+                            </label>
+                            <textarea
+                                maxLength={500}
+                                rows={2}
+                                value={data.deskripsi}
+                                onChange={(e) =>
+                                    setData('deskripsi', e.target.value)
+                                }
+                                placeholder="Rangkuman singkat isi album liputan kegiatan ini..."
+                                className="w-full resize-none rounded-xl border border-neutral-200 bg-white p-3 text-sm font-semibold text-neutral-800 transition-all outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                            />
                         </div>
 
                         <div className="space-y-3 pt-2">
@@ -469,9 +505,16 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
                                     </span>
                                     <input
                                         type="file"
-                                        multiple
                                         accept="image/*"
-                                        onChange={handlePhotosUpload}
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setUploadTarget('photos');
+                                                setSelectedUploadFile(file);
+                                                setIsUploadModalOpen(true);
+                                                e.target.value = '';
+                                            }
+                                        }}
                                         className="hidden"
                                         disabled={isUploadingPhotos}
                                     />
@@ -612,8 +655,10 @@ export default function EditAlbum({ album, categories = [] }: EditAlbumProps) {
                     setSelectedUploadFile(null);
                 }}
                 file={selectedUploadFile}
+                aspectRatio={uploadTarget === 'cover' ? 16 / 9 : undefined}
+                defaultWidth={800}
+                defaultQuality={80}
                 onConfirm={handleUploadConfirm}
-                aspectRatio={16 / 9}
             />
         </>
     );

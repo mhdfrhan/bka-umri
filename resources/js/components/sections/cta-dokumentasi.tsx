@@ -98,6 +98,7 @@ export default function CtaDokumentasi({ images = [] }: { images?: any[] }) {
                                     alt={img.title}
                                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-103"
                                     loading="lazy"
+                                    decoding="async"
                                 />
 
                                 <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/25 to-transparent p-6 transition-opacity duration-300" />
@@ -127,6 +128,7 @@ export default function CtaDokumentasi({ images = [] }: { images?: any[] }) {
                                     alt={img.title}
                                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-103"
                                     loading="lazy"
+                                    decoding="async"
                                 />
 
                                 <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/25 to-transparent p-6 transition-opacity duration-300" />

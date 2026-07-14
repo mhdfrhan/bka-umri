@@ -50,6 +50,8 @@ class AsetMedia extends Model implements HasMedia
             ->width(400)
             ->height(225)
             ->fit(\Spatie\Image\Enums\Fit::Crop, 400, 225)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 }

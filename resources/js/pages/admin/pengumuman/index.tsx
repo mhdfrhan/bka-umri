@@ -77,7 +77,6 @@ export default function PengumumanIndex({
         });
     };
 
-    // Trash logic
     const [showTrashed, setShowTrashed] = useState(() => {
         if (typeof window !== 'undefined') {
             return new URLSearchParams(window.location.search).get('trashed') === 'true';

@@ -49,6 +49,8 @@ class BidangAnggota extends Model implements HasMedia
             ->width(300)
             ->height(300)
             ->fit(Fit::Crop, 300, 300)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 

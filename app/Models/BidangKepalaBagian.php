@@ -49,6 +49,8 @@ class BidangKepalaBagian extends Model implements HasMedia
             ->width(400)
             ->height(533)
             ->fit(Fit::Crop, 400, 533)
+            ->format('webp')
+            ->quality(80)
             ->nonQueued();
     }
 
