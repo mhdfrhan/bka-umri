@@ -17,7 +17,7 @@ class ChatbotSettingSeeder extends Seeder
             'primary_provider' => 'nvidia',
             'primary_base_url' => 'https://integrate.api.nvidia.com/v1',
             'primary_api_key' => '',
-            'primary_model' => 'openai/gpt-oss-120b',
+            'primary_model' => 'openai/gpt-oss-20b',
             
             'fallback_enabled' => '1',
             'fallback_provider' => 'groq',

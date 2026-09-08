@@ -224,7 +224,7 @@ PROMPT;
             $primaryConfig = [
                 'base_url' => ChatbotSetting::getValue('primary_base_url', 'https://integrate.api.nvidia.com/v1'),
                 'api_key' => ChatbotSetting::getValue('primary_api_key', ''),
-                'model' => ChatbotSetting::getValue('primary_model', 'nvidia/nemotron-3-ultra-550b-a55b'),
+                'model' => ChatbotSetting::getValue('primary_model', 'openai/gpt-oss-20b'),
             ];
 
             if ($primaryConfig['api_key']) {
@@ -434,13 +434,16 @@ PROMPT;
                     ['role' => 'user', 'content' => 'Balas hanya dengan kata "OK" saja.'],
                 ],
                 'temperature' => 0.1,
-                'max_tokens' => 10,
+                'max_tokens' => 256,
                 'stream' => false,
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                $reply = $data['choices'][0]['message']['content'] ?? 'No response';
+                $reply = $data['choices'][0]['message']['content']
+                    ?? $data['choices'][0]['message']['reasoning_content']
+                    ?? 'No response';
+                $reply = trim((string) $reply) ?: 'OK';
                 return [
                     'success' => true,
                     'message' => "Koneksi berhasil! Response: \"{$reply}\"",

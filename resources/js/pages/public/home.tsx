@@ -281,18 +281,20 @@ export default function Home({
             {showPopup && (
                 <div
                     onClick={handleClosePopup}
-                    className={`fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/80 p-4 backdrop-blur-xs transition-all duration-300 select-none ${
+                    style={{ willChange: 'opacity' }}
+                    className={`fixed inset-0 z-50 flex items-center justify-center bg-[#030712]/75 p-4 select-none ${
                         isExiting
-                            ? 'animate-out duration-300 fade-out'
-                            : 'animate-in duration-300 fade-in'
+                            ? 'animate-out duration-200 fade-out'
+                            : 'animate-in duration-200 fade-in'
                     }`}
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}
-                        className={`relative flex w-full max-w-2xl flex-col items-center justify-center bg-transparent transition-all duration-300 ${
+                        style={{ willChange: 'transform, opacity' }}
+                        className={`relative flex w-full max-w-2xl flex-col items-center justify-center bg-transparent ${
                             isExiting
-                                ? 'animate-out duration-300 zoom-out-95 fade-out'
-                                : 'animate-in duration-300 zoom-in-95 fade-in'
+                                ? 'animate-out duration-200 zoom-out-95 fade-out'
+                                : 'animate-in duration-200 zoom-in-95 fade-in'
                         }`}
                     >
                         {/* Close button top-right */}
@@ -319,6 +321,8 @@ export default function Home({
                                         alt="Flyer Pemberitahuan"
                                         width="800"
                                         height="1000"
+                                        loading="eager"
+                                        fetchPriority="high"
                                         className="h-auto max-h-[75vh] w-full rounded-2xl object-contain"
                                     />
                                 </a>
@@ -328,6 +332,8 @@ export default function Home({
                                     alt="Flyer Pemberitahuan"
                                     width="800"
                                     height="1000"
+                                    loading="eager"
+                                    fetchPriority="high"
                                     className="h-auto max-h-[75vh] w-full rounded-2xl object-contain"
                                 />
                             )}

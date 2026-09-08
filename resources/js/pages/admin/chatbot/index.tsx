@@ -379,7 +379,7 @@ export default function ChatbotSettingsPage({
                                                             const next = { ...prev, primary_provider: val };
                                                             if (val === 'nvidia') {
                                                                 next.primary_base_url = 'https://integrate.api.nvidia.com/v1';
-                                                                next.primary_model = 'openai/gpt-oss-120b';
+                                                                next.primary_model = 'openai/gpt-oss-20b';
                                                             } else if (val === 'groq') {
                                                                 next.primary_base_url = 'https://api.groq.com/openai/v1';
                                                                 next.primary_model = 'llama-3.3-70b-versatile';
@@ -403,12 +403,20 @@ export default function ChatbotSettingsPage({
                                                 <label className="text-xs font-bold text-neutral-800">Nama Model Utama</label>
                                                 <input
                                                     type="text"
+                                                    list="primary-models-list"
                                                     value={settings.primary_model}
-                                                    placeholder="Contoh: openai/gpt-oss-120b"
+                                                    placeholder="Contoh: openai/gpt-oss-20b"
                                                     onChange={(e) => handleInputChange('primary_model', e.target.value)}
                                                     className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                                     required
                                                 />
+                                                <datalist id="primary-models-list">
+                                                    <option value="openai/gpt-oss-20b" />
+                                                    <option value="openai/gpt-oss-120b" />
+                                                    <option value="nvidia/nemotron-3-super-120b-a12b" />
+                                                    <option value="llama-3.3-70b-versatile" />
+                                                    <option value="gpt-4o-mini" />
+                                                </datalist>
                                             </div>
 
                                             <div className="flex flex-col gap-1.5 md:col-span-2">
@@ -545,8 +553,9 @@ export default function ChatbotSettingsPage({
                                                             required
                                                         />
                                                         <datalist id="fallback-models-list">
-                                                            <option value="nvidia/nemotron-3-super-120b-a12b" />
+                                                            <option value="openai/gpt-oss-20b" />
                                                             <option value="openai/gpt-oss-120b" />
+                                                            <option value="nvidia/nemotron-3-super-120b-a12b" />
                                                             <option value="z-ai/glm-5.1" />
                                                             <option value="llama-3.3-70b-versatile" />
                                                             <option value="llama-3.1-8b-instant" />
