@@ -14,6 +14,8 @@ import {
     Globe,
     Database,
     CheckCircle2,
+    Volume2,
+    VolumeX,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -43,6 +45,95 @@ const getCsrfToken = (): string => {
     return xsrfCookie ? decodeURIComponent(xsrfCookie) : '';
 };
 
+// Web Audio API & Vibration Haptics (Sound & Haptics ala HanX Chat)
+class SoundFx {
+    private ctx: AudioContext | null = null;
+
+    private getContext(): AudioContext | null {
+        if (typeof window === 'undefined') return null;
+        if (!this.ctx) {
+            const AudioContextClass =
+                window.AudioContext ||
+                (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+            if (!AudioContextClass) return null;
+            this.ctx = new AudioContextClass();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        return this.ctx;
+    }
+
+    private tone(
+        freq: number,
+        start: number,
+        dur: number,
+        vol: number,
+        type: OscillatorType = 'sine',
+        endFreq?: number
+    ) {
+        try {
+            const ctx = this.getContext();
+            if (!ctx) return;
+            const t0 = ctx.currentTime + start;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t0);
+            if (endFreq) {
+                osc.frequency.exponentialRampToValueAtTime(endFreq, t0 + dur);
+            }
+
+            gain.gain.setValueAtTime(0.0001, t0);
+            gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + dur + 0.03);
+        } catch {
+            // Suppress audio context errors on restrictive browsers
+        }
+    }
+
+    private buzz(pattern: number | number[]) {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            try {
+                navigator.vibrate(pattern);
+            } catch {
+                // Ignore vibration errors if disabled
+            }
+        }
+    }
+
+    // Message dispatch effect (soft upward chime + short haptic)
+    playSent(muted: boolean) {
+        if (muted) return;
+        this.buzz(8);
+        this.tone(420, 0, 0.17, 0.15, 'sine', 1100);
+        this.tone(840, 0, 0.17, 0.04, 'triangle', 2200);
+    }
+
+    // Message arrival effect (crisp Apple-inspired tri-tone chime + double haptic)
+    playReceived(muted: boolean) {
+        if (muted) return;
+        this.buzz([12, 50, 14]);
+        this.tone(1175, 0, 0.32, 0.12);
+        this.tone(1568, 0.1, 0.4, 0.12);
+        this.tone(2093, 0.2, 0.55, 0.07);
+    }
+
+    // Toggle mute confirmation sound
+    playToggle(muted: boolean) {
+        if (muted) return;
+        this.buzz(10);
+        this.tone(880, 0, 0.12, 0.1);
+    }
+}
+
+const soundFx = new SoundFx();
+
 export default function ChatbotFloating() {
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
@@ -54,6 +145,36 @@ export default function ChatbotFloating() {
     const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
     const [inputText, setInputText] = useState('');
     const [showScrollBtn, setShowScrollBtn] = useState(false);
+
+    // Sound & Haptics state
+    const [isMuted, setIsMuted] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('bka-chatbot-muted') === '1';
+        } catch {
+            return false;
+        }
+    });
+    const isMutedRef = useRef(isMuted);
+    const hasPlayedArrivalRef = useRef(false);
+
+    useEffect(() => {
+        isMutedRef.current = isMuted;
+    }, [isMuted]);
+
+    const toggleMute = () => {
+        setIsMuted((prev) => {
+            const next = !prev;
+            try {
+                localStorage.setItem('bka-chatbot-muted', next ? '1' : '0');
+            } catch {
+                // Ignore storage errors
+            }
+            if (!next) {
+                soundFx.playToggle(false);
+            }
+            return next;
+        });
+    };
 
     // Typewriter Queue references
     const streamQueueRef = useRef<string>('');
@@ -295,6 +416,10 @@ export default function ChatbotFloating() {
             chatTextareaRef.current.style.height = 'auto';
         }
 
+        // Play Sound & Haptics for message dispatch
+        soundFx.playSent(isMutedRef.current);
+        hasPlayedArrivalRef.current = false;
+
         setIsTyping(true);
         setShowSuggestions(false);
         setIsGenerating(true);
@@ -395,6 +520,10 @@ export default function ChatbotFloating() {
             });
 
             if (!response.ok) {
+                if (!hasPlayedArrivalRef.current) {
+                    hasPlayedArrivalRef.current = true;
+                    soundFx.playReceived(isMutedRef.current);
+                }
                 isStreamingRef.current = false;
                 const errData = await response.json().catch(() => ({}));
                 const errMsg = errData.error || 'Terjadi gangguan sementara pada sistem. Silakan coba sesaat lagi.';
@@ -497,6 +626,10 @@ export default function ChatbotFloating() {
                                 }
                             } else if (parsed && parsed.text !== undefined && currentEvent !== 'done') {
                                 if (parsed.text !== '') {
+                                    if (!hasPlayedArrivalRef.current) {
+                                        hasPlayedArrivalRef.current = true;
+                                        soundFx.playReceived(isMutedRef.current);
+                                    }
                                     hasStartedContentRef.current = true;
                                     setAgentStatus('');
                                     streamQueueRef.current += parsed.text;
@@ -511,6 +644,10 @@ export default function ChatbotFloating() {
 
             isStreamingRef.current = false;
         } catch {
+            if (!hasPlayedArrivalRef.current) {
+                hasPlayedArrivalRef.current = true;
+                soundFx.playReceived(isMutedRef.current);
+            }
             isStreamingRef.current = false;
             if (typingIntervalRef.current) {
                 clearInterval(typingIntervalRef.current);
@@ -803,8 +940,27 @@ export default function ChatbotFloating() {
                                     </div>
                                 </div>
 
-                                {/* ─── Window Controls (3 Top Buttons + Reset) ─── */}
+                                {/* ─── Window Controls (3 Top Buttons + Mute + Reset) ─── */}
                                 <div className="flex items-center gap-1">
+                                    {/* Sound & Haptics Toggle (Web Audio API) */}
+                                    <button
+                                        onClick={toggleMute}
+                                        className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-all active:scale-95 ${
+                                            isMuted
+                                                ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                                                : 'text-[#0a6c32] bg-emerald-50 hover:bg-emerald-100'
+                                        }`}
+                                        title={isMuted ? 'Nyalakan Efek Suara & Getar' : 'Matikan Efek Suara & Getar'}
+                                        aria-label={isMuted ? 'Nyalakan Efek Suara & Getar' : 'Matikan Efek Suara & Getar'}
+                                        aria-pressed={!isMuted}
+                                    >
+                                        {isMuted ? (
+                                            <VolumeX className="h-3.5 w-3.5" />
+                                        ) : (
+                                            <Volume2 className="h-3.5 w-3.5" />
+                                        )}
+                                    </button>
+
                                     {/* Reset Chat */}
                                     <button
                                         onClick={handleNewSession}
