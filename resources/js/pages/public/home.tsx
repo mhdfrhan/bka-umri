@@ -167,6 +167,8 @@ export default function Home({
     }, [showPopup]);
 
     const handleClosePopup = () => {
+        if (isExiting) return;
+
         if (typeof window !== 'undefined' && dontShowToday) {
             const d = new Date();
             const year = d.getFullYear();
@@ -180,7 +182,7 @@ export default function Home({
         setTimeout(() => {
             setShowPopup(false);
             setIsExiting(false);
-        }, 300); // 300ms matches duration-300
+        }, 200);
     };
     // ----------------------------------------------------
     // Fallback Mock Data for UI Visual Completeness
@@ -282,19 +284,19 @@ export default function Home({
                 <div
                     onClick={handleClosePopup}
                     style={{ willChange: 'opacity' }}
-                    className={`fixed inset-0 z-50 flex items-center justify-center bg-[#030712]/75 p-4 select-none ${
+                    className={`fixed inset-0 z-50 flex items-center justify-center bg-[#030712]/75 p-4 select-none transition-opacity duration-200 ease-out ${
                         isExiting
-                            ? 'animate-out duration-200 fade-out'
-                            : 'animate-in duration-200 fade-in'
+                            ? 'opacity-0 pointer-events-none'
+                            : 'animate-in fade-in duration-200 opacity-100'
                     }`}
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}
                         style={{ willChange: 'transform, opacity' }}
-                        className={`relative flex w-full max-w-2xl flex-col items-center justify-center bg-transparent ${
+                        className={`relative flex w-full max-w-2xl flex-col items-center justify-center bg-transparent transition-all duration-200 ease-out ${
                             isExiting
-                                ? 'animate-out duration-200 zoom-out-95 fade-out'
-                                : 'animate-in duration-200 zoom-in-95 fade-in'
+                                ? 'opacity-0 scale-95 pointer-events-none'
+                                : 'animate-in fade-in zoom-in-95 duration-200 opacity-100 scale-100'
                         }`}
                     >
                         {/* Close button top-right */}

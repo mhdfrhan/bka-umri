@@ -44,6 +44,11 @@ class ChatbotController extends Controller
     {
         return response()->json([
             'session_id' => \Illuminate\Support\Str::uuid()->toString(),
+            'enabled' => \App\Models\ChatbotSetting::isEnabled(),
+            'greeting_message' => \App\Models\ChatbotSetting::getValue(
+                'greeting_message',
+                'Halo! 👋 Saya Asisten Virtual BKA UMRI. Ada yang bisa saya bantu hari ini?'
+            ),
         ]);
     }
 

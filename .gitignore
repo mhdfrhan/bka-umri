@@ -34,3 +34,4 @@ bka_umri.sql
 backup_data_bka.sql
 bka.umri.ac.id-*.json
 /storage/media-library/temp/
+/tasks/

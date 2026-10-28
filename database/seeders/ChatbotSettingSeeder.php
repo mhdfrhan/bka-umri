@@ -16,18 +16,18 @@ class ChatbotSettingSeeder extends Seeder
             'chatbot_enabled' => '1',
             'primary_provider' => 'nvidia',
             'primary_base_url' => 'https://integrate.api.nvidia.com/v1',
-            'primary_api_key' => '',
-            'primary_model' => 'openai/gpt-oss-20b',
+            'primary_api_key' => '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',
+            'primary_model' => 'nvidia/nemotron-3.5-super-vl-120b-a12b',
             
             'fallback_enabled' => '1',
-            'fallback_provider' => 'groq',
-            'fallback_base_url' => 'https://api.groq.com/openai/v1',
-            'fallback_api_key' => '',
-            'fallback_model' => 'llama-3.3-70b-versatile',
+            'fallback_provider' => 'nvidia',
+            'fallback_base_url' => 'https://integrate.api.nvidia.com/v1',
+            'fallback_api_key' => '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',
+            'fallback_model' => 'nvidia/nemotron-3-super-120b-a12b',
             
-            'temperature' => '1.0',
-            'top_p' => '1.0',
-            'max_tokens' => '4096',
+            'temperature' => '0.3',
+            'top_p' => '0.95',
+            'max_tokens' => '16384',
             'rate_limit' => '10',
             'context_max_messages' => '20',
             'max_input_length' => '500',
@@ -36,6 +36,13 @@ class ChatbotSettingSeeder extends Seeder
         ];
 
         foreach ($settings as $key => $value) {
+            if (in_array($key, ['primary_api_key', 'fallback_api_key'], true) && empty($value)) {
+                ChatbotSetting::firstOrCreate(
+                    ['key' => $key],
+                    ['value' => $value]
+                );
+                continue;
+            }
             ChatbotSetting::updateOrCreate(
                 ['key' => $key],
                 ['value' => $value]

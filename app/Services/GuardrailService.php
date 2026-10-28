@@ -31,7 +31,7 @@ class GuardrailService
         '/\b(koding|coding|kodingan|source\s*code|sintaks|syntax)\b/i',
         '/\b(kode|code)\s+(program|python|php|javascript|js|java|html|css|c\+\+|go|c#|sql|perulangan|loop)\b/i',
         '/\b(perulangan|looping)\b/i',
-        '/\b(mencetak|print)\s+.*(kali)\b/i',
+        '/\b(mencetak|print)\s+(angka|teks|string|bintang|bilangan|huruf|kata|baris|output)\b.*\b(kali|loop)\b/i',
     ];
 
     /**

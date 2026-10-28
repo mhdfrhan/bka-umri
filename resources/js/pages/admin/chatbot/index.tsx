@@ -314,13 +314,13 @@ export default function ChatbotSettingsPage({
                                             <input
                                                 type="number"
                                                 min="100"
-                                                max="4096"
+                                                max="32768"
                                                 value={settings.max_tokens}
                                                 onChange={(e) => handleInputChange('max_tokens', e.target.value)}
                                                 className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                                 required
                                             />
-                                            <p className="text-[10px] text-neutral-400">Batas panjang karakter teks respons yang dihasilkan model (1 token ≈ 4 karakter).</p>
+                                            <p className="text-[10px] text-neutral-400">Batas panjang token respons & reasoning (disarankan 16384 untuk model Nemotron/Thinking).</p>
                                         </div>
 
                                         {/* Context Max Messages */}
@@ -379,7 +379,7 @@ export default function ChatbotSettingsPage({
                                                             const next = { ...prev, primary_provider: val };
                                                             if (val === 'nvidia') {
                                                                 next.primary_base_url = 'https://integrate.api.nvidia.com/v1';
-                                                                next.primary_model = 'openai/gpt-oss-20b';
+                                                                next.primary_model = 'nvidia/nemotron-3.5-super-vl-120b-a12b';
                                                             } else if (val === 'groq') {
                                                                 next.primary_base_url = 'https://api.groq.com/openai/v1';
                                                                 next.primary_model = 'llama-3.3-70b-versatile';
@@ -405,15 +405,16 @@ export default function ChatbotSettingsPage({
                                                     type="text"
                                                     list="primary-models-list"
                                                     value={settings.primary_model}
-                                                    placeholder="Contoh: openai/gpt-oss-20b"
+                                                    placeholder="Contoh: nvidia/nemotron-3.5-super-vl-120b-a12b"
                                                     onChange={(e) => handleInputChange('primary_model', e.target.value)}
                                                     className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-xs font-medium outline-none focus:border-[#0a6c32] focus:ring-1 focus:ring-[#0a6c32]"
                                                     required
                                                 />
                                                 <datalist id="primary-models-list">
-                                                    <option value="openai/gpt-oss-20b" />
-                                                    <option value="openai/gpt-oss-120b" />
+                                                    <option value="nvidia/nemotron-3.5-super-vl-120b-a12b" />
                                                     <option value="nvidia/nemotron-3-super-120b-a12b" />
+                                                    <option value="openai/gpt-oss-120b" />
+                                                    <option value="openai/gpt-oss-20b" />
                                                     <option value="llama-3.3-70b-versatile" />
                                                     <option value="gpt-4o-mini" />
                                                 </datalist>
@@ -553,9 +554,10 @@ export default function ChatbotSettingsPage({
                                                             required
                                                         />
                                                         <datalist id="fallback-models-list">
+                                                            <option value="nvidia/nemotron-3.5-super-vl-120b-a12b" />
+                                                            <option value="nvidia/nemotron-3-super-120b-a12b" />
                                                             <option value="openai/gpt-oss-20b" />
                                                             <option value="openai/gpt-oss-120b" />
-                                                            <option value="nvidia/nemotron-3-super-120b-a12b" />
                                                             <option value="z-ai/glm-5.1" />
                                                             <option value="llama-3.3-70b-versatile" />
                                                             <option value="llama-3.1-8b-instant" />

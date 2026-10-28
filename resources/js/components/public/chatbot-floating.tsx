@@ -76,6 +76,10 @@ export default function ChatbotFloating() {
     
     // Session state
     const [sessionId, setSessionId] = useState<string>('');
+    const [greetingMessage, setGreetingMessage] = useState<string>(
+        'Halo! 👋 Saya Asisten Virtual BKA UMRI. Ada yang bisa saya bantu hari ini?'
+    );
+    const [isChatbotEnabled, setIsChatbotEnabled] = useState<boolean>(true);
 
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -123,31 +127,42 @@ export default function ChatbotFloating() {
                 ]);
             });
 
-        // Initialize session ID
-        let storedSessionId = localStorage.getItem('chatbot_session_id');
+        // Initialize session ID & fetch dynamic greeting/enabled status
+        const storedSessionId = localStorage.getItem('chatbot_session_id');
         if (storedSessionId) {
             setSessionId(storedSessionId);
-        } else {
-            fetch('/api/chatbot/new-session', { 
-                method: 'POST', 
-                headers: { 
-                    'X-CSRF-TOKEN': getCsrfToken(),
-                    'Accept': 'application/json'
-                } 
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.session_id) {
-                    localStorage.setItem('chatbot_session_id', data.session_id);
-                    setSessionId(data.session_id);
-                }
-            })
-            .catch(() => {
+        }
+
+        fetch('/api/chatbot/new-session', { 
+            method: 'POST', 
+            headers: { 
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'Accept': 'application/json'
+            } 
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (typeof data.enabled === 'boolean') {
+                setIsChatbotEnabled(data.enabled);
+            }
+            if (data.greeting_message) {
+                setGreetingMessage(data.greeting_message);
+                setMessages(prev =>
+                    prev.map(m => (m.id === 'welcome' ? { ...m, text: data.greeting_message } : m))
+                );
+            }
+            if (!storedSessionId && data.session_id) {
+                localStorage.setItem('chatbot_session_id', data.session_id);
+                setSessionId(data.session_id);
+            }
+        })
+        .catch(() => {
+            if (!storedSessionId) {
                 const localId = crypto.randomUUID();
                 localStorage.setItem('chatbot_session_id', localId);
                 setSessionId(localId);
-            });
-        }
+            }
+        });
 
         return () => clearTimeout(timer);
     }, []);
@@ -211,6 +226,10 @@ export default function ChatbotFloating() {
             })
             .then(res => res.json())
             .then(data => {
+                const nextGreeting = data.greeting_message || greetingMessage;
+                if (data.greeting_message) {
+                    setGreetingMessage(data.greeting_message);
+                }
                 if (data.session_id) {
                     localStorage.setItem('chatbot_session_id', data.session_id);
                     setSessionId(data.session_id);
@@ -218,7 +237,7 @@ export default function ChatbotFloating() {
                         {
                             id: 'welcome',
                             sender: 'bot',
-                            text: 'Halo! 👋 Saya Asisten Virtual BKA UMRI. Ada yang bisa saya bantu hari ini?',
+                            text: nextGreeting,
                             timestamp: new Date(),
                         },
                     ]);
@@ -234,7 +253,7 @@ export default function ChatbotFloating() {
                     {
                         id: 'welcome',
                         sender: 'bot',
-                        text: 'Halo! 👋 Saya Asisten Virtual BKA UMRI. Ada yang bisa saya bantu hari ini?',
+                        text: greetingMessage,
                         timestamp: new Date(),
                     },
                 ]);
@@ -429,6 +448,10 @@ export default function ChatbotFloating() {
         e.preventDefault();
         handleSendMessage(inputText);
     };
+
+    if (!isChatbotEnabled) {
+        return null;
+    }
 
     return (
         <>
