@@ -87,4 +87,30 @@ class ChatbotAccuracyTest extends TestCase
         ]);
         $this->assertStringContainsString('Rp 1.250.000 melalui Virtual Account Bank Syariah Indonesia', $detailToolOutput);
     }
+
+    public function test_web_search_tools_and_ssrf_protection_and_status_messages(): void
+    {
+        $tools = ChatbotToolService::getToolDefinitions();
+        $toolNames = array_map(fn($t) => $t['function']['name'], $tools);
+
+        $this->assertCount(6, $tools);
+        $this->assertContains('search_web', $toolNames);
+        $this->assertContains('read_web_page', $toolNames);
+
+        // SSRF protection checks
+        $this->assertFalse(ChatbotToolService::isSafePublicUrl('http://127.0.0.1/admin'));
+        $this->assertFalse(ChatbotToolService::isSafePublicUrl('http://localhost:8000/env'));
+        $this->assertFalse(ChatbotToolService::isSafePublicUrl('http://192.168.1.1/config'));
+        $this->assertTrue(ChatbotToolService::isSafePublicUrl('https://umri.ac.id'));
+
+        $blockedRead = ChatbotToolService::executeTool('read_web_page', ['url' => 'http://127.0.0.1/secret']);
+        $this->assertStringContainsString('tidak diizinkan', $blockedRead);
+
+        // Real-time status messages
+        $webStatus = ChatbotToolService::getToolStatusMessage('search_web', ['query' => 'fakultas di UMRI']);
+        $this->assertStringContainsString('Sedang mencari di internet: "fakultas di UMRI"', $webStatus);
+
+        $pageStatus = ChatbotToolService::getToolStatusMessage('read_web_page', ['url' => 'https://daftar.umri.ac.id/biaya/S1']);
+        $this->assertStringContainsString('daftar.umri.ac.id', $pageStatus);
+    }
 }
