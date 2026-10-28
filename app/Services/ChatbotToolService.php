@@ -196,25 +196,35 @@ class ChatbotToolService
         }
 
         $results = [];
+        $qLower = mb_strtolower($cleanQuery);
+        $isNewsQuery = str_contains($qLower, 'berita')
+            || str_contains($qLower, 'artikel')
+            || str_contains($qLower, 'blog')
+            || str_contains($qLower, 'terbaru')
+            || str_contains($qLower, 'terkini')
+            || str_contains($qLower, 'bulan')
+            || str_contains($qLower, 'tahun');
 
-        // 1. Primary: DuckDuckGo HTML Search
-        $ddgResults = self::searchDuckDuckGoHtml($cleanQuery);
-        foreach ($ddgResults as $item) {
-            $results[$item['url']] = $item;
+        // 1. If it's a news/recency query, run Google News RSS first (fast & has pub dates)
+        if ($isNewsQuery) {
+            $gnewsResults = self::searchGoogleNewsRss($cleanQuery);
+            foreach ($gnewsResults as $item) {
+                $results[$item['url']] = $item;
+            }
         }
 
-        // 2. Supplement: Wikipedia Bahasa Indonesia API (encyclopedic & institutional facts)
-        if (count($results) < 5) {
-            $wikiResults = self::searchWikipediaId($cleanQuery);
-            foreach ($wikiResults as $item) {
+        // 2. Primary Web: DuckDuckGo HTML Search
+        if (count($results) < 4) {
+            $ddgResults = self::searchDuckDuckGoHtml($cleanQuery);
+            foreach ($ddgResults as $item) {
                 if (!isset($results[$item['url']])) {
                     $results[$item['url']] = $item;
                 }
             }
         }
 
-        // 3. Supplement / Fallback: Google News Indonesia RSS for latest news
-        if (count($results) < 5) {
+        // 3. Fallback: Google News if not run yet
+        if (!$isNewsQuery && count($results) < 4) {
             $gnewsResults = self::searchGoogleNewsRss($cleanQuery);
             foreach ($gnewsResults as $item) {
                 if (!isset($results[$item['url']])) {
@@ -227,6 +237,16 @@ class ChatbotToolService
         if (count($results) < 4) {
             $bingResults = self::searchBingRss($cleanQuery);
             foreach ($bingResults as $item) {
+                if (!isset($results[$item['url']])) {
+                    $results[$item['url']] = $item;
+                }
+            }
+        }
+
+        // 5. Supplement: Wikipedia Bahasa Indonesia API (for institutional / encyclopedic facts)
+        if (!$isNewsQuery && count($results) < 4) {
+            $wikiResults = self::searchWikipediaId($cleanQuery);
+            foreach ($wikiResults as $item) {
                 if (!isset($results[$item['url']])) {
                     $results[$item['url']] = $item;
                 }
@@ -262,7 +282,7 @@ class ChatbotToolService
     private static function searchDuckDuckGoHtml(string $query): array
     {
         $url = 'https://html.duckduckgo.com/html/?q=' . rawurlencode($query) . '&kl=id-id';
-        $html = self::httpGet($url, 8);
+        $html = self::httpGet($url, 3.5);
         if ($html === '' || str_contains($html, 'anomaly-modal')) {
             return [];
         }
@@ -330,7 +350,7 @@ class ChatbotToolService
     private static function searchBingRss(string $query): array
     {
         $url = 'https://www.bing.com/search?q=' . rawurlencode($query) . '&setlang=id&cc=ID&format=rss';
-        $xmlStr = self::httpGet($url, 7);
+        $xmlStr = self::httpGet($url, 3.5);
         if ($xmlStr === '' || !str_contains($xmlStr, '<rss')) {
             return [];
         }
@@ -386,7 +406,7 @@ class ChatbotToolService
     private static function searchGoogleNewsRss(string $query): array
     {
         $url = 'https://news.google.com/rss/search?q=' . rawurlencode($query) . '&hl=id&gl=ID&ceid=ID:id';
-        $xmlStr = self::httpGet($url, 7);
+        $xmlStr = self::httpGet($url, 3.5);
         if ($xmlStr === '' || !str_contains($xmlStr, '<rss')) {
             return [];
         }
@@ -433,7 +453,7 @@ class ChatbotToolService
 
         // If query is related to UMRI, fetch the authoritative Universitas_Muhammadiyah_Riau summary directly
         if (str_contains($qLower, 'umri') || str_contains($qLower, 'muhammadiyah riau')) {
-            $summaryJson = self::httpGet('https://id.wikipedia.org/api/rest_v1/page/summary/Universitas_Muhammadiyah_Riau', 6);
+            $summaryJson = self::httpGet('https://id.wikipedia.org/api/rest_v1/page/summary/Universitas_Muhammadiyah_Riau', 3.0);
             if ($summaryJson !== '') {
                 $sData = json_decode($summaryJson, true);
                 if (!empty($sData['extract'])) {
@@ -451,7 +471,7 @@ class ChatbotToolService
             . rawurlencode($query)
             . '&utf8=1&format=json&srlimit=3';
 
-        $jsonStr = self::httpGet($url, 6);
+        $jsonStr = self::httpGet($url, 3.0);
         if ($jsonStr === '') {
             return $results;
         }
@@ -471,7 +491,7 @@ class ChatbotToolService
 
                 // Try fetching fuller summary extract for the top result
                 if (count($results) === 0) {
-                    $sumJson = self::httpGet('https://id.wikipedia.org/api/rest_v1/page/summary/' . rawurlencode($slug), 5);
+                    $sumJson = self::httpGet('https://id.wikipedia.org/api/rest_v1/page/summary/' . rawurlencode($slug), 3.0);
                     if ($sumJson !== '') {
                         $sumData = json_decode($sumJson, true);
                         if (!empty($sumData['extract'])) {
@@ -504,7 +524,7 @@ class ChatbotToolService
 
         // 1. Try Jina Reader for clean Markdown extraction
         $jinaUrl = 'https://r.jina.ai/' . $cleanUrl;
-        $jinaContent = self::httpGet($jinaUrl, 10, [
+        $jinaContent = self::httpGet($jinaUrl, 4.0, [
             'Accept: text/plain',
             'X-Return-Format: markdown',
         ]);
@@ -515,7 +535,7 @@ class ChatbotToolService
         }
 
         // 2. Fallback: Direct HTML fetch & local cleaning
-        $rawHtml = self::httpGet($cleanUrl, 10);
+        $rawHtml = self::httpGet($cleanUrl, 4.0);
         if ($rawHtml === '') {
             return "Gagal mengambil isi halaman dari URL '{$cleanUrl}'.";
         }
@@ -586,7 +606,7 @@ class ChatbotToolService
     /**
      * Perform a safe HTTP GET request using cURL.
      */
-    private static function httpGet(string $url, int $timeoutSeconds = 8, array $extraHeaders = []): string
+    private static function httpGet(string $url, float $timeoutSeconds = 4.0, array $extraHeaders = []): string
     {
         if (!function_exists('curl_init')) {
             return '';
@@ -601,9 +621,9 @@ class ChatbotToolService
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS => 3,
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_TIMEOUT => $timeoutSeconds,
+            CURLOPT_MAXREDIRS => 2,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_TIMEOUT => (int) ceil($timeoutSeconds),
             CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_SSL_VERIFYPEER => true,

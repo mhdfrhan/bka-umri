@@ -238,6 +238,13 @@ PROMPT;
     private static function streamFromLLM(ChatbotConversation $conversation, array $messages): StreamedResponse
     {
         return new StreamedResponse(function () use ($conversation, $messages) {
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(180);
+            }
+            if (function_exists('ignore_user_abort')) {
+                @ignore_user_abort(true);
+            }
+
             $startTime = microtime(true);
             $fullResponse = '';
             $modelUsed = '';
@@ -246,6 +253,7 @@ PROMPT;
 
             // Send initial SSE padding & immediate real-time status so browser renders activity immediately
             echo ": stream-init\n\n";
+            self::sendHeartbeat();
             self::sendSSE('status', 'Sedang menganalisis pertanyaan Anda...');
 
             // Try primary model
@@ -392,6 +400,11 @@ PROMPT;
 
         // Groq models often cap max_tokens at 4096 or 8192
         if (str_contains($baseUrlLower, 'groq.com') && $maxTokens > 4096) {
+            $maxTokens = 4096;
+        }
+
+        // In Round 0 (when tool calling is active), cap max_tokens so reasoning & tool selection is swift
+        if ($compatibilityLevel === 0 && !$forceFinalAnswer && $maxTokens > 4096) {
             $maxTokens = 4096;
         }
 
@@ -563,6 +576,7 @@ PROMPT;
             $hasSentDeepThinkingStatus = false;
             $hasSentToolPrepStatus = false;
             $hasClearedStatusForContent = false;
+            $lastHeartbeat = microtime(true);
 
             while (!$body->eof()) {
                 $chunk = $body->read(1024);
@@ -570,6 +584,13 @@ PROMPT;
                     break;
                 }
                 $buffer .= $chunk;
+
+                // Send periodic heartbeat every 2.0s to prevent Nginx / FastCGI / Cloudflare 504 Gateway Timeout
+                $now = microtime(true);
+                if ($now - $lastHeartbeat >= 2.0) {
+                    self::sendHeartbeat();
+                    $lastHeartbeat = $now;
+                }
 
                 // Process complete SSE lines
                 while (($pos = strpos($buffer, "\n")) !== false) {
@@ -710,9 +731,12 @@ PROMPT;
 
                     // Send real-time status describing the exact tool & query being executed
                     $statusText = ChatbotToolService::getToolStatusMessage($funcName, $parsedArgs);
+                    self::sendHeartbeat();
                     self::sendSSE('status', $statusText);
+                    self::sendHeartbeat();
 
                     $toolOutput = ChatbotToolService::executeTool($funcName, $parsedArgs);
+                    self::sendHeartbeat();
 
                     $messages[] = [
                         'role' => 'tool',
@@ -722,7 +746,9 @@ PROMPT;
                     ];
                 }
 
+                self::sendHeartbeat();
                 self::sendSSE('status', 'Sedang merangkum hasil temuan menjadi jawaban...');
+                self::sendHeartbeat();
                 continue;
             }
 
@@ -738,6 +764,19 @@ PROMPT;
     }
 
     /**
+     * Send an SSE comment heartbeat (: ping) to keep proxies (Nginx / FastCGI / Cloudflare) alive.
+     */
+    private static function sendHeartbeat(): void
+    {
+        echo ": ping\n\n";
+
+        if (ob_get_level() > 0) {
+            @ob_flush();
+        }
+        @flush();
+    }
+
+    /**
      * Send a Server-Sent Event.
      */
     private static function sendSSE(string $event, string $data): void
@@ -746,9 +785,9 @@ PROMPT;
         echo "data: " . json_encode(['text' => $data]) . "\n\n";
 
         if (ob_get_level() > 0) {
-            ob_flush();
+            @ob_flush();
         }
-        flush();
+        @flush();
     }
 
     /**
