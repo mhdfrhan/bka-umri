@@ -505,7 +505,7 @@ class ContextBuilder
         $email = Pengaturan::getValue('email', 'bka@umri.ac.id');
         $jamOps = Pengaturan::getValue('jam_operasional', 'Senin-Jumat 08.00-16.00 WIB, Sabtu 08.00-13.00 WIB');
 
-        return "[INFO KONTAK RESMI BKA UMRI]\nAlamat: {$alamat}\nTelepon Kantor: (0761) 35008\nWhatsApp Resmi Admin: +62 898-4336-960 (https://wa.me/628984336960)\nEmail: {$email}\nJam Operasional: {$jamOps}";
+        return "[INFO KONTAK RESMI BKA UMRI]\nAlamat: {$alamat}\nTelepon / Kontak: {$telepon}\nEmail: {$email}\nJam Operasional: {$jamOps}";
     }
 
     /**
