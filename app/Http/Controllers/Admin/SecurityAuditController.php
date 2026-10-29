@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuthLog;
 use App\Models\BlockedIp;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -90,9 +91,9 @@ class SecurityAuditController extends Controller
     /**
      * Clear all authentication logs.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return RedirectResponse
      */
-    public function clearLogs()
+    public function clearLogs(): RedirectResponse
     {
         AuthLog::truncate();
 
@@ -101,16 +102,16 @@ class SecurityAuditController extends Controller
             ->causedBy(auth()->user())
             ->log('Membersihkan log audit autentikasi keamanan.');
 
-        return response()->json(['success' => true]);
+        return redirect()->route('admin.security-audit.index')->with('success', 'Seluruh data rekapitulasi login berhasil dikosongkan.');
     }
 
     /**
      * Terminate / delete an active session.
      *
      * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return RedirectResponse
      */
-    public function terminateSession($id)
+    public function terminateSession($id): RedirectResponse
     {
         $session = DB::table('sessions')->where('id', $id)->first();
         if ($session) {
@@ -123,16 +124,16 @@ class SecurityAuditController extends Controller
                 ->log("Memutus paksa sesi masuk aktif untuk IP: {$ip}");
         }
 
-        return response()->json(['success' => true]);
+        return redirect()->route('admin.security-audit.index')->with('success', 'Sesi masuk berhasil diputus paksa.');
     }
 
     /**
      * Toggle IP blacklist state.
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return RedirectResponse
      */
-    public function toggleBlacklist(Request $request)
+    public function toggleBlacklist(Request $request): RedirectResponse
     {
         $request->validate([
             'ip' => 'required|string',
@@ -143,7 +144,7 @@ class SecurityAuditController extends Controller
 
         if ($blocked) {
             $blocked->delete();
-            $action = 'removed';
+            $message = "IP Address {$ip} berhasil dihapus dari daftar blokir.";
 
             activity('system')
                 ->causedBy(auth()->user())
@@ -153,16 +154,13 @@ class SecurityAuditController extends Controller
                 'ip_address' => $ip,
                 'reason' => 'Diblokir oleh administrator via panel audit keamanan',
             ]);
-            $action = 'added';
+            $message = "IP Address {$ip} berhasil dimasukkan ke daftar blokir sistem.";
 
             activity('system')
                 ->causedBy(auth()->user())
                 ->log("Memblokir alamat IP: {$ip}");
         }
 
-        return response()->json([
-            'success' => true,
-            'action' => $action,
-        ]);
+        return redirect()->route('admin.security-audit.index')->with('success', $message);
     }
 }

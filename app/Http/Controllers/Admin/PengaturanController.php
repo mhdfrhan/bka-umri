@@ -106,7 +106,7 @@ class PengaturanController extends Controller
             ];
         } elseif ($request->has('nama_website')) {
             if (!$isSuperAdmin) {
-                return response()->json(['error' => 'Akses ditolak.'], 403);
+                return redirect()->route('admin.settings.index')->with('error', 'Akses ditolak. Hanya Super Admin yang dapat mengubah pengaturan sistem.');
             }
             $request->validate([
                 'nama_website' => 'required|string|max:100',
