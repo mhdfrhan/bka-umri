@@ -309,7 +309,7 @@ class DokumentasiController extends Controller
             'nama' => $request->nama,
         ]);
 
-        return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
+        return redirect()->route('admin.dokumentasi.index')->with('success', 'Kategori baru berhasil ditambahkan.');
     }
 
     /**
@@ -320,6 +320,6 @@ class DokumentasiController extends Controller
         $kat = KategoriDokumentasi::findOrFail($id);
         $kat->delete();
 
-        return redirect()->back()->with('success', 'Kategori berhasil dihapus.');
+        return redirect()->route('admin.dokumentasi.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }

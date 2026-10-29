@@ -156,7 +156,7 @@ class PengaturanController extends Controller
             ->causedBy(auth()->user())
             ->log('Mengubah pengaturan sistem');
 
-        return redirect()->back()->with('success', 'Pengaturan berhasil diperbarui.');
+        return redirect()->route('admin.settings.index')->with('success', 'Pengaturan berhasil diperbarui.');
     }
 
     /**
@@ -172,7 +172,7 @@ class PengaturanController extends Controller
         $message->save();
 
         $statusStr = $message->is_read ? 'sudah dibaca' : 'belum dibaca';
-        return redirect()->back()->with('success', "Pesan ditandai sebagai {$statusStr}.");
+        return redirect()->route('admin.settings.index')->with('success', "Pesan ditandai sebagai {$statusStr}.");
     }
 
     /**
@@ -186,6 +186,6 @@ class PengaturanController extends Controller
         $message = PesanKontak::findOrFail($id);
         $message->delete();
 
-        return redirect()->back()->with('success', 'Pesan berhasil dihapus.');
+        return redirect()->route('admin.settings.index')->with('success', 'Pesan berhasil dihapus.');
     }
 }

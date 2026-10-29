@@ -134,7 +134,7 @@ class LogController extends Controller
     {
         Activity::truncate();
 
-        return redirect()->back()->with('success', 'Seluruh log aktivitas sistem berhasil dikosongkan.');
+        return redirect()->route('admin.logs.index')->with('success', 'Seluruh log aktivitas sistem berhasil dikosongkan.');
     }
 
     /**
@@ -218,6 +218,6 @@ class LogController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Berhasil memuat ulang data log contoh (Mock Logs).');
+        return redirect()->route('admin.logs.index')->with('success', 'Berhasil memuat ulang data log contoh (Mock Logs).');
     }
 }

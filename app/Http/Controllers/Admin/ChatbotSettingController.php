@@ -89,7 +89,7 @@ class ChatbotSettingController extends Controller
             ->causedBy(auth()->user())
             ->log('Mengubah pengaturan Chatbot AI');
 
-        return redirect()->back()->with('success', 'Pengaturan Chatbot berhasil diperbarui.');
+        return redirect()->route('admin.chatbot.index')->with('success', 'Pengaturan Chatbot berhasil diperbarui.');
     }
 
     /**

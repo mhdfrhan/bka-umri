@@ -332,7 +332,7 @@ class BeritaController extends Controller
 
         cache()->forget('kategori_beritas');
 
-        return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
+        return redirect()->route('admin.berita.index')->with('success', 'Kategori baru berhasil ditambahkan.');
     }
 
     /**
@@ -345,6 +345,6 @@ class BeritaController extends Controller
 
         cache()->forget('kategori_beritas');
 
-        return redirect()->back()->with('success', 'Kategori berhasil dihapus.');
+        return redirect()->route('admin.berita.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }

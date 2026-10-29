@@ -82,7 +82,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', 'Folder kategori berhasil ditambahkan.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Folder kategori berhasil ditambahkan.');
     }
 
     /**
@@ -107,7 +107,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', 'Kategori berhasil diperbarui.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Kategori berhasil diperbarui.');
     }
 
     /**
@@ -136,7 +136,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->route('admin.dokumen.index')->with('success', $message);
     }
 
     /**
@@ -154,7 +154,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', 'Kategori beserta berkas di dalamnya berhasil dipulihkan.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Kategori beserta berkas di dalamnya berhasil dipulihkan.');
     }
 
     /**
@@ -176,7 +176,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', 'Urutan kategori berhasil diperbarui.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Urutan kategori berhasil diperbarui.');
     }
 
     /**
@@ -195,7 +195,7 @@ class DokumenController extends Controller
             }
         });
 
-        return redirect()->back()->with('success', 'Urutan berkas berhasil diperbarui.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Urutan berkas berhasil diperbarui.');
     }
 
     /**
@@ -222,7 +222,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', 'Urutan berhasil diperbarui.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Urutan berhasil diperbarui.');
     }
 
     /**
@@ -346,7 +346,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', count($request->input('berkas_files')) . ' berkas berhasil diunggah.');
+        return redirect()->route('admin.dokumen.index')->with('success', count($request->input('berkas_files')) . ' berkas berhasil diunggah.');
     }
 
     /**
@@ -414,7 +414,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', 'Informasi berkas berhasil diperbarui.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Informasi berkas berhasil diperbarui.');
     }
 
     /**
@@ -435,7 +435,7 @@ class DokumenController extends Controller
         cache()->forget('kategori_lampirans');
         cache()->forget('kategori_lampirans_root');
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->route('admin.dokumen.index')->with('success', $message);
     }
 
     /**
@@ -448,6 +448,6 @@ class DokumenController extends Controller
 
         cache()->forget('kategori_lampirans');
 
-        return redirect()->back()->with('success', 'Berkas berhasil dipulihkan.');
+        return redirect()->route('admin.dokumen.index')->with('success', 'Berkas berhasil dipulihkan.');
     }
 }

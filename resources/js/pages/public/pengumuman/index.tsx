@@ -277,7 +277,7 @@ export default function PengumumanIndex({
                                         Ada kendala registrasi keuangan mahasiswa, Virtual Account bank, atau bebas keuangan? Hubungi layanan Care Desk BKA.
                                     </p>
                                     <a
-                                        href={`https://wa.me/${(pengaturan?.telepon || '').includes('/') ? (pengaturan?.telepon || '').split('/')[1].replace(/\D/g, '') : (pengaturan?.telepon || '628117676000').replace(/\D/g, '')}`}
+                                        href={`https://wa.me/${(pengaturan?.telepon || '').includes('/') ? (pengaturan?.telepon || '').split('/')[1].replace(/\D/g, '') : (pengaturan?.telepon || '628984336960').replace(/\D/g, '')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="group flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-white text-[#0a6c32] text-xs font-black tracking-wider uppercase shadow-md transition-all duration-300 hover:bg-[#E8C840] hover:text-[#0a6c32] hover:scale-102 active:scale-98"

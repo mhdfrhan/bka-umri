@@ -84,7 +84,7 @@ class AsetController extends Controller
             }
         });
 
-        return redirect()->back()->with('success', 'File berhasil diunggah & dioptimasi.');
+        return redirect()->route('admin.aset.index')->with('success', 'File berhasil diunggah & dioptimasi.');
     }
 
     /**
@@ -104,7 +104,7 @@ class AsetController extends Controller
             'is_visible' => $request->is_visible,
         ]);
 
-        return redirect()->back()->with('success', 'Aset berhasil diperbarui.');
+        return redirect()->route('admin.aset.index')->with('success', 'Aset berhasil diperbarui.');
     }
 
     /**
@@ -115,7 +115,7 @@ class AsetController extends Controller
         $aset = AsetMedia::findOrFail($id);
         $aset->delete();
 
-        return redirect()->back()->with('success', 'Aset berhasil dihapus.');
+        return redirect()->route('admin.aset.index')->with('success', 'Aset berhasil dihapus.');
     }
 
     /**

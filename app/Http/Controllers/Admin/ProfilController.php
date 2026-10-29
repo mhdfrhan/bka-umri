@@ -52,7 +52,7 @@ class ProfilController extends Controller
             'konten' => RichTextSanitizer::sanitize($request->konten),
         ]);
 
-        return redirect()->back()->with('success', 'Konten Tentang Kami berhasil diperbarui.');
+        return redirect()->route('admin.profil.tentang.edit')->with('success', 'Konten Tentang Kami berhasil diperbarui.');
     }
 
     /**
@@ -117,7 +117,7 @@ class ProfilController extends Controller
             }
         });
 
-        return redirect()->back()->with('success', 'Visi & Misi berhasil diperbarui.');
+        return redirect()->route('admin.profil.visiMisi.edit')->with('success', 'Visi & Misi berhasil diperbarui.');
     }
 
     /**
@@ -224,6 +224,6 @@ class ProfilController extends Controller
             }
         });
 
-        return redirect()->back()->with('success', 'Struktur Organisasi berhasil diperbarui.');
+        return redirect()->route('admin.profil.struktur.edit')->with('success', 'Struktur Organisasi berhasil diperbarui.');
     }
 }

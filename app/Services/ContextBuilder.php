@@ -501,11 +501,11 @@ class ContextBuilder
     private static function getContactInfo(): string
     {
         $alamat = Pengaturan::getValue('alamat', 'Gedung Rektorat Lt. 1, Jl. T. Tambusai, Pekanbaru');
-        $telepon = Pengaturan::getValue('telepon', '(0761) 35008');
+        $telepon = Pengaturan::getValue('telepon', '(0761) 35008 / +62 898-4336-960');
         $email = Pengaturan::getValue('email', 'bka@umri.ac.id');
         $jamOps = Pengaturan::getValue('jam_operasional', 'Senin-Jumat 08.00-16.00 WIB, Sabtu 08.00-13.00 WIB');
 
-        return "[INFO KONTAK BKA UMRI]\nAlamat: {$alamat}\nTelepon: {$telepon}\nEmail: {$email}\nJam Operasional: {$jamOps}";
+        return "[INFO KONTAK RESMI BKA UMRI]\nAlamat: {$alamat}\nTelepon Kantor: (0761) 35008\nWhatsApp Resmi Admin: +62 898-4336-960 (https://wa.me/628984336960)\nEmail: {$email}\nJam Operasional: {$jamOps}";
     }
 
     /**
