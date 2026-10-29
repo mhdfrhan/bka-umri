@@ -64,6 +64,10 @@ class KontakController extends Controller
             'is_read' => false,
         ]);
 
+        if ($request->header('X-Inertia')) {
+            return redirect()->route('public.kontak.index')->with('success', 'Pesan Anda berhasil terkirim ke sistem BKA UMRI.');
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Pesan Anda berhasil terkirim ke sistem BKA UMRI.',

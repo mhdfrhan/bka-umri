@@ -91,7 +91,7 @@ class BerandaController extends Controller
     public function storeBanner(Request $request)
     {
         if (Banner::count() >= 5) {
-            return redirect()->back()->with('error', 'Batas maksimum 5 slide banner telah tercapai.');
+            return redirect()->route('admin.beranda.edit')->with('error', 'Batas maksimum 5 slide banner telah tercapai.');
         }
 
         $request->validate([

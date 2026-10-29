@@ -77,7 +77,7 @@ class BidangController extends Controller
     public function store(Request $request)
     {
         if (Bidang::count() >= 6) {
-            return redirect()->back()->with('error', 'Batas maksimum 6 bidang telah tercapai.');
+            return redirect()->route('admin.bidang.index')->with('error', 'Batas maksimum 6 bidang telah tercapai.');
         }
 
         $request->validate([

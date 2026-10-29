@@ -103,9 +103,13 @@ class MonitoringController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function cleanup()
+    public function cleanup(Request $request)
     {
         $result = SystemCleanupService::run();
+
+        if ($request->header('X-Inertia')) {
+            return redirect()->route('admin.monitoring.index')->with('success', $result['message'] ?? 'Pembersihan dan optimasi sistem berhasil.');
+        }
 
         return response()->json($result);
     }

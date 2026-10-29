@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PengumumanController extends Controller
 {
@@ -82,7 +83,9 @@ class PengumumanController extends Controller
 
         $plainTextContent = trim(strip_tags($request->isi));
         if (mb_strlen($plainTextContent) < 20) {
-            return redirect()->back()->withErrors(['isi' => 'Isi pengumuman minimal harus 20 karakter!'])->withInput();
+            throw ValidationException::withMessages([
+                'isi' => 'Isi pengumuman minimal harus 20 karakter!',
+            ]);
         }
 
         DB::transaction(function () use ($request) {
@@ -169,7 +172,9 @@ class PengumumanController extends Controller
 
         $plainTextContent = trim(strip_tags($request->isi));
         if (mb_strlen($plainTextContent) < 20) {
-            return redirect()->back()->withErrors(['isi' => 'Isi pengumuman minimal harus 20 karakter!'])->withInput();
+            throw ValidationException::withMessages([
+                'isi' => 'Isi pengumuman minimal harus 20 karakter!',
+            ]);
         }
 
         DB::transaction(function () use ($request, $pengumuman) {

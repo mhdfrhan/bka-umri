@@ -192,8 +192,14 @@ class AsetController extends Controller
 
         try {
             MediaUploadHelper::deleteMediaByUrl($request->url);
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('admin.aset.index')->with('success', 'Gambar editor berhasil dihapus.');
+            }
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
+            if ($request->header('X-Inertia')) {
+                return redirect()->route('admin.aset.index')->with('error', $e->getMessage());
+            }
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }

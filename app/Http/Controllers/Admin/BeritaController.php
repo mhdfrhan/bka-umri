@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class BeritaController extends Controller
 {
@@ -122,7 +123,9 @@ class BeritaController extends Controller
 
         $plainTextContent = trim(strip_tags($request->isi));
         if (mb_strlen($plainTextContent) < 50) {
-            return redirect()->back()->withErrors(['isi' => 'Isi berita minimal harus 50 karakter!'])->withInput();
+            throw ValidationException::withMessages([
+                'isi' => 'Isi berita minimal harus 50 karakter!',
+            ]);
         }
 
         DB::transaction(function () use ($request) {
@@ -231,7 +234,9 @@ class BeritaController extends Controller
 
         $plainTextContent = trim(strip_tags($request->isi));
         if (mb_strlen($plainTextContent) < 50) {
-            return redirect()->back()->withErrors(['isi' => 'Isi berita minimal harus 50 karakter!'])->withInput();
+            throw ValidationException::withMessages([
+                'isi' => 'Isi berita minimal harus 50 karakter!',
+            ]);
         }
 
         DB::transaction(function () use ($request, $berita) {
