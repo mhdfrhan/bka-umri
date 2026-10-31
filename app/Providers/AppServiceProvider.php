@@ -66,6 +66,10 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureDefaults(): void
     {
+        if (app()->isProduction() || request()->header('X-Forwarded-Proto') === 'https' || request()->server('HTTPS') === 'on') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         Date::use(CarbonImmutable::class);
 
         DB::prohibitDestructiveCommands(

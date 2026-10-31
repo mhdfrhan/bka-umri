@@ -100,6 +100,8 @@ class BeritaController extends Controller
             ->firstOrFail();
 
         $berita = [
+            'id' => $item->id,
+            'updated_at' => $item->updated_at ? $item->updated_at->timestamp : $item->created_at->timestamp,
             'slug' => $item->slug,
             'thumbnail' => $item->getFirstMediaUrl('thumbnail') ?: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
             'category' => $item->kategori ? $item->kategori->nama : 'Tanpa Kategori',

@@ -3,6 +3,7 @@ import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { Seo } from '@/components/seo';
 import { Head, Link } from '@inertiajs/react';
+import AiSummaryCard from '@/components/public/ai-summary-card';
 import {
     ArrowLeft,
     Calendar,
@@ -17,6 +18,8 @@ import { toast } from 'sonner';
 import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 
 interface NewsItem {
+    id: number;
+    updated_at?: number | string;
     slug: string;
     thumbnail: string;
     category?: string;
@@ -189,6 +192,14 @@ export default function BeritaShow({ berita }: { berita: NewsItem }) {
                         ref={articleRef}
                         className="bka-reveal mx-auto max-w-[760px]"
                     >
+                        {/* Ringkasan AI */}
+                        <AiSummaryCard
+                            id={berita.id}
+                            updatedAt={berita.updated_at}
+                            type="berita"
+                            title={berita.title}
+                        />
+
                         {/* Prose Content */}
                         <div
                             className="prose-[#5C6B73] prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-h3:text-2xl prose-a:text-[#0a6c32] prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-[#C8A000] prose-blockquote:bg-[#F7F9F7] prose-blockquote:px-6 prose-blockquote:py-3 prose-blockquote:font-medium prose-blockquote:text-[#0a6c32] prose-blockquote:italic prose-img:rounded-2xl prose-img:shadow-md"

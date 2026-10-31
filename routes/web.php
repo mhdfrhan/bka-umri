@@ -44,6 +44,9 @@ Route::post('/api/chatbot/send', [\App\Http\Controllers\Public\ChatbotController
 Route::post('/api/chatbot/new-session', [\App\Http\Controllers\Public\ChatbotController::class, 'newSession'])->name('api.chatbot.new-session');
 Route::get('/api/chatbot/faqs', [\App\Http\Controllers\Public\ChatbotController::class, 'faqs'])->name('api.chatbot.faqs');
 
+// AI Summary Public API
+Route::post('/api/ai/summarize', [\App\Http\Controllers\Public\AiSummaryController::class, 'summarize'])->name('api.ai.summarize')->middleware('throttle:15,1');
+
 
 // ──────────────────────────────────────────────────────────────
 // Route Admin & Super Admin

@@ -1,5 +1,6 @@
 import { Seo } from '@/components/seo';
 import { Head, Link } from '@inertiajs/react';
+import AiSummaryCard from '@/components/public/ai-summary-card';
 import {
     ArrowLeft,
     Calendar,
@@ -25,6 +26,8 @@ interface Attachment {
 }
 
 interface AnnouncementDetail {
+    id: number;
+    updated_at?: number | string;
     title: string;
     slug: string;
     content: string;
@@ -189,6 +192,14 @@ export default function PengumumanShow({
                                 />
                             </>
                         )}
+
+                        {/* Ringkasan AI */}
+                        <AiSummaryCard
+                            id={announcement.id}
+                            updatedAt={announcement.updated_at}
+                            type="pengumuman"
+                            title={announcement.title}
+                        />
 
                         {/* Prose Content */}
                         <div

@@ -60,6 +60,8 @@ class PengumumanController extends Controller
             ->firstOrFail();
 
         $announcement = [
+            'id' => $item->id,
+            'updated_at' => $item->updated_at ? $item->updated_at->timestamp : $item->created_at->timestamp,
             'title' => $item->judul,
             'slug' => $item->slug,
             'content' => $item->isi,

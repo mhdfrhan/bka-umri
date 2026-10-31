@@ -792,6 +792,118 @@ PROMPT;
     }
 
     /**
+     * Generate an executive, well-structured AI summary for a public article (berita / pengumuman).
+     * Uses the configured chatbot primary LLM with fallback support.
+     *
+     * @param string $title
+     * @param string $content
+     * @param string $type 'berita' | 'pengumuman'
+     * @return string|null Markdown summary, or null on failure
+     */
+    public static function generateArticleSummary(string $title, string $content, string $type = 'berita'): ?string
+    {
+        // 1. Clean and truncate content
+        $cleanContent = strip_tags($content);
+        $cleanContent = html_entity_decode($cleanContent, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $cleanContent = preg_replace('/\s+/', ' ', $cleanContent);
+        $cleanContent = trim($cleanContent);
+
+        if (mb_strlen($cleanContent) < 40) {
+            return null; // Not enough content to summarize
+        }
+
+        if (mb_strlen($cleanContent) > 20000) {
+            $cleanContent = mb_substr($cleanContent, 0, 20000) . '... [dipersingkat]';
+        }
+
+        $typeLabel = $type === 'pengumuman' ? 'Pengumuman Resmi' : 'Berita / Informasi';
+
+        // 2. Structured system prompt
+        $systemPrompt = <<<PROMPT
+Anda adalah Analis Informasi Resmi Biro Keuangan dan Aset (BKA) Universitas Muhammadiyah Riau (UMRI).
+Tugas Anda adalah membuat ringkasan eksekutif yang padat, akurat, dan sangat terstruktur dari naskah {$typeLabel} yang diberikan.
+
+PANDUAN FORMAT WAJIB (MARKDOWN):
+1. **Ikhtisar Utama:** Mulai langsung dengan 1-2 kalimat lugas yang merangkum inti sari pengumuman/berita tanpa kata pengantar/basa-basi.
+2. **Poin-Poin Penting:** Sajikan poin-poin krusial menggunakan bullet list (`- `) dengan topik kunci dicetak **tebal** (contoh: `- **Batas Waktu:** 15 November 2026`).
+3. **Tabel Terstruktur (Wajib jika ada data terstruktur):**
+   - JIKA naskah memuat tanggal, jadwal, persyaratan dokumen, tahapan alur, daftar rincian biaya, atau kontak person, WAJIB buat dalam bentuk Markdown Table (`| Kolom 1 | Kolom 2 | ... |`).
+   - Buat tabel ringkas, rapi, dan mudah dipahami dalam sekali lihat.
+4. **Catatan / Imbauan Khusus:** Jika ada instruksi penting, sanksi, atau peringatan, cantumkan di akhir menggunakan format kutipan:
+   > **Perhatian:** [Peringatan penting di sini]
+
+ATURAN KETAT:
+- DILARANG menambahkan kalimat pembuka atau penutup (misalnya: "Halo", "Berikut adalah ringkasan...", "Semoga informasi ini bermanfaat").
+- DILARANG memperkenalkan diri sebagai AI atau chatbot. Mulai teks langsung dari isi ringkasan.
+- Gunakan Bahasa Indonesia formal, bersih, dan profesional sesuai standar resmi BKA UMRI.
+PROMPT;
+
+        $userPrompt = "JUDUL: {$title}\n\nISI NASKAH:\n{$cleanContent}\n\nSilakan buat ringkasan eksekutif terstruktur sesuai panduan di atas.";
+
+        $messages = [
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $userPrompt],
+        ];
+
+        // 3. Try primary model
+        $primaryConfig = [
+            'provider' => ChatbotSetting::getValue('primary_provider', 'nvidia'),
+            'base_url' => ChatbotSetting::getValue('primary_base_url', 'https://integrate.api.nvidia.com/v1'),
+            'api_key' => ChatbotSetting::getValue('primary_api_key', ''),
+            'model' => ChatbotSetting::getValue('primary_model', 'nvidia/nemotron-3.5-super-vl-120b-a12b'),
+        ];
+
+        if (!empty($primaryConfig['api_key'])) {
+            try {
+                $compatLevel = 1;
+                $response = self::sendLLMRequestWithFallback($primaryConfig, $messages, false, $compatLevel, true);
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $summary = $data['choices'][0]['message']['content']
+                        ?? $data['choices'][0]['message']['reasoning_content']
+                        ?? null;
+                    if ($summary && trim((string) $summary) !== '') {
+                        return trim((string) $summary);
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('AI Article Summary Primary Model Failed: ' . $e->getMessage());
+            }
+        }
+
+        // 4. Try fallback model if enabled
+        $fallbackEnabled = ChatbotSetting::getValue('fallback_enabled', '0') === '1';
+        if ($fallbackEnabled) {
+            $fallbackConfig = [
+                'provider' => ChatbotSetting::getValue('fallback_provider', 'nvidia'),
+                'base_url' => ChatbotSetting::getValue('fallback_base_url', 'https://integrate.api.nvidia.com/v1'),
+                'api_key' => ChatbotSetting::getValue('fallback_api_key', ''),
+                'model' => ChatbotSetting::getValue('fallback_model', 'nvidia/nemotron-3-super-120b-a12b'),
+            ];
+
+            if (!empty($fallbackConfig['api_key'])) {
+                try {
+                    $compatLevel = 1;
+                    $response = self::sendLLMRequestWithFallback($fallbackConfig, $messages, false, $compatLevel, true);
+                    if ($response->successful()) {
+                        $data = $response->json();
+                        $summary = $data['choices'][0]['message']['content']
+                            ?? $data['choices'][0]['message']['reasoning_content']
+                            ?? null;
+                        if ($summary && trim((string) $summary) !== '') {
+                            return trim((string) $summary);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('AI Article Summary Fallback Model Failed: ' . $e->getMessage());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Test connection to an LLM provider (for admin panel).
      * Uses the same adaptive payload & fallback logic as real chat requests.
      *
