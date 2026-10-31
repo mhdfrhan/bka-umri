@@ -16,6 +16,7 @@ import {
     ShieldAlert,
     Globe,
     Bot,
+    Inbox,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -94,6 +95,11 @@ const mainNavItems: NavItem[] = [
         icon: FolderDown,
     },
     {
+        title: 'Kontak Masuk',
+        href: '/admin/kontak-masuk',
+        icon: Inbox,
+    },
+    {
         title: 'Pengguna',
         href: '/admin/users',
         icon: Users,
@@ -149,7 +155,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage().props as unknown as { auth: Auth };
+    const { auth, unreadMessagesCount } = usePage().props as any;
     const isSuperAdmin = auth?.user?.roles?.includes('super_admin');
 
     const filteredNavItems = mainNavItems
@@ -160,6 +166,15 @@ export function AppSidebar() {
             return true;
         })
         .map((item) => {
+            if (item.href === '/admin/kontak-masuk') {
+                return {
+                    ...item,
+                    badge:
+                        unreadMessagesCount && Number(unreadMessagesCount) > 0
+                            ? String(unreadMessagesCount)
+                            : undefined,
+                };
+            }
             if (item.badge === 'Super' && !isSuperAdmin) {
                 return { ...item, badge: undefined };
             }

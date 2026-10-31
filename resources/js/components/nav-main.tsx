@@ -173,7 +173,14 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                         {item.title}
                                     </span>
                                     {item.badge && (
-                                        <span className="ml-auto rounded-full border border-amber-200/50 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-amber-700 uppercase group-data-[collapsible=icon]:hidden">
+                                        <span
+                                            className={cn(
+                                                'ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wider group-data-[collapsible=icon]:hidden',
+                                                item.badge === 'Super'
+                                                    ? 'border border-amber-200/50 bg-amber-50 text-amber-700 uppercase'
+                                                    : 'border border-rose-200 bg-rose-500 font-black text-white shadow-2xs',
+                                            )}
+                                        >
                                             {item.badge}
                                         </span>
                                     )}

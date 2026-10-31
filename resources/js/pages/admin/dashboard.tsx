@@ -388,7 +388,7 @@ export default function AdminDashboard({
                         <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 text-sm text-neutral-500">
                             <span>Belum dibaca</span>
                             <Link
-                                href="/admin/settings"
+                                href="/admin/kontak-masuk"
                                 className="font-semibold text-teal-600 hover:text-teal-700"
                             >
                                 Lihat Semua

@@ -46,24 +46,8 @@ class PengaturanController extends Controller
             'pemberitahuan_tombol_teks' => Pengaturan::getValue('pemberitahuan_tombol_teks', ''),
         ];
 
-        $dbInbox = PesanKontak::orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($msg) {
-                return [
-                    'id' => (string)$msg->id,
-                    'nama' => $msg->nama,
-                    'email' => $msg->email,
-                    'subjek' => $msg->subjek,
-                    'pesan' => $msg->pesan,
-                    'tanggal' => $msg->created_at->toIso8601String(),
-                    'dibaca' => $msg->is_read,
-                ];
-            })
-            ->toArray();
-
         return Inertia::render('admin/settings/index', [
             'dbSettings' => $dbSettings,
-            'dbInbox' => $dbInbox,
         ]);
     }
 
@@ -157,35 +141,5 @@ class PengaturanController extends Controller
             ->log('Mengubah pengaturan sistem');
 
         return redirect()->route('admin.settings.index')->with('success', 'Pengaturan berhasil diperbarui.');
-    }
-
-    /**
-     * Toggle read status of inbox message.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function toggleRead($id)
-    {
-        $message = PesanKontak::findOrFail($id);
-        $message->is_read = !$message->is_read;
-        $message->save();
-
-        $statusStr = $message->is_read ? 'sudah dibaca' : 'belum dibaca';
-        return redirect()->route('admin.settings.index')->with('success', "Pesan ditandai sebagai {$statusStr}.");
-    }
-
-    /**
-     * Delete an inbox message.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroyMessage($id)
-    {
-        $message = PesanKontak::findOrFail($id);
-        $message->delete();
-
-        return redirect()->route('admin.settings.index')->with('success', 'Pesan berhasil dihapus.');
     }
 }

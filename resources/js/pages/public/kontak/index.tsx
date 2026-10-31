@@ -216,6 +216,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
     const [formData, setFormData] = useState({
         nama: '',
         email: '',
+        nomor_wa: '',
         subjek: '',
         pesan: '',
     });
@@ -224,6 +225,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
     const [errors, setErrors] = useState({
         nama: '',
         email: '',
+        nomor_wa: '',
         subjek: '',
         pesan: '',
     });
@@ -247,7 +249,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
     // Client-side validation logic
     const validateForm = () => {
         let isValid = true;
-        const newErrors = { nama: '', email: '', subjek: '', pesan: '' };
+        const newErrors = { nama: '', email: '', nomor_wa: '', subjek: '', pesan: '' };
 
         if (!formData.nama.trim()) {
             newErrors.nama = 'Nama lengkap wajib diisi';
@@ -261,6 +263,15 @@ export default function KontakIndex({ kontak }: KontakProps) {
             isValid = false;
         } else if (!emailRegex.test(formData.email)) {
             newErrors.email = 'Format alamat email tidak valid';
+            isValid = false;
+        }
+
+        const cleanedPhone = formData.nomor_wa.replace(/[^0-9]/g, '');
+        if (!formData.nomor_wa.trim()) {
+            newErrors.nomor_wa = 'Nomor WhatsApp wajib diisi';
+            isValid = false;
+        } else if (cleanedPhone.length < 9 || cleanedPhone.length > 16) {
+            newErrors.nomor_wa = 'Nomor WhatsApp harus valid (minimal 9 digit)';
             isValid = false;
         }
 
@@ -317,6 +328,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                 setFormData({
                     nama: '',
                     email: '',
+                    nomor_wa: '',
                     subjek: '',
                     pesan: '',
                 });
@@ -330,6 +342,7 @@ export default function KontakIndex({ kontak }: KontakProps) {
                     const validationErrors = {
                         nama: '',
                         email: '',
+                        nomor_wa: '',
                         subjek: '',
                         pesan: '',
                     };
@@ -587,6 +600,42 @@ export default function KontakIndex({ kontak }: KontakProps) {
                                         {errors.email && (
                                             <span className="text-xs font-semibold text-rose-600">
                                                 {errors.email}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* WhatsApp Number Input */}
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <label
+                                                htmlFor="nomor_wa"
+                                                className="text-xs font-bold text-[#1A1A1A]"
+                                            >
+                                                Nomor WhatsApp Aktif{' '}
+                                                <span className="text-rose-500">
+                                                    *
+                                                </span>
+                                            </label>
+                                            <span className="text-[11px] text-[#5C6B73]">
+                                                Untuk respon cepat via WhatsApp
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="tel"
+                                            id="nomor_wa"
+                                            name="nomor_wa"
+                                            value={formData.nomor_wa}
+                                            onChange={handleChange}
+                                            placeholder="Contoh: 081234567890"
+                                            className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] text-[#1A1A1A] transition-colors focus:ring-1 focus:outline-none ${
+                                                errors.nomor_wa
+                                                    ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500 focus:ring-rose-500'
+                                                    : 'border-[#DDE5DD] focus:border-[#0a6c32] focus:ring-[#0a6c32]'
+                                            }`}
+                                        />
+                                        {errors.nomor_wa && (
+                                            <span className="text-xs font-semibold text-rose-600">
+                                                {errors.nomor_wa}
                                             </span>
                                         )}
                                     </div>

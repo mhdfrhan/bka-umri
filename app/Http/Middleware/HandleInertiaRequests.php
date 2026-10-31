@@ -55,6 +55,7 @@ class HandleInertiaRequests extends Middleware
                 'info' => fn () => $request->session()->get('info'),
             ],
             'pengaturan' => fn () => \App\Models\Pengaturan::getAllCached(),
+            'unreadMessagesCount' => fn () => $user ? \App\Models\PesanKontak::where('is_read', false)->count() : 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

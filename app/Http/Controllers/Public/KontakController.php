@@ -52,6 +52,7 @@ class KontakController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:100',
             'email' => 'required|email|max:255',
+            'nomor_wa' => ['required', 'string', 'min:9', 'max:25', 'regex:/^[0-9\+\-\s\(\)]+$/'],
             'subjek' => 'required|string|max:150',
             'pesan' => 'required|string|min:20',
         ]);
@@ -59,6 +60,7 @@ class KontakController extends Controller
         PesanKontak::create([
             'nama' => $validated['nama'],
             'email' => $validated['email'],
+            'nomor_wa' => $validated['nomor_wa'],
             'subjek' => $validated['subjek'],
             'pesan' => $validated['pesan'],
             'is_read' => false,

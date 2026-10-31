@@ -11,6 +11,7 @@ class PesanKontak extends Model
     protected $fillable = [
         'nama',
         'email',
+        'nomor_wa',
         'subjek',
         'pesan',
         'is_read',

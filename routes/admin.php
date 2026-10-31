@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DokumentasiController;
 use App\Http\Controllers\Admin\AsetController;
 use App\Http\Controllers\Admin\DokumenController;
 use App\Http\Controllers\Admin\PengaturanController;
+use App\Http\Controllers\Admin\PesanMasukController;
 use App\Http\Controllers\Admin\DashboardController;
 
 // ──────────────────────────────────────────────────────────────
@@ -89,11 +90,18 @@ Route::middleware(['auth', 'verified', 'check_active', 'admin'])
             Route::delete('/berkas/{id}', [DokumenController::class, 'destroyBerkas'])->name('admin.dokumen.berkas.destroy');
         });
 
-        // Pengaturan Web & Inbox
+        // Kontak Masuk
+        Route::prefix('kontak-masuk')->group(function () {
+            Route::get('/', [PesanMasukController::class, 'index'])->name('admin.kontak-masuk.index');
+            Route::post('/{id}/toggle-read', [PesanMasukController::class, 'toggleRead'])->name('admin.kontak-masuk.toggle-read');
+            Route::delete('/{id}', [PesanMasukController::class, 'destroy'])->name('admin.kontak-masuk.destroy');
+        });
+
+        // Pengaturan Web
         Route::get('/settings', [PengaturanController::class, 'index'])->name('admin.settings.index');
         Route::post('/settings', [PengaturanController::class, 'updateSettings'])->name('admin.settings.update');
-        Route::post('/settings/inbox/{id}/toggle-read', [PengaturanController::class, 'toggleRead'])->name('admin.settings.inbox.toggle-read');
-        Route::delete('/settings/inbox/{id}', [PengaturanController::class, 'destroyMessage'])->name('admin.settings.inbox.destroy');
+        Route::post('/settings/inbox/{id}/toggle-read', [PesanMasukController::class, 'toggleRead'])->name('admin.settings.inbox.toggle-read');
+        Route::delete('/settings/inbox/{id}', [PesanMasukController::class, 'destroy'])->name('admin.settings.inbox.destroy');
 
         // Kelola Chatbot AI
         Route::prefix('chatbot')->group(function () {
