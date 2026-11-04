@@ -98,27 +98,47 @@ export default function KontakIndex({ kontak }: KontakProps) {
 
         let map: any;
 
-        import('maplibre-gl').then((maplibreglModule) => {
-            const maplibregl = maplibreglModule.default;
+        import('maplibre-gl')
+            .then((maplibreglModule: any) => {
+                const maplibregl =
+                    maplibreglModule?.Map
+                        ? maplibreglModule
+                        : maplibreglModule?.default?.Map
+                          ? maplibreglModule.default
+                          : maplibreglModule?.default?.default?.Map
+                            ? maplibreglModule.default.default
+                            : maplibreglModule?.default || maplibreglModule;
 
-            map = new maplibregl.Map({
-                container: mapContainerRef.current!,
-                style: MAP_STYLES[0].url, // Voyager
-                center: [101.415461, 0.498705], // Lng, Lat
-                zoom: 16,
-                pitch: 0,
-                bearing: 0,
-                dragRotate: true,
-            });
+                if (!maplibregl || typeof maplibregl.Map !== 'function') {
+                    console.warn(
+                        'MapLibre GL Map constructor unavailable:',
+                        maplibreglModule,
+                    );
+                    return;
+                }
 
-            mapInstanceRef.current = map;
+                if (!mapContainerRef.current) {
+                    return;
+                }
 
-            // Wait for style to load then add custom Forrest Green marker
-            map.on('load', () => {
-                // Create custom pulsed marker DOM element
-                const el = document.createElement('div');
-                el.className = 'custom-marker';
-                el.innerHTML = `
+                map = new maplibregl.Map({
+                    container: mapContainerRef.current,
+                    style: MAP_STYLES[0].url, // Voyager
+                    center: [101.415461, 0.498705], // Lng, Lat
+                    zoom: 16,
+                    pitch: 0,
+                    bearing: 0,
+                    dragRotate: true,
+                });
+
+                mapInstanceRef.current = map;
+
+                // Wait for style to load then add custom Forrest Green marker
+                map.on('load', () => {
+                    // Create custom pulsed marker DOM element
+                    const el = document.createElement('div');
+                    el.className = 'custom-marker';
+                    el.innerHTML = `
                     <div class="relative flex items-center justify-center">
                         <div class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-[#0a6c32] opacity-75"></div>
                         <div class="relative flex items-center justify-center rounded-full bg-[#0a6c32] border-2 border-white p-2.5 text-white shadow-md">
@@ -129,33 +149,36 @@ export default function KontakIndex({ kontak }: KontakProps) {
                     </div>
                 `;
 
-                // Add popup
-                new maplibregl.Popup({
-                    offset: 25,
-                    closeButton: false,
-                    closeOnClick: false,
-                })
-                    .setLngLat([101.415461, 0.498705])
-                    .setHTML(`
+                    // Add popup
+                    new maplibregl.Popup({
+                        offset: 25,
+                        closeButton: false,
+                        closeOnClick: false,
+                    })
+                        .setLngLat([101.415461, 0.498705])
+                        .setHTML(`
                     <div class="p-2 text-center select-none font-sans">
                         <p class="font-extrabold text-[#1A1A1A] text-xs">Kantor BKA UMRI</p>
                         <p class="text-[10px] text-neutral-500 font-light mt-0.5">Gedung Rektorat Kampus Utama</p>
                     </div>
                 `)
-                    .addTo(map);
+                        .addTo(map);
 
-                // Create and add marker
-                new maplibregl.Marker({ element: el })
-                    .setLngLat([101.415461, 0.498705])
-                    .addTo(map);
-            });
+                    // Create and add marker
+                    new maplibregl.Marker({ element: el })
+                        .setLngLat([101.415461, 0.498705])
+                        .addTo(map);
+                });
 
-            // Track coordinate moves
-            map.on('move', () => {
-                const center = map.getCenter();
-                setCenterCoords({ lat: center.lat, lng: center.lng });
+                // Track coordinate moves
+                map.on('move', () => {
+                    const center = map.getCenter();
+                    setCenterCoords({ lat: center.lat, lng: center.lng });
+                });
+            })
+            .catch((err) => {
+                console.error('Failed to initialize MapLibre GL:', err);
             });
-        });
 
         // Cleanup map instance on unmount
         return () => {
